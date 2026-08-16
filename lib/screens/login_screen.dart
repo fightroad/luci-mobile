@@ -10,6 +10,9 @@ import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/services/secure_storage_service.dart';
 import 'package:luci_mobile/utils/url_parser.dart';
 
+/// When true in [RouteSettings.arguments], skip a second auto-login attempt.
+const String kLoginSkipAutoLogin = 'skipAutoLogin';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -32,7 +35,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _checkReviewerModeAndAutoLogin();
     _logoAnimController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1200),
@@ -42,9 +44,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       duration: AppConfig.reviewerModeActivationDuration,
     );
     _logoAnimController.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_checkReviewerModeAndAutoLogin());
+    });
   }
 
   Future<void> _checkReviewerModeAndAutoLogin() async {
+    final args = ModalRoute.of(context)?.settings.arguments;
+    final skipAutoLogin = args is Map && args[kLoginSkipAutoLogin] == true;
+
     // Check if reviewer mode is enabled
     final secureStorage = SecureStorageService();
     final reviewerModeEnabled = await secureStorage.readValue(
@@ -52,12 +60,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
 
     if (reviewerModeEnabled == 'true' && mounted) {
-      // Navigate directly to main screen in reviewer mode
       unawaited(Navigator.of(context).pushReplacementNamed('/'));
-    } else {
-      // Try auto login
-      unawaited(_tryAutoLogin());
+      return;
     }
+
+    if (skipAutoLogin) {
+      // Splash already tried auto-login; show the form with saved device hints.
+      if (!mounted) return;
+      _prefillFromSavedRouter();
+      setState(() {
+        _isCheckingAutoLogin = false;
+      });
+      return;
+    }
+
+    unawaited(_tryAutoLogin());
   }
 
   void _startReviewerModeActivation() {

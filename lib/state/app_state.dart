@@ -72,6 +72,11 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  final Completer<void> _initCompleter = Completer<void>();
+
+  /// Completes after first-time service/router bootstrap finishes.
+  Future<void> get initialized => _initCompleter.future;
+
   AppState._() {
     _initialize();
   }
@@ -81,12 +86,18 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
-    await _loadReviewerMode();
-    _initializeServices();
-    await _loadThemeMode();
-    await loadRouters(); // Load routers on app start (sets selectedRouter)
-    await _migrateGlobalDashboardPreferencesIfNeeded(); // Proactively migrate legacy prefs
-    await loadDashboardPreferences(); // Load prefs scoped to selected router
+    try {
+      await _loadReviewerMode();
+      _initializeServices();
+      await _loadThemeMode();
+      await loadRouters(); // Load routers on app start (sets selectedRouter)
+      await _migrateGlobalDashboardPreferencesIfNeeded(); // Proactively migrate legacy prefs
+      await loadDashboardPreferences(); // Load prefs scoped to selected router
+    } finally {
+      if (!_initCompleter.isCompleted) {
+        _initCompleter.complete();
+      }
+    }
   }
 
   /// One-time migration: if a global 'dashboard_preferences' exists,

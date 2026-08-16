@@ -1,18 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
-import 'package:luci_mobile/services/secure_storage_service.dart';
-import 'package:luci_mobile/config/app_config.dart';
+import 'package:luci_mobile/main.dart';
+import 'package:luci_mobile/screens/login_screen.dart' show kLoginSkipAutoLogin;
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _logoScale;
@@ -26,26 +27,38 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _logoScale = CurvedAnimation(parent: _controller, curve: Curves.elasticOut);
     _controller.forward();
-    _checkReviewerMode();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_bootstrap());
+    });
   }
 
-  Future<void> _checkReviewerMode() async {
-    await Future.delayed(const Duration(seconds: 2));
+  Future<void> _bootstrap() async {
+    final splashDelay = Future<void>.delayed(const Duration(seconds: 2));
+    final appState = ref.read(appStateProvider);
+    await appState.initialized;
+
+    if (appState.reviewerModeEnabled) {
+      await splashDelay;
+      if (!mounted) return;
+      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      return;
+    }
+
+    // Overlap remaining splash time with the login request when possible.
+    final autoLoginFuture = appState.tryAutoLogin(context: context);
+    await splashDelay;
+    final success = await autoLoginFuture;
 
     if (!mounted) return;
-
-    // Check if reviewer mode is enabled
-    final secureStorage = SecureStorageService();
-    final reviewerModeEnabled = await secureStorage.readValue(
-      AppConfig.reviewerModeKey,
-    );
-
-    if (reviewerModeEnabled == 'true' && mounted) {
-      // Navigate directly to main screen in reviewer mode
+    if (success) {
       unawaited(Navigator.of(context).pushReplacementNamed('/'));
-    } else if (mounted) {
-      // Normal flow - go to login screen
-      unawaited(Navigator.of(context).pushReplacementNamed('/login'));
+    } else {
+      unawaited(
+        Navigator.of(context).pushReplacementNamed(
+          '/login',
+          arguments: {kLoginSkipAutoLogin: true},
+        ),
+      );
     }
   }
 
@@ -104,7 +117,9 @@ class _SplashScreenState extends State<SplashScreen>
                       Text(
                         l10n.openWrtRouterControl,
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: colorScheme.onPrimaryContainer.withValues(alpha: 0.8),
+                          color: colorScheme.onPrimaryContainer.withValues(
+                            alpha: 0.8,
+                          ),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
