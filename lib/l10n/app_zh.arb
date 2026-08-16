@@ -263,6 +263,7 @@
   "disabled": "已禁用",
   "channelShort": "信道",
   "ssid": "SSID",
+  "accessPoint": "接入点",
   "certificateWarning": "证书警告",
   "certificateWarningMessage": "设备不信任 {host} 的证书。这可能表示存在安全风险。",
   "@certificateWarningMessage": {

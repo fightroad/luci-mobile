@@ -667,6 +667,14 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                       client.dnsName!,
                       semanticsLabel: '${l10n.dnsName}: ${client.dnsName}',
                     ),
+                  if (client.accessPoint != null &&
+                      client.accessPoint!.isNotEmpty)
+                    detailRow(
+                      l10n.accessPoint,
+                      client.accessPoint!,
+                      semanticsLabel:
+                          '${l10n.accessPoint}: ${client.accessPoint}',
+                    ),
                   const Divider(height: 1, indent: 16, endIndent: 16),
                   const SizedBox(height: 8),
                   detailRow(

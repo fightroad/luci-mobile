@@ -52,7 +52,8 @@ abstract class IApiService {
     required String interface,
     BuildContext? context,
   });
-  Future<Map<String, Set<String>>> fetchAllAssociatedWirelessMacsWithContext({
+  /// Associated wireless clients mapped as normalized MAC → access point SSID.
+  Future<Map<String, String>> fetchAllAssociatedWirelessMacsWithContext({
     required String ipAddress,
     required String sysauth,
     required bool useHttps,

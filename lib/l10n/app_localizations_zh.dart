@@ -647,6 +647,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ssid => 'SSID';
 
   @override
+  String get accessPoint => '接入点';
+
+  @override
   String get certificateWarning => '证书警告';
 
   @override

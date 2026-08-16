@@ -393,9 +393,9 @@ class RealApiService implements IApiService {
     );
   }
 
-  /// Fetches all associated wireless MAC addresses from all wireless interfaces for real API
+  /// Fetches associated wireless clients as normalized MAC → access point SSID.
   @override
-  Future<Map<String, Set<String>>> fetchAllAssociatedWirelessMacsWithContext({
+  Future<Map<String, String>> fetchAllAssociatedWirelessMacsWithContext({
     required String ipAddress,
     required String sysauth,
     required bool useHttps,
@@ -418,7 +418,7 @@ class RealApiService implements IApiService {
         final wirelessData = wirelessResult[1] as Map<String, dynamic>?;
         if (wirelessData == null) return {};
 
-        final result = <String, Set<String>>{};
+        final result = <String, String>{};
 
         // For each wireless radio, get the associated stations
         for (final entry in wirelessData.entries) {
@@ -429,20 +429,28 @@ class RealApiService implements IApiService {
           if (interfaces == null) continue;
 
           for (final iface in interfaces) {
-            if (iface is Map<String, dynamic>) {
-              final ifname = iface['ifname'] as String?;
-              if (ifname != null) {
-                // Fetch associated stations for this interface
-                final stations = await fetchAssociatedStationsWithContext(
-                  ipAddress: ipAddress,
-                  sysauth: sysauth,
-                  useHttps: useHttps,
-                  interface: ifname,
-                  context: context?.mounted == true ? context : null,
-                );
-                if (stations.isNotEmpty) {
-                  result[ifname] = stations.toSet();
-                }
+            if (iface is! Map<String, dynamic>) continue;
+            final ifname = iface['ifname'] as String?;
+            if (ifname == null) continue;
+
+            final config = iface['config'];
+            final iwinfo = iface['iwinfo'];
+            final ssid =
+                (iwinfo is Map ? iwinfo['ssid']?.toString() : null) ??
+                (config is Map ? config['ssid']?.toString() : null) ??
+                ifname;
+
+            final stations = await fetchAssociatedStationsWithContext(
+              ipAddress: ipAddress,
+              sysauth: sysauth,
+              useHttps: useHttps,
+              interface: ifname,
+              context: context?.mounted == true ? context : null,
+            );
+            for (final mac in stations) {
+              final normalized = mac.toUpperCase().replaceAll('-', ':');
+              if (normalized.isNotEmpty) {
+                result[normalized] = ssid;
               }
             }
           }

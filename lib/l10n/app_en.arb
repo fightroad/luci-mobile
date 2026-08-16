@@ -868,6 +868,10 @@
   "@ssid": {
     "description": "SSID label (technical term)"
   },
+  "accessPoint": "Access Point",
+  "@accessPoint": {
+    "description": "Wi-Fi access point / SSID the client is connected to"
+  },
   "certificateWarning": "Certificate Warning",
   "@certificateWarning": {
     "description": "Certificate warning dialog title"

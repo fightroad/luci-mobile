@@ -13,6 +13,8 @@ class Client {
   final int? expiresAt; // timestamp in seconds
   final ConnectionType connectionType;
   final List<String>? ipv6Addresses;
+  /// Wi-Fi SSID / access point this client is associated with, if known.
+  final String? accessPoint;
 
   Client({
     required this.ipAddress,
@@ -27,6 +29,7 @@ class Client {
     this.expiresAt,
     this.connectionType = ConnectionType.unknown,
     this.ipv6Addresses,
+    this.accessPoint,
   });
 
   // Helper function to determine connection type from MAC address or other data
@@ -182,14 +185,45 @@ class Client {
     );
   }
 
+  /// Creates a Client from luci-rpc getHostHints entry (ARP / static / lease hints).
+  factory Client.fromHostHint(String macAddress, Map<dynamic, dynamic> hint) {
+    String? ipv4;
+    final ipaddrs = hint['ipaddrs'];
+    if (ipaddrs is List && ipaddrs.isNotEmpty) {
+      ipv4 = ipaddrs.first.toString();
+    } else if (hint['ipv4'] != null) {
+      ipv4 = hint['ipv4'].toString();
+    } else if (hint['ipaddr'] != null) {
+      ipv4 = hint['ipaddr'].toString();
+    }
+
+    List<String>? ipv6Addresses;
+    final ip6addrs = hint['ip6addrs'] ?? hint['ip6addr'];
+    if (ip6addrs is List && ip6addrs.isNotEmpty) {
+      ipv6Addresses = ip6addrs.map((e) => e.toString()).toList();
+    } else if (hint['ipv6'] != null) {
+      ipv6Addresses = [hint['ipv6'].toString()];
+    }
+
+    final name = hint['name']?.toString().trim();
+    return Client(
+      ipAddress: (ipv4 != null && ipv4.isNotEmpty) ? ipv4 : 'N/A',
+      macAddress: macAddress,
+      hostname: (name != null && name.isNotEmpty) ? name : 'Unknown',
+      ipv6Addresses: ipv6Addresses,
+      connectionType: ConnectionType.wired,
+    );
+  }
+
   /// Creates a Client from a wireless association MAC address (no DHCP data).
   /// Used as a fallback for AP-mode routers where DHCP is handled upstream.
-  factory Client.fromWirelessStation(String macAddress) {
+  factory Client.fromWirelessStation(String macAddress, {String? accessPoint}) {
     return Client(
       ipAddress: 'N/A',
       macAddress: macAddress,
       hostname: 'Unknown',
       connectionType: ConnectionType.wireless,
+      accessPoint: accessPoint,
     );
   }
 
@@ -244,6 +278,7 @@ class Client {
     int? expiresAt,
     ConnectionType? connectionType,
     List<String>? ipv6Addresses,
+    String? accessPoint,
   }) {
     return Client(
       ipAddress: ipAddress ?? this.ipAddress,
@@ -258,6 +293,7 @@ class Client {
       expiresAt: expiresAt ?? this.expiresAt,
       connectionType: connectionType ?? this.connectionType,
       ipv6Addresses: ipv6Addresses ?? this.ipv6Addresses,
+      accessPoint: accessPoint ?? this.accessPoint,
     );
   }
 }

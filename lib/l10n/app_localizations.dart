@@ -1340,6 +1340,12 @@ abstract class AppLocalizations {
   /// **'SSID'**
   String get ssid;
 
+  /// Wi-Fi access point / SSID the client is connected to
+  ///
+  /// In en, this message translates to:
+  /// **'Access Point'**
+  String get accessPoint;
+
   /// Certificate warning dialog title
   ///
   /// In en, this message translates to:

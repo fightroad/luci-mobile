@@ -665,6 +665,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ssid => 'SSID';
 
   @override
+  String get accessPoint => 'Access Point';
+
+  @override
   String get certificateWarning => 'Certificate Warning';
 
   @override
