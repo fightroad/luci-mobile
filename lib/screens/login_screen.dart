@@ -110,6 +110,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         pass,
         parsedUrl.useHttps,
         fromRouter: false,
+        replaceExistingRouters: true,
         context: context,
       );
 

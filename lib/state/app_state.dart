@@ -336,6 +336,8 @@ class AppState extends ChangeNotifier {
     String pass,
     bool useHttps, {
     bool fromRouter = false,
+    /// Login page: become the only saved device. Manage-add: keep existing list.
+    bool replaceExistingRouters = false,
     BuildContext? context,
   }) async {
     _isLoading = true;
@@ -369,16 +371,20 @@ class AppState extends ChangeNotifier {
               pass,
               actualUseHttps, // Use the detected protocol
             );
-            final idx = _routerService!.routers.indexWhere(
-              (r) => r.id == router.id,
-            );
-            if (idx == -1) {
-              await addRouter(router);
+            if (replaceExistingRouters) {
+              await _routerService!.replaceAllRouters(router);
             } else {
-              await updateRouter(router);
+              final idx = _routerService!.routers.indexWhere(
+                (r) => r.id == router.id,
+              );
+              if (idx == -1) {
+                await addRouter(router);
+              } else {
+                await updateRouter(router);
+              }
+              // Session is already on this host — keep selection in sync.
+              _routerService!.selectRouter(router.id);
             }
-            // Session is already on this host — keep selection in sync.
-            _routerService!.selectRouter(router.id);
             await loadDashboardPreferences();
           }
         } else if (actualUseHttps != useHttps && _routerService != null) {

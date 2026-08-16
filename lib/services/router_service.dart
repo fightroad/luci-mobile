@@ -42,6 +42,14 @@ class RouterService {
     }
   }
 
+  /// Replace the whole device list with a single router (login-page reconnect).
+  Future<void> replaceAllRouters(model.Router router) async {
+    _routers = [router];
+    _selectedRouter = router;
+    await _secureStorageService.saveRouters(_routers);
+    await _secureStorageService.saveSelectedRouterId(router.id);
+  }
+
   Future<bool> removeRouter(String id) async {
     final wasActive = _selectedRouter?.id == id;
     _routers.removeWhere((r) => r.id == id);
