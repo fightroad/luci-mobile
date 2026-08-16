@@ -377,6 +377,9 @@ class AppState extends ChangeNotifier {
             } else {
               await updateRouter(router);
             }
+            // Session is already on this host — keep selection in sync.
+            _routerService!.selectRouter(router.id);
+            await loadDashboardPreferences();
           }
         } else if (actualUseHttps != useHttps && _routerService != null) {
           // If we're logging in from a saved router and the protocol changed, update it
