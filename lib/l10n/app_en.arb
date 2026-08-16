@@ -463,6 +463,14 @@
   "@down": {
     "description": "DOWN status label"
   },
+  "notConnected": "Not connected",
+  "@notConnected": {
+    "description": "Ethernet port has no link"
+  },
+  "connected": "Connected",
+  "@connected": {
+    "description": "Ethernet port has link but speed is unknown"
+  },
   "off": "OFF",
   "@off": {
     "description": "OFF status label"
@@ -507,7 +515,7 @@
   "@customizeDashboard": {
     "description": "Customize dashboard option"
   },
-  "customizeDashboardSubtitle": "Configure interface visibility and throughput monitoring",
+  "customizeDashboardSubtitle": "Configure wireless visibility and throughput monitoring",
   "@customizeDashboardSubtitle": {
     "description": "Customize dashboard subtitle"
   },
@@ -757,34 +765,6 @@
   "showAllNetworks": "Show All Networks",
   "@showAllNetworks": {
     "description": "Show all networks option"
-  },
-  "networkInterfaces": "Network Interfaces",
-  "@networkInterfaces": {
-    "description": "Network interfaces section title"
-  },
-  "networkInterfacesSubtitle": "Choose which wired/VPN interfaces to display",
-  "@networkInterfacesSubtitle": {
-    "description": "Network interfaces subtitle"
-  },
-  "wideAreaNetwork": "Wide Area Network",
-  "@wideAreaNetwork": {
-    "description": "WAN description"
-  },
-  "localAreaNetwork": "Local Area Network",
-  "@localAreaNetwork": {
-    "description": "LAN description"
-  },
-  "wireGuardVpn": "WireGuard VPN",
-  "@wireGuardVpn": {
-    "description": "WireGuard VPN description"
-  },
-  "openVpn": "OpenVPN",
-  "@openVpn": {
-    "description": "OpenVPN description"
-  },
-  "pppoeConnection": "PPPoE Connection",
-  "@pppoeConnection": {
-    "description": "PPPoE connection description"
   },
   "unableToLoadDashboardData": "Unable to load dashboard data. Please check your connection.",
   "@unableToLoadDashboardData": {

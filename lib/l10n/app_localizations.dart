@@ -770,6 +770,18 @@ abstract class AppLocalizations {
   /// **'DOWN'**
   String get down;
 
+  /// Ethernet port has no link
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get notConnected;
+
+  /// Ethernet port has link but speed is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get connected;
+
   /// OFF status label
   ///
   /// In en, this message translates to:
@@ -839,7 +851,7 @@ abstract class AppLocalizations {
   /// Customize dashboard subtitle
   ///
   /// In en, this message translates to:
-  /// **'Configure interface visibility and throughput monitoring'**
+  /// **'Configure wireless visibility and throughput monitoring'**
   String get customizeDashboardSubtitle;
 
   /// Reviewer mode section title
@@ -1189,48 +1201,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show All Networks'**
   String get showAllNetworks;
-
-  /// Network interfaces section title
-  ///
-  /// In en, this message translates to:
-  /// **'Network Interfaces'**
-  String get networkInterfaces;
-
-  /// Network interfaces subtitle
-  ///
-  /// In en, this message translates to:
-  /// **'Choose which wired/VPN interfaces to display'**
-  String get networkInterfacesSubtitle;
-
-  /// WAN description
-  ///
-  /// In en, this message translates to:
-  /// **'Wide Area Network'**
-  String get wideAreaNetwork;
-
-  /// LAN description
-  ///
-  /// In en, this message translates to:
-  /// **'Local Area Network'**
-  String get localAreaNetwork;
-
-  /// WireGuard VPN description
-  ///
-  /// In en, this message translates to:
-  /// **'WireGuard VPN'**
-  String get wireGuardVpn;
-
-  /// OpenVPN description
-  ///
-  /// In en, this message translates to:
-  /// **'OpenVPN'**
-  String get openVpn;
-
-  /// PPPoE connection description
-  ///
-  /// In en, this message translates to:
-  /// **'PPPoE Connection'**
-  String get pppoeConnection;
 
   /// Unable to load dashboard data error
   ///

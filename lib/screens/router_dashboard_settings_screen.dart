@@ -23,8 +23,7 @@ class _RouterDashboardSettingsScreenState
   bool _isLoading = true;
   String? _errorMessage;
   final Set<String> _availableWirelessInterfaces = {};
-  final Set<String> _availableWiredInterfaces = {};
-  final List<String> _allInterfaces = [];
+  final Set<String> _availableThroughputInterfaces = {};
   Timer? _autoSaveTimer;
 
   void _scheduleAutoSave() {
@@ -99,7 +98,6 @@ class _RouterDashboardSettingsScreenState
             if (ssid != null && ssid.toString().isNotEmpty) {
               final interfaceId = '$ssid ($deviceName)';
               _availableWirelessInterfaces.add(interfaceId);
-              _allInterfaces.add(interfaceId);
             }
           }
         }
@@ -113,12 +111,10 @@ class _RouterDashboardSettingsScreenState
         final interface = item as Map<String, dynamic>;
         final name = interface['interface'] as String? ?? '';
         if (name.isNotEmpty && name != 'loopback' && name != 'lo') {
-          _availableWiredInterfaces.add(name);
-          _allInterfaces.add(name);
+          _availableThroughputInterfaces.add(name);
         }
       }
     }
-    _allInterfaces.sort();
   }
 
   void _onPreferenceChanged() => _scheduleAutoSave();
@@ -166,7 +162,7 @@ class _RouterDashboardSettingsScreenState
 
   Widget _buildThroughputSection() {
     final l10n = AppLocalizations.of(context)!;
-    final interfaces = _availableWiredInterfaces.toList()..sort();
+    final interfaces = _availableThroughputInterfaces.toList()..sort();
     return _buildSection(
       title: l10n.throughputMonitoring,
       subtitle: l10n.throughputMonitoringSubtitle,
@@ -336,121 +332,6 @@ class _RouterDashboardSettingsScreenState
     );
   }
 
-  Widget _buildWiredInterfacesSection() {
-    if (_availableWiredInterfaces.isEmpty) return const SizedBox.shrink();
-    final l10n = AppLocalizations.of(context)!;
-    final sortedInterfaces = _availableWiredInterfaces.toList()..sort();
-    return _buildSection(
-      title: l10n.networkInterfaces,
-      subtitle: l10n.networkInterfacesSubtitle,
-      icon: Icons.cable,
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest
-                .withValues(alpha: 0.3),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            children: [
-              SwitchListTile.adaptive(
-                title: Text(
-                  l10n.showAllInterfaces,
-                  style: LuciTextStyles.detailValue(context)
-                      .copyWith(fontWeight: FontWeight.w600),
-                ),
-                value: _preferences.enabledWiredInterfaces.isEmpty,
-                onChanged: (value) {
-                  setState(() {
-                    if (value) {
-                      _preferences = _preferences.copyWith(
-                        enabledWiredInterfaces: {},
-                      );
-                    } else {
-                      _preferences = _preferences.copyWith(
-                        enabledWiredInterfaces:
-                            Set.from(_availableWiredInterfaces),
-                      );
-                    }
-                  });
-                  _onPreferenceChanged();
-                },
-                activeTrackColor: Theme.of(context).colorScheme.primary,
-                activeThumbColor: Theme.of(context).colorScheme.onPrimary,
-              ),
-            ],
-          ),
-        ),
-        if (_preferences.enabledWiredInterfaces.isNotEmpty) ...[
-          SizedBox(height: LuciSpacing.sm),
-          ...sortedInterfaces.map((interface) {
-            final isEnabled =
-                _preferences.enabledWiredInterfaces.contains(interface);
-            final description = _getInterfaceDescription(interface);
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: LuciSpacing.xs),
-              child: CheckboxListTile(
-                title: Text(interface.toUpperCase(),
-                    style: LuciTextStyles.detailValue(context)),
-                subtitle: description,
-                secondary: Icon(
-                  Icons.cable,
-                  size: 20,
-                  color: isEnabled
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withValues(alpha: 0.5),
-                ),
-                value: isEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    final newSet =
-                        Set<String>.from(_preferences.enabledWiredInterfaces);
-                    if (value ?? false) {
-                      newSet.add(interface);
-                    } else {
-                      newSet.remove(interface);
-                    }
-                    _preferences = _preferences.copyWith(
-                      enabledWiredInterfaces: newSet,
-                    );
-                  });
-                  _onPreferenceChanged();
-                },
-                activeColor: Theme.of(context).colorScheme.primary,
-                controlAffinity: ListTileControlAffinity.leading,
-                dense: description != null,
-              ),
-            );
-          }),
-        ],
-      ],
-    );
-  }
-
-  Widget? _getInterfaceDescription(String interface) {
-    final l10n = AppLocalizations.of(context)!;
-    final lower = interface.toLowerCase();
-    if (lower.startsWith('wan')) {
-      return Text(l10n.wideAreaNetwork,
-          style: LuciTextStyles.cardSubtitle(context));
-    } else if (lower.startsWith('lan')) {
-      return Text(l10n.localAreaNetwork,
-          style: LuciTextStyles.cardSubtitle(context));
-    } else if (lower.contains('wireguard') || lower.startsWith('wg')) {
-      return Text(l10n.wireGuardVpn,
-          style: LuciTextStyles.cardSubtitle(context));
-    } else if (lower.contains('openvpn')) {
-      return Text(l10n.openVpn, style: LuciTextStyles.cardSubtitle(context));
-    } else if (lower.contains('pppoe')) {
-      return Text(l10n.pppoeConnection,
-          style: LuciTextStyles.cardSubtitle(context));
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -477,7 +358,6 @@ class _RouterDashboardSettingsScreenState
             children: [
               _buildThroughputSection(),
               _buildWirelessInterfacesSection(),
-              _buildWiredInterfacesSection(),
               SizedBox(height: LuciSpacing.lg),
             ],
           ),

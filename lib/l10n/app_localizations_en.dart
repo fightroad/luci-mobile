@@ -360,6 +360,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get down => 'DOWN';
 
   @override
+  String get notConnected => 'Not connected';
+
+  @override
+  String get connected => 'Connected';
+
+  @override
   String get off => 'OFF';
 
   @override
@@ -394,7 +400,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customizeDashboardSubtitle =>
-      'Configure interface visibility and throughput monitoring';
+      'Configure wireless visibility and throughput monitoring';
 
   @override
   String get reviewerMode => 'Reviewer Mode';
@@ -582,28 +588,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get showAllNetworks => 'Show All Networks';
-
-  @override
-  String get networkInterfaces => 'Network Interfaces';
-
-  @override
-  String get networkInterfacesSubtitle =>
-      'Choose which wired/VPN interfaces to display';
-
-  @override
-  String get wideAreaNetwork => 'Wide Area Network';
-
-  @override
-  String get localAreaNetwork => 'Local Area Network';
-
-  @override
-  String get wireGuardVpn => 'WireGuard VPN';
-
-  @override
-  String get openVpn => 'OpenVPN';
-
-  @override
-  String get pppoeConnection => 'PPPoE Connection';
 
   @override
   String get unableToLoadDashboardData =>

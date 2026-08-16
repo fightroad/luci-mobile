@@ -352,6 +352,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get down => '禁用';
 
   @override
+  String get notConnected => '未连接';
+
+  @override
+  String get connected => '已连接';
+
+  @override
   String get off => '关闭';
 
   @override
@@ -385,7 +391,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get customizeDashboard => '自定义仪表板';
 
   @override
-  String get customizeDashboardSubtitle => '配置接口可见性和吞吐量监控';
+  String get customizeDashboardSubtitle => '配置无线网络显示和吞吐量监控';
 
   @override
   String get reviewerMode => '审核模式';
@@ -566,27 +572,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get showAllNetworks => '显示所有网络';
-
-  @override
-  String get networkInterfaces => '网络接口';
-
-  @override
-  String get networkInterfacesSubtitle => '选择要显示的有线/VPN 接口';
-
-  @override
-  String get wideAreaNetwork => '广域网';
-
-  @override
-  String get localAreaNetwork => '局域网';
-
-  @override
-  String get wireGuardVpn => 'WireGuard VPN';
-
-  @override
-  String get openVpn => 'OpenVPN';
-
-  @override
-  String get pppoeConnection => 'PPPoE 连接';
 
   @override
   String get unableToLoadDashboardData => '无法加载仪表板数据。请检查您的连接。';

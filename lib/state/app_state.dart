@@ -504,6 +504,12 @@ class AppState extends ChangeNotifier {
               'avail': 201326592,
             },
           ],
+          'ethernetPorts': [
+            {'device': 'lan1', 'role': 'lan'},
+            {'device': 'lan2', 'role': 'lan'},
+            {'device': 'lan3', 'role': 'lan'},
+            {'device': 'wan', 'role': 'wan'},
+          ],
           '_lastUpdated':
               DateTime.now().millisecondsSinceEpoch, // Force UI updates
         };
@@ -512,10 +518,11 @@ class AppState extends ChangeNotifier {
         if (_throughputService != null) {
           final networkData = results[2][1] as Map<String, dynamic>?;
           final wanDeviceNames = {
-            'eth0',
-            'wlan0',
+            'lan1',
+            'wan',
             'br-lan',
-          }; // Mock all devices
+            'wlan0',
+          }; // Mock devices aligned with network_devices.json
 
         // Check if we should track specific interface
         final prefs = _dashboardPreferences;
@@ -631,6 +638,16 @@ class AppState extends ChangeNotifier {
         method: 'getMountPoints',
         params: {},
       );
+      final ethernetPortsFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getBuiltinEthernetPorts',
+        params: {},
+      );
+      final boardJsonFuture = callOptionalRpc(
+        object: 'file',
+        method: 'read',
+        params: {'path': '/etc/board.json'},
+      );
 
       final results = await Future.wait([
         _apiService!.call(
@@ -717,6 +734,8 @@ class AppState extends ChangeNotifier {
         conntrackCountFuture,
         conntrackMaxFuture,
         mountPointsFuture,
+        ethernetPortsFuture,
+        boardJsonFuture,
       ]);
       final wirelessRaw = optionalResults[0];
       final uciWirelessRaw = optionalResults[1];
@@ -726,6 +745,8 @@ class AppState extends ChangeNotifier {
       final conntrackCountRaw = optionalResults[5];
       final conntrackMaxRaw = optionalResults[6];
       final mountPointsRaw = optionalResults[7];
+      final ethernetPortsRaw = optionalResults[8];
+      final boardJsonRaw = optionalResults[9];
 
       Map<String, dynamic>? wirelessData;
       if (wirelessRaw != null) {
@@ -760,12 +781,23 @@ class AppState extends ChangeNotifier {
       final mountPointsData = mountPointsRaw != null
           ? getOptionalData(mountPointsRaw, 'luci.getMountPoints')
           : null;
+      final ethernetPortsData = ethernetPortsRaw != null
+          ? getOptionalData(ethernetPortsRaw, 'luci.getBuiltinEthernetPorts')
+          : null;
+      final boardJsonData = boardJsonRaw != null
+          ? getOptionalData(boardJsonRaw, 'file.read board.json')
+          : null;
 
       final conntrackCount = _parseProcInt(conntrackCountData);
       final conntrackMax = _parseProcInt(conntrackMaxData);
       final temperature = _parseTemperature(tempInfoData);
       final cpuUsageParsed = _parseCpuUsage(cpuUsageData);
       final mountPoints = _parseMountPoints(mountPointsData);
+      final ethernetPorts = _parseEthernetPorts(
+        ethernetPortsData,
+        boardJsonData,
+        networkData,
+      );
       final onlineClients = _parseOnlineClients(
         onlineUsersData,
         wirelessData,
@@ -871,6 +903,7 @@ class AppState extends ChangeNotifier {
         'temperature': temperature,
         'temperatureShort': _formatTemperatureShort(temperature),
         'mountPoints': mountPoints,
+        'ethernetPorts': ethernetPorts,
         '_lastUpdated':
             DateTime.now().millisecondsSinceEpoch, // Force UI updates
       };
@@ -955,6 +988,110 @@ class AppState extends ChangeNotifier {
       }
     }
     return null;
+  }
+
+  List<Map<String, dynamic>> _parseEthernetPorts(
+    dynamic portsData,
+    dynamic boardJsonData,
+    Map<String, dynamic>? networkDevices,
+  ) {
+    final ports = <Map<String, dynamic>>[];
+    final seen = <String>{};
+
+    void addPort(String device, String role) {
+      final name = device.trim();
+      if (name.isEmpty || seen.contains(name)) return;
+      seen.add(name);
+      ports.add({'device': name, 'role': role});
+    }
+
+    dynamic list;
+    if (portsData is Map) {
+      list = portsData['result'] ?? portsData['ports'];
+    } else if (portsData is List) {
+      list = portsData;
+    }
+    if (list is List) {
+      for (final item in list) {
+        if (item is! Map) continue;
+        final device = item['device']?.toString() ?? '';
+        final role = item['role']?.toString() ?? 'unknown';
+        addPort(device, role);
+      }
+    }
+
+    if (ports.isEmpty) {
+      String? boardRaw;
+      if (boardJsonData is Map) {
+        boardRaw =
+            boardJsonData['data']?.toString() ??
+            boardJsonData['value']?.toString();
+      } else if (boardJsonData is String) {
+        boardRaw = boardJsonData;
+      }
+      if (boardRaw != null && boardRaw.trim().isNotEmpty) {
+        try {
+          final board = jsonDecode(boardRaw);
+          final network = board is Map ? board['network'] : null;
+          if (network is Map) {
+            final lan = network['lan'];
+            if (lan is Map) {
+              final lanPorts = lan['ports'];
+              if (lanPorts is List) {
+                for (final p in lanPorts) {
+                  addPort(p.toString(), 'lan');
+                }
+              } else if (lan['device'] != null) {
+                addPort(lan['device'].toString(), 'lan');
+              }
+            }
+            final wan = network['wan'];
+            if (wan is Map) {
+              final wanPorts = wan['ports'];
+              if (wanPorts is List) {
+                for (final p in wanPorts) {
+                  addPort(p.toString(), 'wan');
+                }
+              } else if (wan['device'] != null) {
+                addPort(wan['device'].toString(), 'wan');
+              }
+            }
+          }
+        } catch (e) {
+          Logger.warning('Failed parsing board.json for ethernet ports: $e');
+        }
+      }
+    }
+
+    // Last resort: infer ethernet-like devices from network device dump.
+    if (ports.isEmpty && networkDevices != null) {
+      for (final entry in networkDevices.entries) {
+        final name = entry.key;
+        final lower = name.toLowerCase();
+        if (lower == 'lo' ||
+            lower.startsWith('br-') ||
+            lower.startsWith('wlan') ||
+            lower.startsWith('phy') ||
+            lower.startsWith('wwan') ||
+            lower.contains('wireguard') ||
+            lower.startsWith('tun') ||
+            lower.startsWith('tap')) {
+          continue;
+        }
+        final info = entry.value;
+        final type = info is Map ? info['type']?.toString().toLowerCase() : '';
+        if (type.contains('wireless') || type.contains('bridge')) continue;
+        if (lower.startsWith('eth') ||
+            lower.startsWith('lan') ||
+            lower == 'wan' ||
+            lower.startsWith('wan')) {
+          addPort(name, lower.contains('wan') ? 'wan' : 'lan');
+        }
+      }
+    }
+
+    // Keep board / RPC order (typically LAN ports, then WAN).
+    return ports;
   }
 
   List<Map<String, dynamic>> _parseMountPoints(dynamic data) {

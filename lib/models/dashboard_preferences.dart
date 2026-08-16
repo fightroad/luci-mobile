@@ -1,37 +1,33 @@
 class DashboardPreferences {
+  static const Object _unset = Object();
+
   final Set<String> enabledWirelessInterfaces;
-  final Set<String> enabledWiredInterfaces;
   final String? primaryThroughputInterface;
   final bool showAllThroughput;
 
   DashboardPreferences({
     Set<String>? enabledWirelessInterfaces,
-    Set<String>? enabledWiredInterfaces,
     this.primaryThroughputInterface,
     this.showAllThroughput = true,
-  }) : enabledWirelessInterfaces = enabledWirelessInterfaces ?? {},
-       enabledWiredInterfaces = enabledWiredInterfaces ?? {};
+  }) : enabledWirelessInterfaces = enabledWirelessInterfaces ?? {};
 
   DashboardPreferences copyWith({
     Set<String>? enabledWirelessInterfaces,
-    Set<String>? enabledWiredInterfaces,
-    String? primaryThroughputInterface,
+    Object? primaryThroughputInterface = _unset,
     bool? showAllThroughput,
   }) {
     return DashboardPreferences(
       enabledWirelessInterfaces:
           enabledWirelessInterfaces ?? this.enabledWirelessInterfaces,
-      enabledWiredInterfaces:
-          enabledWiredInterfaces ?? this.enabledWiredInterfaces,
-      primaryThroughputInterface:
-          primaryThroughputInterface ?? this.primaryThroughputInterface,
+      primaryThroughputInterface: identical(primaryThroughputInterface, _unset)
+          ? this.primaryThroughputInterface
+          : primaryThroughputInterface as String?,
       showAllThroughput: showAllThroughput ?? this.showAllThroughput,
     );
   }
 
   Map<String, dynamic> toJson() => {
     'enabledWirelessInterfaces': enabledWirelessInterfaces.toList(),
-    'enabledWiredInterfaces': enabledWiredInterfaces.toList(),
     'primaryThroughputInterface': primaryThroughputInterface,
     'showAllThroughput': showAllThroughput,
   };
@@ -40,9 +36,6 @@ class DashboardPreferences {
     return DashboardPreferences(
       enabledWirelessInterfaces: Set<String>.from(
         json['enabledWirelessInterfaces'] ?? [],
-      ),
-      enabledWiredInterfaces: Set<String>.from(
-        json['enabledWiredInterfaces'] ?? [],
       ),
       primaryThroughputInterface: json['primaryThroughputInterface'],
       showAllThroughput: json['showAllThroughput'] ?? true,

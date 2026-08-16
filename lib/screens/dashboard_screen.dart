@@ -1504,93 +1504,77 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
-  IconData _getInterfaceIcon(String name, String proto) {
-    final lower = name.toLowerCase();
-
-    // Check name-based patterns first
-    if (lower.contains('wan')) {
-      return Icons.public_rounded;
+  String _formatPortSpeed(dynamic speedRaw) {
+    int? speed;
+    if (speedRaw is int) {
+      speed = speedRaw;
+    } else if (speedRaw is num) {
+      speed = speedRaw.toInt();
+    } else if (speedRaw != null) {
+      final text = speedRaw.toString().trim();
+      // Some firmwares report values like "1000F" / "100H".
+      final match = RegExp(r'(\d+)').firstMatch(text);
+      if (match != null) {
+        speed = int.tryParse(match.group(1)!);
+      }
     }
-    if (lower.contains('lan')) {
-      return Icons.router_rounded;
+    if (speed == null || speed <= 0) return '';
+    if (speed >= 1000) {
+      final gb = speed / 1000;
+      final label = gb == gb.roundToDouble()
+          ? gb.toInt().toString()
+          : gb.toStringAsFixed(1);
+      return '${label}GbE';
     }
-    if (lower.contains('iot')) {
-      return Icons.sensors_rounded;
-    }
-    if (lower.contains('guest')) {
-      return Icons.people_rounded;
-    }
-    if (lower.contains('dmz')) {
-      return Icons.security_rounded;
-    }
-    if (lower.contains('docker')) {
-      return Icons.computer_rounded;
-    }
-    if (lower.contains('bridge') || lower.startsWith('br-')) {
-      return Icons.hub_rounded;
-    }
-    if (lower.contains('vlan')) {
-      return Icons.layers_rounded;
-    }
-    if (lower.startsWith('eth')) {
-      return Icons.cable_rounded;
-    }
-    if (lower.startsWith('wlan')) {
-      return Icons.wifi_rounded;
-    }
-
-    // Check protocol-based patterns
-    switch (proto) {
-      case 'wireguard':
-      case 'openvpn':
-        return Icons.vpn_key_rounded;
-      case 'pppoe':
-        return Icons.settings_ethernet_rounded;
-      case 'dhcp':
-      case 'static':
-        return Icons.lan_rounded;
-      default:
-        return Icons.lan_rounded;
-    }
+    return '${speed}MbE';
   }
 
   Widget _buildInterfaceStatusCards(AppState appState) {
-    final prefs = appState.dashboardPreferences;
-    final interfaces =
-        appState.dashboardData?['interfaceDump']?['interface']
-            as List<dynamic>?;
-    if (interfaces == null || interfaces.isEmpty) {
+    final ports =
+        appState.dashboardData?['ethernetPorts'] as List<dynamic>?;
+    if (ports == null || ports.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final wanVpnInterfaces = interfaces.where((item) {
-      final interface = item as Map<String, dynamic>;
-      final name = interface['interface'] as String? ?? '';
+    final networkDevices =
+        appState.dashboardData?['networkDevices'] as Map<String, dynamic>?;
+    final l10n = AppLocalizations.of(context)!;
+    final scheme = Theme.of(context).colorScheme;
 
-      // Skip loopback interface
-      if (name == 'loopback' || name == 'lo') return false;
+    List<Widget> portCardWidgets = [];
+    for (final item in ports) {
+      if (item is! Map) continue;
+      final device = item['device']?.toString() ?? '';
+      if (device.isEmpty) continue;
+      final role = (item['role']?.toString() ?? '').toLowerCase();
+      final isWan = role == 'wan' || device.toLowerCase().contains('wan');
 
-      // If preferences are empty, show all interfaces by default
-      if (prefs.enabledWiredInterfaces.isEmpty) {
-        return true; // Show all interfaces when no specific preferences
+      final deviceInfo = networkDevices?[device];
+      bool linked = false;
+      String speedLabel = '';
+      if (deviceInfo is Map) {
+        // OpenWrt may report carrier as bool or 0/1.
+        final carrier = deviceInfo['carrier'];
+        linked = carrier == true || carrier == 1 || carrier == '1';
+        if (linked) {
+          speedLabel = _formatPortSpeed(deviceInfo['speed']);
+        }
       }
 
-      // Otherwise, check if this interface is in the enabled list
-      return prefs.enabledWiredInterfaces.contains(name);
-    }).toList();
+      final Color accent;
+      if (!linked) {
+        accent = scheme.outline;
+      } else if (isWan) {
+        accent = scheme.primary;
+      } else {
+        accent = Colors.green.shade700;
+      }
 
-    if (wanVpnInterfaces.isEmpty) {
-      return const SizedBox.shrink();
-    }
+      final statusText = linked
+          ? (speedLabel.isNotEmpty ? speedLabel : l10n.connected)
+          : l10n.notConnected;
 
-    List<Widget> interfaceCardWidgets = [];
-    for (var item in wanVpnInterfaces) {
-      final interface = item as Map<String, dynamic>;
-      final name = interface['interface'] as String? ?? 'N/A';
-      final isUp = interface['up'] as bool? ?? false;
-      final proto = interface['proto'] as String? ?? '';
-
-      interfaceCardWidgets.add(
+      portCardWidgets.add(
         Card(
           margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           elevation: 2,
@@ -1598,95 +1582,90 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             borderRadius: BorderRadius.circular(18),
           ),
           clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(18),
-            onLongPress: () {
-              // Navigate to interfaces tab with the specific interface name
-              final appState = ref.read(appStateProvider);
-              appState.requestTab(2, interfaceToScroll: name);
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12.0,
-                horizontal: 12.0,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Icon(
-                    _getInterfaceIcon(name, proto),
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 20,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 10.0,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(
+                  isWan
+                      ? Icons.public_rounded
+                      : Icons.settings_ethernet_rounded,
+                  color: accent,
+                  size: 20,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  device,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    name.toUpperCase(),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUp
-                          ? Colors.green.withValues(alpha: 0.15)
-                          : Colors.red.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: SizedBox(
-                      width: 63,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              isUp ? Icons.check_circle : Icons.cancel,
-                              size: 11,
-                              color: isUp
-                                  ? Colors.green.shade800
-                                  : Colors.red.shade800,
+                  decoration: BoxDecoration(
+                    color: linked
+                        ? accent.withValues(alpha: 0.15)
+                        : scheme.outlineVariant.withValues(alpha: 0.35),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: SizedBox(
+                    width: 72,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            linked
+                                ? Icons.link_rounded
+                                : Icons.link_off_rounded,
+                            size: 11,
+                            color: linked
+                                ? accent
+                                : scheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: linked
+                                  ? accent
+                                  : scheme.onSurfaceVariant,
+                              fontSize: 10,
                             ),
-                            const SizedBox(width: 1),
-                            Builder(
-                              builder: (context) {
-                                final l10n = AppLocalizations.of(context)!;
-                                return Text(
-                                  isUp ? l10n.up : l10n.down,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: isUp
-                                        ? Colors.green.shade900
-                                        : Colors.red.shade900,
-                                    fontSize: 10,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       );
     }
 
+    if (portCardWidgets.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
     List<Widget> rowChildren = [];
-    final isScrollable = interfaceCardWidgets.length >= 5;
-    for (int i = 0; i < interfaceCardWidgets.length; i++) {
-      rowChildren.add(Expanded(child: interfaceCardWidgets[i]));
-      if (i < interfaceCardWidgets.length - 1) {
+    final isScrollable = portCardWidgets.length >= 5;
+    for (int i = 0; i < portCardWidgets.length; i++) {
+      rowChildren.add(Expanded(child: portCardWidgets[i]));
+      if (i < portCardWidgets.length - 1) {
         rowChildren.add(const SizedBox(width: 6));
       }
     }
@@ -1699,14 +1678,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           final width = constraints.maxWidth;
           final calculatedCardWidth = (width - totalSpacing) / 4;
           final localRowChildren = <Widget>[];
-          for (int i = 0; i < interfaceCardWidgets.length; i++) {
+          for (int i = 0; i < portCardWidgets.length; i++) {
             localRowChildren.add(
               SizedBox(
                 width: calculatedCardWidth,
-                child: interfaceCardWidgets[i],
+                child: portCardWidgets[i],
               ),
             );
-            if (i < interfaceCardWidgets.length - 1) {
+            if (i < portCardWidgets.length - 1) {
               localRowChildren.add(const SizedBox(width: 6));
             }
           }
