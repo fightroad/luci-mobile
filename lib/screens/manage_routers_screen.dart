@@ -210,6 +210,8 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                 String? errorMessage;
                                 await showDialog<Map<String, dynamic>>(
                                   context: context,
+                                  // Avoid closing when tapping outside to dismiss keyboard.
+                                  barrierDismissible: false,
                                   builder: (context) {
                                     return StatefulBuilder(
                                       builder: (context, setState) {
@@ -231,22 +233,49 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                               const EdgeInsets.symmetric(
                                                 horizontal: 16,
                                                 vertical: 60,
-                                              ), // Make dialog larger
+                                              ),
+                                          titlePadding:
+                                              const EdgeInsets.fromLTRB(
+                                                24,
+                                                16,
+                                                8,
+                                                0,
+                                              ),
+                                          title: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  l10n.addRouter,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleLarge
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: l10n.cancel,
+                                                onPressed: isConnecting
+                                                    ? null
+                                                    : () => Navigator.pop(
+                                                          context,
+                                                        ),
+                                                icon: const Icon(Icons.close),
+                                              ),
+                                            ],
+                                          ),
                                           content: ConstrainedBox(
                                             constraints: const BoxConstraints(
                                               maxWidth: 400,
                                               minWidth: 320,
-                                              minHeight: 380,
+                                              minHeight: 340,
                                             ),
                                             child: Form(
                                               key: formKey,
                                               child: SingleChildScrollView(
-                                                child: Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        top: 32,
-                                                      ),
-                                                  child: Column(
+                                                child: Column(
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     children: [
@@ -630,7 +659,6 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                       const SizedBox(height: 8),
                                                     ],
                                                   ),
-                                                ),
                                               ),
                                             ),
                                           ),
