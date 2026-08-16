@@ -452,6 +452,12 @@ abstract class AppLocalizations {
   /// **'LAN IP'**
   String get lanIpv4;
 
+  /// LAN IPv6 address label in IP detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'LAN IPv6'**
+  String get lanIpv6;
+
   /// Short IP address label on dashboard extras card
   ///
   /// In en, this message translates to:

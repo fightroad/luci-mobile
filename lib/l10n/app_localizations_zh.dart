@@ -191,6 +191,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get lanIpv4 => 'LAN IP';
 
   @override
+  String get lanIpv6 => 'LAN IPv6';
+
+  @override
   String get ipAddressShort => 'IP 地址';
 
   @override

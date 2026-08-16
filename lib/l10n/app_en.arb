@@ -246,6 +246,10 @@
   "@lanIpv4": {
     "description": "LAN IPv4 address label in IP detail dialog"
   },
+  "lanIpv6": "LAN IPv6",
+  "@lanIpv6": {
+    "description": "LAN IPv6 address label in IP detail dialog"
+  },
   "ipAddressShort": "IP Address",
   "@ipAddressShort": {
     "description": "Short IP address label on dashboard extras card"

@@ -194,6 +194,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lanIpv4 => 'LAN IP';
 
   @override
+  String get lanIpv6 => 'LAN IPv6';
+
+  @override
   String get ipAddressShort => 'IP Address';
 
   @override

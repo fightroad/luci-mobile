@@ -73,6 +73,7 @@
   "storageDevice": "设备",
   "storageMount": "挂载点",
   "lanIpv4": "LAN IP",
+  "lanIpv6": "LAN IPv6",
   "ipAddressShort": "IP 地址",
   "wanIpv4": "WAN IPv4",
   "wanIpv6": "WAN IPv6",

@@ -478,7 +478,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         final keyStr = _interfaceKey(name: iface.name);
         final key = _interfaceKeys.putIfAbsent(keyStr, () => GlobalKey());
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 12.0),
           child: _UnifiedNetworkCard(
             key: key,
             name: iface.name.toUpperCase(),
@@ -636,7 +636,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
 
         final shouldExpand = isTargetInterface || _expandedInterface == keyStr;
         return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 12.0),
           child: _UnifiedNetworkCard(
             key: key,
             name: displayName,
@@ -1088,26 +1088,6 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     } else {
       return '${iface.protocol} • $shown';
     }
-  }
-}
-
-class LuciSectionHeader extends StatelessWidget {
-  final String title;
-  const LuciSectionHeader(this.title, {super.key});
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title,
-        style: theme.textTheme.titleMedium?.copyWith(
-          color: theme.colorScheme.onSurface,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
   }
 }
 

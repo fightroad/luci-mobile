@@ -259,6 +259,7 @@ class MockApiService implements IApiService {
       'luci-rpc.getWirelessDevices': 'wireless_devices.json',
       'luci-rpc.getDHCPLeases': 'dhcp_leases.json',
       'luci-rpc.getHostHints': 'host_hints.json',
+      'luci.getVersion': 'luci_version.json',
     };
 
     return mockFileMap[key];
@@ -606,6 +607,16 @@ class MockApiService implements IApiService {
                 },
               },
             },
+          },
+        ];
+
+      case 'luci.getVersion':
+        return [
+          0,
+          {
+            'branch': 'openwrt-24.10',
+            'revision': 'git-25.068.37183-a5bb34a',
+            'version': '25.068.37183',
           },
         ];
 

@@ -100,7 +100,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return parts.join(' ');
   }
 
-  String _formatUptimeDetail(
+  List<({String label, String value})> _uptimeDetailRows(
     int seconds, {
     required AppLocalizations l10n,
     int? localtime,
@@ -121,8 +121,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         (bootEpoch != null && bootEpoch > 0) ? formatEpoch(bootEpoch) : '—';
     final localText = hasLocaltime ? formatEpoch(localtime) : '—';
 
-    return '${l10n.bootTime}: $bootText\n'
-        '${l10n.localTime}: $localText';
+    return [
+      (label: l10n.bootTime, value: bootText),
+      (label: l10n.localTime, value: localText),
+    ];
   }
 
   String _formatCpuLoad(List<dynamic> load) {
@@ -224,7 +226,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
-        onTap: () => _showDeviceBoardDetailDialog(boardInfo),
+        onTap: () => _showDeviceBoardDetailDialog(
+          boardInfo,
+          appState.dashboardData?['luciVersion'] as String?,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
           child: Row(
@@ -289,26 +294,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return stripped.isEmpty ? model.trim() : stripped;
   }
 
-  /// Split ImmortalWrt-style "… / LuCI …" description; keep stock OpenWrt intact.
-  ({String firmware, String? luci}) _parseFirmwareAndLuci(
-    Map<String, dynamic>? release,
-  ) {
+  /// Firmware string from board release (description, else distribution/version/revision).
+  String _parseFirmwareVersion(Map<String, dynamic>? release) {
     final description = release?['description']?.toString().trim();
-    if (description != null && description.isNotEmpty) {
-      final luciMatch = RegExp(
-        r'^(.*?)\s*/\s*(LuCI\b.*)$',
-        caseSensitive: false,
-      ).firstMatch(description);
-      if (luciMatch != null) {
-        final firmware = luciMatch.group(1)?.trim() ?? description;
-        final luci = luciMatch.group(2)?.trim();
-        return (
-          firmware: firmware.isEmpty ? description : firmware,
-          luci: (luci == null || luci.isEmpty) ? null : luci,
-        );
-      }
-      return (firmware: description, luci: null);
-    }
+    if (description != null && description.isNotEmpty) return description;
 
     final parts = <String>[];
     final distribution = release?['distribution']?.toString().trim();
@@ -319,18 +308,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
     if (version != null && version.isNotEmpty) parts.add(version);
     if (revision != null && revision.isNotEmpty) parts.add(revision);
-    return (
-      firmware: parts.isEmpty ? '' : parts.join(' '),
-      luci: null,
-    );
+    return parts.isEmpty ? '' : parts.join(' ');
   }
 
-  void _showDeviceBoardDetailDialog(Map<String, dynamic>? boardInfo) {
+  void _showDeviceBoardDetailDialog(
+    Map<String, dynamic>? boardInfo,
+    String? luciVersion,
+  ) {
     final l10n = AppLocalizations.of(context)!;
     final hostname = boardInfo?['hostname']?.toString().trim();
     final model = boardInfo?['model']?.toString().trim();
     final release = boardInfo?['release'] as Map<String, dynamic>?;
-    final parsed = _parseFirmwareAndLuci(release);
+    final firmware = _parseFirmwareVersion(release);
     final architecture = boardInfo?['system']?.toString().trim();
     final platform = release?['target']?.toString().trim();
     final kernel = boardInfo?['kernel']?.toString().trim();
@@ -338,60 +327,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     String valueOrDash(String? value) =>
         (value == null || value.isEmpty) ? '—' : value;
 
-    final rows = <({String label, String value})>[
+    _showLabeledDetailDialog(l10n.deviceInfo, [
       (label: l10n.hostname, value: valueOrDash(hostname)),
       (label: l10n.model, value: valueOrDash(model)),
       (
         label: l10n.firmwareVersion,
-        value: valueOrDash(
-          parsed.firmware.isEmpty ? null : parsed.firmware,
-        ),
+        value: valueOrDash(firmware.isEmpty ? null : firmware),
       ),
-      (label: l10n.luciVersion, value: valueOrDash(parsed.luci)),
+      (label: l10n.luciVersion, value: valueOrDash(luciVersion)),
       (label: l10n.architecture, value: valueOrDash(architecture)),
       (label: l10n.platform, value: valueOrDash(platform)),
       (label: l10n.kernel, value: valueOrDash(kernel)),
-    ];
-
-    showDialog<void>(
-      context: context,
-      builder: (context) {
-        final theme = Theme.of(context);
-        return AlertDialog(
-          title: Text(l10n.deviceInfo),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (var i = 0; i < rows.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 12),
-                  Text(
-                    rows[i].label,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  SelectableText(
-                    rows[i].value,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.close),
-            ),
-          ],
-        );
-      },
-    );
+    ]);
   }
 
   Widget _buildTitleWithTimestamp(String title, AppState appState) {
@@ -447,6 +394,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final card = Card(
       elevation: 2,
+      margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -802,12 +750,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final sharedMem = _asInt(sysInfo?['memory']?['shared']);
     final cachedMem = _asInt(sysInfo?['memory']?['cached']);
     final availableMem = _asInt(sysInfo?['memory']?['available']);
-    // Prefer MemAvailable-style usage when present; else legacy free/buffered.
-    final usedMem = totalMem > 0 && availableMem != null
-        ? (totalMem - availableMem).clamp(0, totalMem)
-        : (totalMem - freeMem - bufferedMem).clamp(0, totalMem);
+    // Match LuCI status "Used": total - free (includes buffers/cache as used).
+    final usedMem = totalMem > 0
+        ? (totalMem - freeMem).clamp(0, totalMem)
+        : 0;
+    // LuCI progressbar uses Math.floor for the percent label.
     final memoryValue = totalMem > 0
-        ? '${(usedMem / totalMem * 100).toStringAsFixed(0)}%'
+        ? '${((usedMem / totalMem) * 100).floor()}%'
         : 'N/A';
     final memoryDetail = totalMem > 0
         ? _formatMemoryDetail(
@@ -848,6 +797,27 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         : '—';
     final temperatureDetail =
         (temperature != null && temperature.isNotEmpty) ? temperature : null;
+
+    final uptime = _asInt(sysInfo?['uptime']);
+    final localtime = _asInt(sysInfo?['localtime']);
+    final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
+    final uptimeRows = uptime != null
+        ? _uptimeDetailRows(uptime, l10n: l10n, localtime: localtime)
+        : null;
+
+    final network = _networkAddressSummary(appState);
+    final lanValue = network.lanIpv4 ?? '—';
+    String valueOrDash(String? value) =>
+        (value == null || value.isEmpty) ? '—' : value;
+    final ipRows = <({String label, String value})>[
+      (
+        label: l10n.lanIpv4,
+        value: valueOrDash(network.lanIpv4Detail ?? network.lanIpv4),
+      ),
+      (label: l10n.lanIpv6, value: valueOrDash(network.lanIpv6)),
+      (label: l10n.wanIpv4, value: valueOrDash(network.wanIpv4)),
+      (label: l10n.wanIpv6, value: valueOrDash(network.wanIpv6)),
+    ];
 
     return Card(
       elevation: 2,
@@ -923,50 +893,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Extensible extras card (uptime + LAN IP; more can join later).
-  Widget _buildExtrasVitalsCard(AppState appState) {
-    final l10n = AppLocalizations.of(context)!;
-    final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
-    final uptime = _asInt(sysInfo?['uptime']);
-    final localtime = _asInt(sysInfo?['localtime']);
-    final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
-    final uptimeDetail = uptime != null
-        ? _formatUptimeDetail(uptime, l10n: l10n, localtime: localtime)
-        : null;
-
-    final network = _networkAddressSummary(appState);
-    final lanValue = network.lanIpv4 ?? '—';
-    final ipDetail =
-        '${l10n.lanIpv4}: ${network.lanIpv4Detail ?? network.lanIpv4 ?? '—'}\n'
-        '${l10n.wanIpv4}: ${network.wanIpv4 ?? '—'}\n'
-        '${l10n.wanIpv6}: ${network.wanIpv6 ?? '—'}';
-
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-        child: Row(
-          children: [
-            _buildTappableVitalsColumn(
-              label: l10n.ipAddressShort,
-              value: lanValue,
-              onTap: () =>
-                  _showVitalDetailDialog(l10n.ipAddressShort, ipDetail),
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: Theme.of(
+                context,
+              ).colorScheme.outlineVariant.withValues(alpha: 0.6),
             ),
-            _buildTappableVitalsColumn(
-              label: l10n.uptime,
-              value: uptimeValue,
-              onTap: uptimeDetail == null
-                  ? null
-                  : () => _showVitalDetailDialog(l10n.uptime, uptimeDetail),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _buildTappableVitalsColumn(
+                  label: l10n.ipAddressShort,
+                  value: lanValue,
+                  onTap: () => _showLabeledDetailDialog(
+                    l10n.ipAddressShort,
+                    ipRows,
+                  ),
+                ),
+                _buildTappableVitalsColumn(
+                  label: l10n.uptime,
+                  value: uptimeValue,
+                  onTap: uptimeRows == null
+                      ? null
+                      : () => _showLabeledDetailDialog(
+                          l10n.uptime,
+                          uptimeRows,
+                        ),
+                ),
+                const Expanded(child: SizedBox.shrink()),
+              ],
             ),
           ],
         ),
@@ -977,6 +933,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   ({
     String? lanIpv4,
     String? lanIpv4Detail,
+    String? lanIpv6,
     String? wanIpv4,
     String? wanIpv6,
   })
@@ -988,6 +945,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       return (
         lanIpv4: null,
         lanIpv4Detail: null,
+        lanIpv6: null,
         wanIpv4: null,
         wanIpv6: null,
       );
@@ -997,7 +955,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         appState.dashboardData?['wan'] as Map<String, dynamic>?;
     final wan =
         wanFromDefaultRoute ?? _findInterfaceByName(interfaces, 'wan');
-    final wan6 = _findInterfaceByName(interfaces, 'wan6');
+    final wan6 = _findWan6Interface(interfaces);
     final lan = _findInterfaceByName(interfaces, 'lan') ??
         _findInterfaceByName(interfaces, 'br-lan');
 
@@ -1005,9 +963,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       lanIpv4: _formatInterfaceAddress(lan, 'ipv4-address', withMask: false),
       lanIpv4Detail:
           _formatInterfaceAddress(lan, 'ipv4-address', withMask: true),
+      lanIpv6: _formatLanIpv6(lan),
       wanIpv4: _formatInterfaceAddress(wan, 'ipv4-address', withMask: true),
-      wanIpv6: _formatInterfaceAddress(wan, 'ipv6-address', withMask: true) ??
-          _formatInterfaceAddress(wan6, 'ipv6-address', withMask: true),
+      // Prefer wan_6 / wan6 (PPPoE DHCPv6); skip link-local fe80 on wan.
+      wanIpv6: _formatInterfaceAddress(wan6, 'ipv6-address', withMask: true) ??
+          _formatInterfaceAddress(wan, 'ipv6-address', withMask: true),
     );
   }
 
@@ -1016,9 +976,66 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     String name,
   ) {
     for (final item in interfaces) {
-      if (item is Map<String, dynamic> && item['interface'] == name) {
-        return item;
+      if (item is Map && item['interface']?.toString() == name) {
+        return Map<String, dynamic>.from(item);
       }
+    }
+    return null;
+  }
+
+  /// PPPoE with ipv6=auto spawns dynamic `wan_6`; classic setups use `wan6`.
+  Map<String, dynamic>? _findWan6Interface(List<dynamic> interfaces) {
+    for (final name in ['wan_6', 'wan6']) {
+      final iface = _findInterfaceByName(interfaces, name);
+      if (_formatInterfaceAddress(iface, 'ipv6-address', withMask: false) !=
+          null) {
+        return iface;
+      }
+    }
+    for (final item in interfaces) {
+      if (item is! Map) continue;
+      final routes = item['route'];
+      if (routes is! List) continue;
+      final hasDefaultV6 = routes.any((route) {
+        if (route is! Map) return false;
+        final target = route['target']?.toString();
+        final mask = route['mask'];
+        return target == '::' && (mask == 0 || mask == '0');
+      });
+      if (!hasDefaultV6) continue;
+      final iface = Map<String, dynamic>.from(item);
+      if (_formatInterfaceAddress(iface, 'ipv6-address', withMask: false) !=
+          null) {
+        return iface;
+      }
+    }
+    return null;
+  }
+
+  bool _isIpv6LinkLocal(String address) {
+    return address.toLowerCase().startsWith('fe80:');
+  }
+
+  String? _formatLanIpv6(Map<String, dynamic>? lan) {
+    final fromAddress =
+        _formatInterfaceAddress(lan, 'ipv6-address', withMask: true);
+    if (fromAddress != null) return fromAddress;
+
+    final assignments = lan?['ipv6-prefix-assignment'];
+    if (assignments is! List) return null;
+    for (final item in assignments) {
+      if (item is! Map) continue;
+      final local = item['local-address'];
+      if (local is! Map) continue;
+      final address = local['address']?.toString().trim();
+      if (address == null ||
+          address.isEmpty ||
+          _isIpv6LinkLocal(address)) {
+        continue;
+      }
+      final mask = local['mask'];
+      if (mask == null) return address;
+      return '$address/$mask';
     }
     return null;
   }
@@ -1030,12 +1047,23 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }) {
     final list = iface?[field];
     if (list is! List || list.isEmpty) return null;
-    final first = list.first;
-    if (first is! Map) return null;
-    final address = first['address']?.toString().trim();
+
+    Map? chosen;
+    for (final item in list) {
+      if (item is! Map) continue;
+      final address = item['address']?.toString().trim();
+      if (address == null || address.isEmpty) continue;
+      if (field == 'ipv4-address' && address.startsWith('127.')) continue;
+      if (field == 'ipv6-address' && _isIpv6LinkLocal(address)) continue;
+      chosen = item;
+      break;
+    }
+    if (chosen == null) return null;
+
+    final address = chosen['address']?.toString().trim();
     if (address == null || address.isEmpty) return null;
     if (!withMask) return address;
-    final mask = first['mask'];
+    final mask = chosen['mask'];
     if (mask == null) return address;
     return '$address/$mask';
   }
@@ -1097,19 +1125,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   void _showVitalDetailDialog(String title, String detail) {
-    final l10n = AppLocalizations.of(context)!;
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(title),
         content: Text(detail),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.close),
-          ),
-        ],
       ),
+    );
+  }
+
+  void _showLabeledDetailDialog(
+    String title,
+    List<({String label, String value})> rows,
+  ) {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < rows.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  Text(
+                    rows[i].label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  SelectableText(
+                    rows[i].value,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1157,9 +1217,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     int? cached,
     int? available,
   }) {
-    final percent = ((used / total) * 100).clamp(0, 100);
+    final percent = ((used / total) * 100).floor().clamp(0, 100);
     final lines = <String>[
-      '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(total)} (${percent.toStringAsFixed(0)}%)',
+      '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(total)} ($percent%)',
       '${l10n.memoryFree}: ${_formatMemoryBytes(free)}',
       '${l10n.memoryBuffered}: ${_formatMemoryBytes(buffered)}',
     ];
@@ -1310,7 +1370,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
             networkCardWidgets.add(
               Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                margin: EdgeInsets.zero,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
@@ -1377,7 +1437,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
             networkCardWidgets.add(
               Card(
-                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                margin: EdgeInsets.zero,
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(18),
@@ -1504,6 +1564,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
   }
 
+  /// Link info from luci-rpc.getNetworkDevices: nested under `link` on current
+  /// OpenWrt; older/mock payloads may put carrier/speed at the top level.
+  Map<String, dynamic>? _networkDeviceLinkInfo(dynamic deviceInfo) {
+    if (deviceInfo is! Map) return null;
+    final link = deviceInfo['link'];
+    if (link is Map) {
+      return Map<String, dynamic>.from(link);
+    }
+    return Map<String, dynamic>.from(deviceInfo);
+  }
+
+  dynamic _lookupNetworkDevice(
+    Map<String, dynamic>? networkDevices,
+    String device,
+  ) {
+    if (networkDevices == null || device.isEmpty) return null;
+    final direct = networkDevices[device];
+    if (direct != null) return direct;
+    final lower = device.toLowerCase();
+    for (final entry in networkDevices.entries) {
+      if (entry.key.toLowerCase() == lower) return entry.value;
+    }
+    return null;
+  }
+
+  bool _isCarrierUp(dynamic carrier) {
+    return carrier == true ||
+        carrier == 1 ||
+        carrier == '1' ||
+        carrier?.toString().toLowerCase() == 'true';
+  }
+
   String _formatPortSpeed(dynamic speedRaw) {
     int? speed;
     if (speedRaw is int) {
@@ -1549,15 +1641,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       final role = (item['role']?.toString() ?? '').toLowerCase();
       final isWan = role == 'wan' || device.toLowerCase().contains('wan');
 
-      final deviceInfo = networkDevices?[device];
+      final deviceInfo = _lookupNetworkDevice(networkDevices, device);
       bool linked = false;
       String speedLabel = '';
-      if (deviceInfo is Map) {
-        // OpenWrt may report carrier as bool or 0/1.
-        final carrier = deviceInfo['carrier'];
-        linked = carrier == true || carrier == 1 || carrier == '1';
+      final linkInfo = _networkDeviceLinkInfo(deviceInfo);
+      if (linkInfo != null) {
+        linked = _isCarrierUp(linkInfo['carrier']);
         if (linked) {
-          speedLabel = _formatPortSpeed(deviceInfo['speed']);
+          speedLabel = _formatPortSpeed(linkInfo['speed']);
         }
       }
 
@@ -1576,7 +1667,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
       portCardWidgets.add(
         Card(
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+          margin: EdgeInsets.zero,
           elevation: 2,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
@@ -2057,8 +2148,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 12),
               _buildSystemVitalsCard(appState),
               const SizedBox(height: 12),
-              _buildExtrasVitalsCard(appState),
-              const SizedBox(height: 12),
               _buildWirelessNetworksCard(appState),
               const SizedBox(height: 12),
               _buildInterfaceStatusCards(appState),
@@ -2100,8 +2189,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                             const SizedBox(height: 12),
                             _buildSystemVitalsCard(appState),
-                            const SizedBox(height: 12),
-                            _buildExtrasVitalsCard(appState),
                             const SizedBox(height: 12),
                             _buildWirelessNetworksCard(appState),
                             const SizedBox(height: 12),

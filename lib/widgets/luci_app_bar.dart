@@ -86,7 +86,7 @@ class LuciSectionHeader extends StatelessWidget {
         left: LuciSpacing.md,
         right: LuciSpacing.md,
         top: LuciSpacing.xl,
-        bottom: LuciSpacing.sm,
+        bottom: 12,
       ),
       child: Row(
         children: [

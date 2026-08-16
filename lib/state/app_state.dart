@@ -502,6 +502,7 @@ class AppState extends ChangeNotifier {
           'cpuUsage': '2%',
           'cpuUsageDetail':
               'CPU: 2% HWE: 6% ECM: tcp 44 udp 72 other 0 total 116',
+          'luciVersion': 'openwrt-24.10 git-25.068.37183-a5bb34a',
           'temperature': 'CPU: 48.0°C, WiFi: 52.0°C 50.0°C',
           'temperatureShort': '48.0°C',
           'mountPoints': [
@@ -629,6 +630,11 @@ class AppState extends ChangeNotifier {
         method: 'getCPUUsage',
         params: {},
       );
+      final luciVersionFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getVersion',
+        params: {},
+      );
       final hostHintsFuture = callOptionalRpc(
         object: 'luci-rpc',
         method: 'getHostHints',
@@ -752,6 +758,7 @@ class AppState extends ChangeNotifier {
         wirelessFuture,
         uciWirelessFuture,
         cpuUsageFuture,
+        luciVersionFuture,
         hostHintsFuture,
         tempInfoFuture,
         conntrackCountFuture,
@@ -764,14 +771,15 @@ class AppState extends ChangeNotifier {
       final wirelessRaw = optionalResults[0];
       final uciWirelessRaw = optionalResults[1];
       final cpuUsageRaw = optionalResults[2];
-      final hostHintsRaw = optionalResults[3];
-      final tempInfoRaw = optionalResults[4];
-      final conntrackCountRaw = optionalResults[5];
-      final conntrackMaxRaw = optionalResults[6];
-      final mountPointsRaw = optionalResults[7];
-      final ethernetPortsRaw = optionalResults[8];
-      final boardJsonRaw = optionalResults[9];
-      final macToAccessPoint = optionalResults[10] as Map<String, String>;
+      final luciVersionRaw = optionalResults[3];
+      final hostHintsRaw = optionalResults[4];
+      final tempInfoRaw = optionalResults[5];
+      final conntrackCountRaw = optionalResults[6];
+      final conntrackMaxRaw = optionalResults[7];
+      final mountPointsRaw = optionalResults[8];
+      final ethernetPortsRaw = optionalResults[9];
+      final boardJsonRaw = optionalResults[10];
+      final macToAccessPoint = optionalResults[11] as Map<String, String>;
 
       Map<String, dynamic>? wirelessData;
       if (wirelessRaw != null) {
@@ -790,6 +798,9 @@ class AppState extends ChangeNotifier {
 
       final cpuUsageData = cpuUsageRaw != null
           ? getOptionalData(cpuUsageRaw, 'luci.getCPUUsage')
+          : null;
+      final luciVersionData = luciVersionRaw != null
+          ? getOptionalData(luciVersionRaw, 'luci.getVersion')
           : null;
       final hostHintsData = hostHintsRaw != null
           ? getOptionalData(hostHintsRaw, 'luci-rpc.getHostHints')
@@ -927,6 +938,7 @@ class AppState extends ChangeNotifier {
         'conntrackMax': conntrackMax,
         'cpuUsage': cpuUsageParsed?.percent,
         'cpuUsageDetail': cpuUsageParsed?.detail,
+        'luciVersion': _formatLuciVersion(luciVersionData),
         'temperature': temperature,
         'temperatureShort': _formatTemperatureShort(temperature),
         'mountPoints': mountPoints,
@@ -1004,6 +1016,19 @@ class AppState extends ChangeNotifier {
       }
     }
     return int.tryParse(data.toString().trim());
+  }
+
+  String? _formatLuciVersion(dynamic data) {
+    if (data is! Map) return null;
+    final branch = data['branch']?.toString().trim() ?? '';
+    final revision = data['revision']?.toString().trim() ?? '';
+    // Match LuCI status page: "branch revision"
+    final parts = <String>[
+      if (branch.isNotEmpty) branch,
+      if (revision.isNotEmpty) revision,
+    ];
+    if (parts.isEmpty) return null;
+    return parts.join(' ');
   }
 
   String? _parseTemperature(dynamic data) {

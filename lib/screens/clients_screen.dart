@@ -256,9 +256,12 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                                   icon: Icons.people_outline,
                                 )
                               : ListView.separated(
-                                  padding: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.only(
+                                    top: 12,
+                                    bottom: 16,
+                                  ),
                                   separatorBuilder: (context, idx) =>
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 12),
                                   itemCount: filteredClients.length,
                                   itemBuilder: (context, index) {
                                     final client = filteredClients[index];
@@ -272,7 +275,6 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
                                           horizontal: 16.0,
-                                          vertical: 8.0,
                                         ),
                                         child: _UnifiedClientCard(
                                           client: client,
