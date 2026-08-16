@@ -1,0 +1,64 @@
+name: Build TrollStore IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-trollstore-ipa:
+    name: Build TrollStore IPA
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Disable Code Signing
+        run: |
+          {
+            echo "CODE_SIGNING_ALLOWED=NO"
+            echo "CODE_SIGNING_REQUIRED=NO"
+            echo "CODE_SIGN_IDENTITY="
+            echo "EXPANDED_CODE_SIGN_IDENTITY="
+            echo "CODE_SIGN_STYLE=Manual"
+          } >> ios/Flutter/Release.xcconfig
+
+      - name: Build iOS (No Codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        id: package
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          test -d "$APP_PATH"
+
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f2)
+          IPA_NAME="LuCI-Mobile-${VERSION}-${BUILD}-TrollStore.ipa"
+
+          rm -rf Payload
+          mkdir Payload
+          cp -R "$APP_PATH" Payload/Runner.app
+          zip -qry "$IPA_NAME" Payload
+          rm -rf Payload
+
+          ls -lh "$IPA_NAME"
+          echo "ipa_path=$IPA_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LuCI-Mobile-TrollStore-IPA
+          path: ${{ steps.package.outputs.ipa_path }}
+          retention-days: 30
