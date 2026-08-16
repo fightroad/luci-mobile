@@ -420,14 +420,17 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
+        final probe = LoginProbe.text;
         _errorMessage =
-            'Login Failed: Invalid credentials or host unreachable.';
+            'Login Failed: Invalid credentials or host unreachable.\n\n[PROBE]\n$probe';
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: $e';
+      final probe = LoginProbe.text;
+      _errorMessage =
+          'An error occurred: $e${probe.isEmpty ? '' : '\n\n[PROBE]\n$probe'}';
       _isLoading = false;
       notifyListeners();
       return false;

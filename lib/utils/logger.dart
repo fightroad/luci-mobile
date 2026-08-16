@@ -5,6 +5,12 @@ import 'package:flutter/foundation.dart';
 class Logger {
   static const String _tag = 'LuciMobile';
 
+  /// Always prints (including release). For temporary login probes only.
+  static void probe(String message) {
+    // ignore: avoid_print
+    print('[$_tag][PROBE] $message');
+  }
+
   /// Log debug messages (only in debug mode)
   static void debug(String message) {
     if (kDebugMode) {
@@ -46,5 +52,6 @@ class Logger {
     StackTrace stackTrace,
   ) {
     error('$context: $exception', exception, stackTrace);
+    probe('$context: $exception');
   }
 }
