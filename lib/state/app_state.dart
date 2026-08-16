@@ -14,7 +14,6 @@ import 'package:luci_mobile/models/dashboard_preferences.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/service_factory.dart';
-import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
 import 'package:luci_mobile/utils/logger.dart';
 
@@ -27,10 +26,6 @@ class AppState extends ChangeNotifier {
   RouterService? _routerService;
   ThroughputService? _throughputService;
   final HttpClientManager _httpClientManager = HttpClientManager();
-
-  // Reviewer mode state
-  bool _reviewerModeEnabled = false;
-  bool get reviewerModeEnabled => _reviewerModeEnabled;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -87,7 +82,6 @@ class AppState extends ChangeNotifier {
 
   Future<void> _initialize() async {
     try {
-      await _loadReviewerMode();
       _initializeServices();
       await _loadThemeMode();
       await loadRouters(); // Load routers on app start (sets selectedRouter)
@@ -144,38 +138,14 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> _loadReviewerMode() async {
-    // Initialize secure storage service with default factory first
-    ServiceContainer.configure(reviewerMode: false);
-    _secureStorageService = ServiceContainer.instance.factory
-        .createSecureStorageService();
-
-    final stored = await _secureStorageService.readValue(
-      AppConfig.reviewerModeKey,
-    );
-    _reviewerModeEnabled = stored == 'true';
-  }
-
   void _initializeServices() {
-    // Configure the service container based on reviewer mode
-    ServiceContainer.configure(reviewerMode: _reviewerModeEnabled);
-
-    // Create services using the factory
+    ServiceContainer.configure();
     final factory = ServiceContainer.instance.factory;
+    _secureStorageService = factory.createSecureStorageService();
     _authService = factory.createAuthService();
     _apiService = factory.createApiService();
     _routerService = factory.createRouterService();
     _throughputService = factory.createThroughputService();
-  }
-
-  Future<void> setReviewerMode(bool enabled) async {
-    _reviewerModeEnabled = enabled;
-    await _secureStorageService.writeValue(
-      AppConfig.reviewerModeKey,
-      enabled.toString(),
-    );
-    _initializeServices();
-    notifyListeners();
   }
 
   Future<void> _loadThemeMode() async {
@@ -451,130 +421,6 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> fetchDashboardData() async {
-    if (_reviewerModeEnabled) {
-      // For reviewer mode, return mock data immediately
-      _isDashboardLoading = true;
-      _dashboardError = null;
-      notifyListeners();
-
-      await Future.delayed(
-        const Duration(milliseconds: 500),
-      ); // Simulate network delay
-
-      try {
-        final results = await Future.wait([
-          _apiService!.callSimple('system', 'board', {}),
-          _apiService!.callSimple('system', 'info', {}),
-          _apiService!.callSimple('network', 'device', {}),
-          _apiService!.callSimple('network.interface', 'dump', {}),
-          _apiService!.callSimple('wireless', 'devices', {}),
-          _apiService!.callSimple('luci-rpc', 'getDHCPLeases', {}),
-          _apiService!.callSimple('uci', 'get', {'config': 'wireless'}),
-          _apiService!.fetchAllAssociatedWirelessMacsWithContext(
-            ipAddress: 'mock',
-            sysauth: 'mock',
-            useHttps: false,
-          ),
-        ]);
-
-        final interfaceDump = results[3][1] as Map<String, dynamic>;
-        final rawDhcpData = results[5][1] as Map<String, dynamic>;
-        final processedDhcpData = _processDhcpLeases(rawDhcpData);
-        final macToAccessPoint = results[7] as Map<String, String>;
-
-        _dashboardData = {
-          'boardInfo': results[0][1],
-          'sysInfo': results[1][1],
-          'networkDevices': results[2][1],
-          'interfaceDump': interfaceDump,
-          'wireless': results[4][1],
-          'dhcpLeases': processedDhcpData,
-          'uciWirelessConfig': results[6][1],
-          'wan': _extractWanData(interfaceDump),
-          'wireguard': <String, dynamic>{}, // Empty for reviewer mode
-          // Same membership as Clients: DHCP ∪ Wi-Fi.
-          'onlineClients': _buildClientsFromSources(
-            leases: _extractDhcpLeaseMaps(processedDhcpData),
-            macToAccessPoint: macToAccessPoint,
-          ).length,
-          'conntrackCount': 842,
-          'conntrackMax': 16384,
-          'cpuUsage': '2%',
-          'cpuUsageDetail':
-              'CPU: 2% HWE: 6% ECM: tcp 44 udp 72 other 0 total 116',
-          'luciVersion': 'openwrt-24.10 git-25.068.37183-a5bb34a',
-          'temperature': 'CPU: 48.0°C, WiFi: 52.0°C 50.0°C',
-          'temperatureShort': '48.0°C',
-          'mountPoints': [
-            {
-              'device': '/dev/root',
-              'mount': '/overlay',
-              'size': 134217728,
-              'free': 67108864,
-              'avail': 67108864,
-            },
-            {
-              'device': 'tmpfs',
-              'mount': '/tmp',
-              'size': 268435456,
-              'free': 201326592,
-              'avail': 201326592,
-            },
-          ],
-          'ethernetPorts': [
-            {'device': 'lan1', 'role': 'lan'},
-            {'device': 'lan2', 'role': 'lan'},
-            {'device': 'lan3', 'role': 'lan'},
-            {'device': 'wan', 'role': 'wan'},
-          ],
-          '_lastUpdated':
-              DateTime.now().millisecondsSinceEpoch, // Force UI updates
-        };
-
-        // Update throughput data with mock network data for reviewer mode
-        if (_throughputService != null) {
-          final networkData = results[2][1] as Map<String, dynamic>?;
-          final wanDeviceNames = {
-            'lan1',
-            'wan',
-            'br-lan',
-            'wlan0',
-          }; // Mock devices aligned with network_devices.json
-
-        // Check if we should track specific interface
-        final prefs = _dashboardPreferences;
-        String? specificInterface;
-        if (!prefs.showAllThroughput &&
-            prefs.primaryThroughputInterface != null) {
-          // Map interface name to actual device name
-          specificInterface = _getDeviceNameForInterface(prefs.primaryThroughputInterface!);
-        }
-
-          _throughputService!.updateThroughput(
-            networkData,
-            wanDeviceNames,
-            specificInterface: specificInterface,
-          );
-        }
-
-        // Start throughput timer for reviewer mode
-        _startThroughputTimer();
-
-        // Schedule an immediate throughput update to get initial data faster
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _updateThroughputOnly();
-        });
-
-        _isDashboardLoading = false;
-        notifyListeners();
-      } catch (e) {
-        _dashboardError = 'Failed to fetch dashboard data: $e';
-        _isDashboardLoading = false;
-        notifyListeners();
-      }
-      return;
-    }
-
     if (_authService?.sysauth == null) {
       return;
     }
@@ -990,7 +836,7 @@ class AppState extends ChangeNotifier {
           'macaddr': macAddress,
           'ipaddr': ipAddress,
           'hostname': hostname,
-          'activetime': 0, // Default for mock data
+          'activetime': 0,
           'leasetime': timestamp,
         });
       }
@@ -1306,42 +1152,6 @@ class AppState extends ChangeNotifier {
       return;
     }
 
-    if (_reviewerModeEnabled) {
-      // For reviewer mode, get network devices data only
-      try {
-        final result = await _apiService!.callSimple('network', 'device', {});
-        final networkData = result[1] as Map<String, dynamic>?;
-        final wanDeviceNames = {'eth0'}; // Mock WAN device
-
-        // Check if we should track specific interface
-        final prefs = _dashboardPreferences;
-        String? specificInterface;
-        if (!prefs.showAllThroughput &&
-            prefs.primaryThroughputInterface != null) {
-          // Extract device name from interface ID (format: "SSID (deviceName)" or just "deviceName")
-          final interfaceId = prefs.primaryThroughputInterface!;
-          if (interfaceId.contains('(')) {
-            // Wireless format: "SSID (deviceName)"
-            final match = RegExp(r'\(([^)]+)\)').firstMatch(interfaceId);
-            specificInterface = match?.group(1);
-          } else {
-            // Wired format: just device name
-            specificInterface = interfaceId;
-          }
-        }
-
-        _throughputService?.updateThroughput(
-          networkData,
-          wanDeviceNames,
-          specificInterface: specificInterface,
-        );
-        notifyListeners();
-      } catch (e) {
-        // Don't log throughput update errors as they're non-critical
-      }
-      return;
-    }
-
     if (_routerService?.selectedRouter == null ||
         _authService?.sysauth == null) {
       return;
@@ -1605,8 +1415,8 @@ class AppState extends ChangeNotifier {
   }
 
   Future<bool> checkRouterAvailability() async {
-    if (_reviewerModeEnabled || _authService?.ipAddress == null) {
-      return _reviewerModeEnabled;
+    if (_authService?.ipAddress == null) {
+      return false;
     }
     return await _authService!.checkRouterAvailability(
       _authService!.ipAddress!,
@@ -1619,13 +1429,6 @@ class AppState extends ChangeNotifier {
     bool enabled, {
     BuildContext? context,
   }) async {
-    if (_reviewerModeEnabled) {
-      // Simulate operation for reviewer mode
-      await Future.delayed(const Duration(milliseconds: 500));
-      await fetchDashboardData();
-      return true;
-    }
-
     if (_authService?.sysauth == null || _authService?.ipAddress == null) {
       return false;
     }
@@ -1672,15 +1475,6 @@ class AppState extends ChangeNotifier {
   }
 
   Future<bool> tryAutoLogin({BuildContext? context}) async {
-    if (_reviewerModeEnabled) {
-      return await _authService!.tryAutoLogin(
-        null,
-        null,
-        null,
-        null,
-        context: context,
-      );
-    }
     return await _authService?.tryAutoLogin(
           null,
           null,
@@ -1699,13 +1493,6 @@ class AppState extends ChangeNotifier {
 
   /// Normalized MAC → access point SSID for the current/selected data source.
   Future<Map<String, String>> fetchAssociatedStationAccessPoints() async {
-    if (_reviewerModeEnabled) {
-      return await _apiService!.fetchAllAssociatedWirelessMacsWithContext(
-        ipAddress: 'mock',
-        sysauth: 'mock',
-        useHttps: false,
-      );
-    }
     if (_routerService?.selectedRouter == null ||
         _authService?.sysauth == null) {
       return {};
@@ -1724,15 +1511,6 @@ class AppState extends ChangeNotifier {
   /// Station count for one wireless ifname via `iwinfo.assoclist`.
   Future<int?> fetchAssociatedStationCount(String ifname) async {
     if (ifname.isEmpty || _apiService == null) return null;
-    if (_reviewerModeEnabled) {
-      final stations = await _apiService!.fetchAssociatedStationsWithContext(
-        ipAddress: 'mock',
-        sysauth: 'mock',
-        useHttps: false,
-        interface: ifname,
-      );
-      return stations.length;
-    }
     if (_routerService?.selectedRouter == null ||
         _authService?.sysauth == null) {
       return null;
@@ -1838,33 +1616,6 @@ class AppState extends ChangeNotifier {
   /// Returns clients for the currently selected router only
   Future<List<Client>> fetchClientsForSelectedRouter() async {
     try {
-      if (_reviewerModeEnabled) {
-        final results = await Future.wait([
-          _apiService!
-              .fetchAllAssociatedWirelessMacsWithContext(
-                ipAddress: 'mock',
-                sysauth: 'mock',
-                useHttps: false,
-              )
-              .catchError((_) => <String, String>{}),
-          _apiService!
-              .callSimple('luci-rpc', 'getDHCPLeases', {})
-              .catchError((_) => null),
-        ]);
-        final macToAccessPoint = results[0] as Map<String, String>;
-        final leaseResult = results[1];
-        var leases = <Map<String, dynamic>>[];
-        if (leaseResult is List &&
-            leaseResult.length > 1 &&
-            leaseResult[0] == 0) {
-          leases = _extractDhcpLeaseMaps(leaseResult[1]);
-        }
-        return _buildClientsFromSources(
-          leases: leases,
-          macToAccessPoint: macToAccessPoint,
-        );
-      }
-
       if (_routerService?.selectedRouter == null ||
           _authService?.sysauth == null) {
         return [];

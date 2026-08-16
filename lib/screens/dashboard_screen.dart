@@ -1589,7 +1589,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   /// Link info from luci-rpc.getNetworkDevices: nested under `link` on current
-  /// OpenWrt; older/mock payloads may put carrier/speed at the top level.
+  /// OpenWrt; older payloads may put carrier/speed at the top level.
   Map<String, dynamic>? _networkDeviceLinkInfo(dynamic deviceInfo) {
     if (deviceInfo is! Map) return null;
     final link = deviceInfo['link'];

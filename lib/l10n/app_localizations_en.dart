@@ -75,26 +75,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get activateReviewerMode => 'Activate Reviewer Mode?';
-
-  @override
-  String get reviewerModeDescription =>
-      'This will enable reviewer mode which bypasses authentication and provides mock data for app demonstration purposes.';
-
-  @override
-  String get reviewerModeConfirm => 'To confirm, type \"REVIEWER\" below:';
-
-  @override
-  String get typeReviewer => 'Type REVIEWER';
-
-  @override
   String get cancel => 'Cancel';
-
-  @override
-  String get activate => 'Activate';
-
-  @override
-  String get holdToActivateReviewerMode => 'Hold to activate reviewer mode...';
 
   @override
   String get selectRouter => 'Select Router';
@@ -392,29 +373,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get customizeDashboardSubtitle =>
       'Configure wireless visibility and throughput monitoring';
-
-  @override
-  String get reviewerMode => 'Reviewer Mode';
-
-  @override
-  String get reviewerModeActive => 'Reviewer Mode Active';
-
-  @override
-  String get reviewerModeActiveSubtitle =>
-      'Mock data is being used for demonstration';
-
-  @override
-  String get exitReviewerMode => 'Exit Reviewer Mode';
-
-  @override
-  String get exitReviewerModeTitle => 'Exit Reviewer Mode?';
-
-  @override
-  String get exitReviewerModeMessage =>
-      'This will disable reviewer mode and return to normal authentication. You will need to log in with real router credentials.';
-
-  @override
-  String get exit => 'Exit';
 
   @override
   String get deviceManagement => 'Device Management';

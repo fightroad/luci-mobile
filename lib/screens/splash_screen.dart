@@ -38,15 +38,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final appState = ref.read(appStateProvider);
     await appState.initialized;
 
-    if (appState.reviewerModeEnabled) {
-      final reviewReady = appState.fetchDashboardData();
-      await splashDelay;
-      await reviewReady;
-      if (!mounted) return;
-      goToMainWithoutTransition(context);
-      return;
-    }
-
     // Auto-login + dashboard load overlap the splash delay.
     final readyFuture = () async {
       final ok = await appState.tryAutoLogin(context: context);

@@ -89,33 +89,9 @@
       }
     }
   },
-  "activateReviewerMode": "Activate Reviewer Mode?",
-  "@activateReviewerMode": {
-    "description": "Reviewer mode activation dialog title"
-  },
-  "reviewerModeDescription": "This will enable reviewer mode which bypasses authentication and provides mock data for app demonstration purposes.",
-  "@reviewerModeDescription": {
-    "description": "Reviewer mode description"
-  },
-  "reviewerModeConfirm": "To confirm, type \"REVIEWER\" below:",
-  "@reviewerModeConfirm": {
-    "description": "Reviewer mode confirmation instruction"
-  },
-  "typeReviewer": "Type REVIEWER",
-  "@typeReviewer": {
-    "description": "Reviewer mode confirmation input hint"
-  },
   "cancel": "Cancel",
   "@cancel": {
     "description": "Cancel button text"
-  },
-  "activate": "Activate",
-  "@activate": {
-    "description": "Activate button text"
-  },
-  "holdToActivateReviewerMode": "Hold to activate reviewer mode...",
-  "@holdToActivateReviewerMode": {
-    "description": "Reviewer mode activation instruction"
   },
   "selectRouter": "Select Router",
   "@selectRouter": {
@@ -506,34 +482,6 @@
   "customizeDashboardSubtitle": "Configure wireless visibility and throughput monitoring",
   "@customizeDashboardSubtitle": {
     "description": "Customize dashboard subtitle"
-  },
-  "reviewerMode": "Reviewer Mode",
-  "@reviewerMode": {
-    "description": "Reviewer mode section title"
-  },
-  "reviewerModeActive": "Reviewer Mode Active",
-  "@reviewerModeActive": {
-    "description": "Reviewer mode active label"
-  },
-  "reviewerModeActiveSubtitle": "Mock data is being used for demonstration",
-  "@reviewerModeActiveSubtitle": {
-    "description": "Reviewer mode active subtitle"
-  },
-  "exitReviewerMode": "Exit Reviewer Mode",
-  "@exitReviewerMode": {
-    "description": "Exit reviewer mode button"
-  },
-  "exitReviewerModeTitle": "Exit Reviewer Mode?",
-  "@exitReviewerModeTitle": {
-    "description": "Exit reviewer mode dialog title"
-  },
-  "exitReviewerModeMessage": "This will disable reviewer mode and return to normal authentication. You will need to log in with real router credentials.",
-  "@exitReviewerModeMessage": {
-    "description": "Exit reviewer mode dialog message"
-  },
-  "exit": "Exit",
-  "@exit": {
-    "description": "Exit button"
   },
   "deviceManagement": "Device Management",
   "@deviceManagement": {

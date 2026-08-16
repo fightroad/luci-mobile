@@ -25,12 +25,6 @@ abstract class IApiService {
     Map<String, dynamic>? params,
     BuildContext? context,
   });
-  // Simplified call method for reviewer mode
-  Future<dynamic> callSimple(
-    String object,
-    String method,
-    Map<String, dynamic> params,
-  );
   Future<bool> reboot(
     String ipAddress,
     String sysauth,
@@ -44,7 +38,6 @@ abstract class IApiService {
     required String interface,
     BuildContext? context,
   });
-  Future<Map<String, Set<String>>> fetchAssociatedStations();
   Future<List<String>> fetchAssociatedStationsWithContext({
     required String ipAddress,
     required String sysauth,

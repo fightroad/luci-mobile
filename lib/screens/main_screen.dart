@@ -83,7 +83,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final appState = ref.watch(appStateProvider);
 
     // Unauthenticated users must not use feature tabs (e.g. after back-swipe).
-    if (!appState.reviewerModeEnabled && !appState.isAuthenticated) {
+    if (!appState.isAuthenticated) {
       if (!_redirectingToLogin) {
         _redirectingToLogin = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {

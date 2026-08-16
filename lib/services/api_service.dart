@@ -268,25 +268,6 @@ class RealApiService implements IApiService {
     );
   }
 
-  // Simplified call method for reviewer mode
-  @override
-  Future<dynamic> callSimple(
-    String object,
-    String method,
-    Map<String, dynamic> params,
-  ) async {
-    // Use default values for ipAddress, sysauth, and useHttps
-    // This is primarily for mock/testing scenarios
-    return await call(
-      'localhost', // Default IP address
-      '', // Default sysauth (empty for mock scenarios)
-      false, // Default to HTTP
-      object: object,
-      method: method,
-      params: params,
-    );
-  }
-
   Future<dynamic> callWithContext(
     String ipAddress,
     String sysauth,
@@ -383,17 +364,6 @@ class RealApiService implements IApiService {
     }
   }
 
-  @override
-  Future<Map<String, Set<String>>> fetchAssociatedStations() async {
-    // This method is mainly used by the mock service
-    // For real implementation, individual interface queries via fetchAssociatedStationsWithContext should be used
-    // The app_state.dart should call fetchAllAssociatedWirelessMacsWithContext instead
-    throw UnimplementedError(
-      'Use fetchAllAssociatedWirelessMacsWithContext for real implementation',
-    );
-  }
-
-  /// Fetches associated wireless clients as normalized MAC → access point SSID.
   @override
   Future<Map<String, String>> fetchAllAssociatedWirelessMacsWithContext({
     required String ipAddress,

@@ -75,25 +75,7 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get activateReviewerMode => '激活审核模式？';
-
-  @override
-  String get reviewerModeDescription => '这将启用审核模式，绕过身份验证并提供用于演示的模拟数据。';
-
-  @override
-  String get reviewerModeConfirm => '要确认，请在下方输入 \"REVIEWER\"：';
-
-  @override
-  String get typeReviewer => '输入 REVIEWER';
-
-  @override
   String get cancel => '取消';
-
-  @override
-  String get activate => '激活';
-
-  @override
-  String get holdToActivateReviewerMode => '长按以激活审核模式...';
 
   @override
   String get selectRouter => '选择路由器';
@@ -383,27 +365,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get customizeDashboardSubtitle => '配置无线网络显示和吞吐量监控';
-
-  @override
-  String get reviewerMode => '审核模式';
-
-  @override
-  String get reviewerModeActive => '审核模式已激活';
-
-  @override
-  String get reviewerModeActiveSubtitle => '正在使用模拟数据进行演示';
-
-  @override
-  String get exitReviewerMode => '退出审核模式';
-
-  @override
-  String get exitReviewerModeTitle => '退出审核模式？';
-
-  @override
-  String get exitReviewerModeMessage => '这将禁用审核模式并返回正常身份验证。您需要使用真实的路由器凭据登录。';
-
-  @override
-  String get exit => '退出';
 
   @override
   String get deviceManagement => '设备管理';

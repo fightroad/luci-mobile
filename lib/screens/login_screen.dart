@@ -5,8 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:luci_mobile/config/app_config.dart';
-import 'package:luci_mobile/services/secure_storage_service.dart';
 import 'package:luci_mobile/utils/url_parser.dart';
 import 'package:luci_mobile/utils/app_navigation.dart';
 
@@ -20,49 +18,24 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen>
-    with TickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _ipController = TextEditingController();
   final _usernameController = TextEditingController(text: 'root');
   final _passwordController = TextEditingController();
-  final _confirmationController = TextEditingController();
   bool _isCheckingAutoLogin = true;
   bool _passwordVisible = false;
-  late AnimationController _logoAnimController;
-  late AnimationController _progressAnimController;
-  bool _isActivatingReviewerMode = false;
   @override
   void initState() {
     super.initState();
-    _logoAnimController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    );
-    _progressAnimController = AnimationController(
-      vsync: this,
-      duration: AppConfig.reviewerModeActivationDuration,
-    );
-    _logoAnimController.forward();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(_checkReviewerModeAndAutoLogin());
+      unawaited(_maybeAutoLogin());
     });
   }
 
-  Future<void> _checkReviewerModeAndAutoLogin() async {
+  Future<void> _maybeAutoLogin() async {
     final args = ModalRoute.of(context)?.settings.arguments;
     final skipAutoLogin = args is Map && args[kLoginSkipAutoLogin] == true;
-
-    // Check if reviewer mode is enabled
-    final secureStorage = SecureStorageService();
-    final reviewerModeEnabled = await secureStorage.readValue(
-      AppConfig.reviewerModeKey,
-    );
-
-    if (reviewerModeEnabled == 'true' && mounted) {
-      goToMainWithoutTransition(context);
-      return;
-    }
 
     if (skipAutoLogin) {
       // Splash already tried auto-login; show the form with saved device hints.
@@ -77,97 +50,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     unawaited(_tryAutoLogin());
   }
 
-  void _startReviewerModeActivation() {
-    setState(() {
-      _isActivatingReviewerMode = true;
-    });
-
-    // Start progress animation
-    _progressAnimController.forward();
-
-    // Start a timer to check if the user has held for 5 seconds
-    Future.delayed(AppConfig.reviewerModeActivationDuration, () {
-      if (_isActivatingReviewerMode && mounted) {
-        _showReviewerModeDialog();
-      }
-    });
-  }
-
-  void _cancelReviewerModeActivation() {
-    setState(() {
-      _isActivatingReviewerMode = false;
-    });
-    // Reset progress animation
-    _progressAnimController.reset();
-  }
-
-  void _showReviewerModeDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    _confirmationController.clear();
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: Text(l10n.activateReviewerMode),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.reviewerModeDescription),
-              const SizedBox(height: 16),
-              Text(
-                l10n.reviewerModeConfirm,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _confirmationController,
-                decoration: InputDecoration(
-                  hintText: l10n.typeReviewer,
-                  border: const OutlineInputBorder(),
-                ),
-                onChanged: (_) => setDialogState(() {}),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: _confirmationController.text == 'REVIEWER'
-                  ? () {
-                      Navigator.of(context).pop();
-                      _activateReviewerMode();
-                    }
-                  : null,
-              child: Text(l10n.activate),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _activateReviewerMode() async {
-    final appState = ref.read(appStateProvider);
-    await appState.setReviewerMode(true);
-
-    if (mounted) {
-      goToMainWithoutTransition(context);
-    }
-  }
-
   @override
   void dispose() {
     _ipController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
-    _confirmationController.dispose();
-    _logoAnimController.dispose();
-    _progressAnimController.dispose();
     super.dispose();
   }
 
@@ -282,129 +169,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         const SizedBox(height: 32),
-                        GestureDetector(
-                          onLongPress: () {
-                            _startReviewerModeActivation();
+                        Builder(
+                          builder: (context) {
+                            final l10n = AppLocalizations.of(context)!;
+                            return Column(
+                              children: [
+                                Text(
+                                  l10n.appTitle,
+                                  style: textTheme.headlineLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  l10n.appSubtitle,
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: colorScheme.onSurface.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.appTagline,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ],
+                            );
                           },
-                          onLongPressUp: () {
-                            _cancelReviewerModeActivation();
-                          },
-                          child: Column(
-                            children: [
-                              Builder(
-                                builder: (context) {
-                                  final l10n = AppLocalizations.of(context)!;
-                                  return Column(
-                                    children: [
-                                      Text(
-                                        l10n.appTitle,
-                                        style: textTheme.headlineLarge?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        l10n.appSubtitle,
-                                        style: textTheme.titleMedium?.copyWith(
-                                          color: colorScheme.onSurface.withValues(
-                                            alpha: 0.8,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        l10n.appTagline,
-                                        style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.primary,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 200),
-                                child: _isActivatingReviewerMode
-                                    ? Padding(
-                                        key: const ValueKey('progress'),
-                                        padding: const EdgeInsets.only(top: 24),
-                                        child: AnimatedBuilder(
-                                          animation: _progressAnimController,
-                                          builder: (context, child) {
-                                            return Column(
-                                              children: [
-                                                Builder(
-                                                  builder: (context) {
-                                                    final l10n = AppLocalizations.of(context)!;
-                                                    return Text(
-                                                      l10n.holdToActivateReviewerMode,
-                                                      style: textTheme.bodySmall
-                                                          ?.copyWith(
-                                                            color:
-                                                                colorScheme.primary,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            fontSize: 13,
-                                                          ),
-                                                    );
-                                                  },
-                                                ),
-                                                const SizedBox(height: 12),
-                                                Container(
-                                                  width: 280,
-                                                  height: 6,
-                                                  decoration: BoxDecoration(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    color: colorScheme
-                                                        .surfaceContainerHighest
-                                                        .withValues(alpha: 0.4),
-                                                    border: Border.all(
-                                                      color: colorScheme.outline
-                                                          .withValues(
-                                                            alpha: 0.15,
-                                                          ),
-                                                      width: 0.5,
-                                                    ),
-                                                  ),
-                                                  child: ClipRRect(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          12,
-                                                        ),
-                                                    child: LinearProgressIndicator(
-                                                      value:
-                                                          _progressAnimController
-                                                              .value,
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation<
-                                                            Color
-                                                          >(
-                                                            colorScheme.primary
-                                                                .withValues(
-                                                                  alpha: 0.9,
-                                                                ),
-                                                          ),
-                                                      minHeight: 6,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    : const SizedBox(
-                                        key: ValueKey('empty'),
-                                        height: 0,
-                                      ),
-                              ),
-                            ],
-                          ),
                         ),
                         const SizedBox(height: 24),
                         // Glassmorphism card

@@ -224,47 +224,11 @@ abstract class AppLocalizations {
   /// **'Version {version}'**
   String version(String version);
 
-  /// Reviewer mode activation dialog title
-  ///
-  /// In en, this message translates to:
-  /// **'Activate Reviewer Mode?'**
-  String get activateReviewerMode;
-
-  /// Reviewer mode description
-  ///
-  /// In en, this message translates to:
-  /// **'This will enable reviewer mode which bypasses authentication and provides mock data for app demonstration purposes.'**
-  String get reviewerModeDescription;
-
-  /// Reviewer mode confirmation instruction
-  ///
-  /// In en, this message translates to:
-  /// **'To confirm, type \"REVIEWER\" below:'**
-  String get reviewerModeConfirm;
-
-  /// Reviewer mode confirmation input hint
-  ///
-  /// In en, this message translates to:
-  /// **'Type REVIEWER'**
-  String get typeReviewer;
-
   /// Cancel button text
   ///
   /// In en, this message translates to:
   /// **'Cancel'**
   String get cancel;
-
-  /// Activate button text
-  ///
-  /// In en, this message translates to:
-  /// **'Activate'**
-  String get activate;
-
-  /// Reviewer mode activation instruction
-  ///
-  /// In en, this message translates to:
-  /// **'Hold to activate reviewer mode...'**
-  String get holdToActivateReviewerMode;
 
   /// Select router dialog title
   ///
@@ -835,48 +799,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Configure wireless visibility and throughput monitoring'**
   String get customizeDashboardSubtitle;
-
-  /// Reviewer mode section title
-  ///
-  /// In en, this message translates to:
-  /// **'Reviewer Mode'**
-  String get reviewerMode;
-
-  /// Reviewer mode active label
-  ///
-  /// In en, this message translates to:
-  /// **'Reviewer Mode Active'**
-  String get reviewerModeActive;
-
-  /// Reviewer mode active subtitle
-  ///
-  /// In en, this message translates to:
-  /// **'Mock data is being used for demonstration'**
-  String get reviewerModeActiveSubtitle;
-
-  /// Exit reviewer mode button
-  ///
-  /// In en, this message translates to:
-  /// **'Exit Reviewer Mode'**
-  String get exitReviewerMode;
-
-  /// Exit reviewer mode dialog title
-  ///
-  /// In en, this message translates to:
-  /// **'Exit Reviewer Mode?'**
-  String get exitReviewerModeTitle;
-
-  /// Exit reviewer mode dialog message
-  ///
-  /// In en, this message translates to:
-  /// **'This will disable reviewer mode and return to normal authentication. You will need to log in with real router credentials.'**
-  String get exitReviewerModeMessage;
-
-  /// Exit button
-  ///
-  /// In en, this message translates to:
-  /// **'Exit'**
-  String get exit;
 
   /// Device management section header
   ///

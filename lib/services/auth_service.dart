@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/api_service.dart';
 import 'package:luci_mobile/services/local_network_permission.dart';
 import 'package:luci_mobile/services/secure_storage_service.dart';
@@ -8,7 +7,7 @@ import 'package:luci_mobile/utils/logger.dart';
 
 class RealAuthService implements IAuthService {
   final SecureStorageService _secureStorageService = SecureStorageService();
-  final IApiService _apiService;
+  final RealApiService _apiService;
 
   String? _sysauth;
   String? _ipAddress;
@@ -46,63 +45,35 @@ class RealAuthService implements IAuthService {
     try {
       await LocalNetworkPermission.ensureRequested();
 
-      // Check if the API service is RealApiService to use protocol detection
-      if (_apiService is RealApiService) {
-        final realApiService = _apiService;
-        final loginResult = await realApiService.loginWithProtocolDetection(
-          ip,
-          user,
-          pass,
-          useHttps,
-          context: context,
-        );
+      final loginResult = await _apiService.loginWithProtocolDetection(
+        ip,
+        user,
+        pass,
+        useHttps,
+        context: context,
+      );
 
-        if (loginResult.token != null) {
-          _sysauth = loginResult.token;
-          _ipAddress = ip;
-          _useHttps = loginResult.actualUseHttps; // Use the detected protocol
-
-          await _secureStorageService.saveCredentials(
-            ipAddress: ip,
-            username: user,
-            password: pass,
-            useHttps: loginResult.actualUseHttps, // Save the detected protocol
-          );
-
-          if (loginResult.actualUseHttps != useHttps) {
-            Logger.info(
-              'Protocol changed from ${useHttps ? "HTTPS" : "HTTP"} to ${loginResult.actualUseHttps ? "HTTPS" : "HTTP"} due to redirect',
-            );
-          }
-
-          return true;
-        }
-        return false;
-      } else {
-        // Fallback for mock service
-        final token = await _apiService.login(
-          ip,
-          user,
-          pass,
-          useHttps,
-          context: context,
-        );
-        if (token.isEmpty) {
-          return false;
-        }
-        _sysauth = token;
+      if (loginResult.token != null) {
+        _sysauth = loginResult.token;
         _ipAddress = ip;
-        _useHttps = useHttps;
+        _useHttps = loginResult.actualUseHttps;
 
         await _secureStorageService.saveCredentials(
           ipAddress: ip,
           username: user,
           password: pass,
-          useHttps: useHttps,
+          useHttps: loginResult.actualUseHttps,
         );
+
+        if (loginResult.actualUseHttps != useHttps) {
+          Logger.info(
+            'Protocol changed from ${useHttps ? "HTTPS" : "HTTP"} to ${loginResult.actualUseHttps ? "HTTPS" : "HTTP"} due to redirect',
+          );
+        }
 
         return true;
       }
+      return false;
     } catch (e) {
       return false;
     }
