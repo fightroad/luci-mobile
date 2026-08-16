@@ -301,6 +301,8 @@ class AppState extends ChangeNotifier {
 
   Future<void> removeRouter(String id) async {
     if (_routerService == null) return;
+    // Always keep at least one saved router; use logout to end a single-device session.
+    if (_routerService!.routers.length <= 1) return;
 
     // Get the router before removing to clear its certificates
     final router = _routerService!.routers.firstWhere(
@@ -435,13 +437,14 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  void logout() {
-    _authService?.logout().then((_) {});
+  /// Ends the current session without removing saved routers or preferences.
+  Future<void> logout() async {
+    await _authService?.logout();
     _dashboardData = null;
     _dashboardError = null;
     _cancelThroughputTimer();
-    // Optionally, do not clear routers or selectedRouter
-    notifyListeners();
+    // Re-sync routers from storage (loadRouters notifies listeners).
+    await loadRouters();
   }
 
   Future<void> fetchDashboardData() async {

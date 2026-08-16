@@ -159,13 +159,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final success = await appState.tryAutoLogin(context: context);
     if (success && mounted) {
       unawaited(Navigator.of(context).pushReplacementNamed('/'));
-    } else {
-      if (mounted) {
-        setState(() {
-          _isCheckingAutoLogin = false;
-        });
-      }
+    } else if (mounted) {
+      _prefillFromSavedRouter();
+      setState(() {
+        _isCheckingAutoLogin = false;
+      });
     }
+  }
+
+  void _prefillFromSavedRouter() {
+    final appState = ref.read(appStateProvider);
+    final router = appState.selectedRouter ??
+        (appState.routers.isNotEmpty ? appState.routers.first : null);
+    if (router == null) return;
+
+    if (_ipController.text.trim().isEmpty) {
+      _ipController.text = router.useHttps
+          ? 'https://${router.ipAddress}'
+          : router.ipAddress;
+    }
+    _usernameController.text = router.username;
+    // Leave password empty — session ended; user must confirm credentials.
   }
 
   Future<void> _connect() async {

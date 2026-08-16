@@ -112,9 +112,10 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   Future<void> _showLogoutDialog(BuildContext context) async {
     final appState = ref.read(appStateProvider);
     final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
     return showDialog<void>(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(l10n.logoutTitle),
           content: Text(l10n.logoutMessage),
@@ -122,22 +123,16 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             TextButton(
               child: Text(l10n.cancel),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(dialogContext).pop();
               },
             ),
             TextButton(
               child: Text(l10n.logout),
               onPressed: () async {
-                appState.logout();
-                // Clear all accepted certificates on logout
+                Navigator.of(dialogContext).pop();
+                await appState.logout();
                 await HttpClientManager().clearAcceptedCertificates();
-                if (context.mounted) {
-                  unawaited(
-                    Navigator.of(
-                      context,
-                    ).pushNamedAndRemoveUntil('/login', (route) => false),
-                  );
-                }
+                navigator.pushNamedAndRemoveUntil('/login', (route) => false);
               },
             ),
           ],
@@ -332,57 +327,65 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               },
             ),
             LuciSectionHeader(l10n.application),
-            _MoreScreenSection(
-              tiles: [
-                _buildMoreTile(
-                  context,
-                  icon: Icons.router,
-                  iconColor: Theme.of(context).colorScheme.primary,
-                  title: l10n.manageRouters,
-                  subtitle: l10n.manageRoutersSubtitle,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const ManageRoutersScreen(),
+            Builder(
+              builder: (context) {
+                final routerCount = ref.watch(
+                  appStateProvider.select((state) => state.routers.length),
+                );
+                return _MoreScreenSection(
+                  tiles: [
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.router,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      title: l10n.manageRouters,
+                      subtitle: l10n.manageRoutersSubtitle,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ManageRoutersScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.settings_outlined,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      title: l10n.settings,
+                      subtitle: l10n.settingsSubtitle,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.info_outline,
+                      iconColor: Theme.of(context).colorScheme.secondary,
+                      title: l10n.about,
+                      subtitle: l10n.aboutSubtitle,
+                      onTap: () => _showAboutDialog(context),
+                    ),
+                    if (routerCount <= 1)
+                      _buildMoreTile(
+                        context,
+                        icon: Icons.logout,
+                        iconColor: Theme.of(context).colorScheme.error,
+                        title: l10n.logout,
+                        subtitle: l10n.logoutSubtitle,
+                        titleColor: Theme.of(context).colorScheme.error,
+                        subtitleColor: Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.7),
+                        onTap: () => _showLogoutDialog(context),
                       ),
-                    );
-                  },
-                ),
-                _buildMoreTile(
-                  context,
-                  icon: Icons.settings_outlined,
-                  iconColor: Theme.of(context).colorScheme.primary,
-                  title: l10n.settings,
-                  subtitle: l10n.settingsSubtitle,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const SettingsScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _buildMoreTile(
-                  context,
-                  icon: Icons.info_outline,
-                  iconColor: Theme.of(context).colorScheme.secondary,
-                  title: l10n.about,
-                  subtitle: l10n.aboutSubtitle,
-                  onTap: () => _showAboutDialog(context),
-                ),
-                _buildMoreTile(
-                  context,
-                  icon: Icons.logout,
-                  iconColor: Theme.of(context).colorScheme.error,
-                  title: l10n.logout,
-                  subtitle: l10n.logoutSubtitle,
-                  titleColor: Theme.of(context).colorScheme.error,
-                  subtitleColor: Theme.of(
-                    context,
-                  ).colorScheme.error.withValues(alpha: 0.7),
-                  onTap: () => _showLogoutDialog(context),
-                ),
-              ],
+                  ],
+                );
+              },
             ),
           ],
         ),

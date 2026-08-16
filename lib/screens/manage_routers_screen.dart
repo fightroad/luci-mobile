@@ -123,7 +123,9 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                   }
                                 }
                               },
-                              onDelete: () async {
+                              onDelete: routers.length <= 1
+                                  ? null
+                                  : () async {
                                 String routerLabel;
                                 if (isSelected &&
                                     appState.dashboardData != null) {
