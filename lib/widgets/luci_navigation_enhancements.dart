@@ -46,7 +46,9 @@ class _LuciTabTransitionState extends State<LuciTabTransition>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: widget.curve));
 
-    _controller.forward();
+    // First mount (app open / login → main): show immediately.
+    // Animate only when switching tabs (see didUpdateWidget).
+    _controller.value = 1.0;
   }
 
   @override
