@@ -575,15 +575,19 @@ class AppState extends ChangeNotifier {
       return;
     }
 
-    if (_routerService?.selectedRouter == null ||
-        _authService?.sysauth == null) {
+    if (_authService?.sysauth == null) {
       return;
     }
 
-    // If already loading, don't start another request (but this shouldn't prevent pull-to-refresh)
-    // We'll let the new request proceed and the loading state will be handled properly
-    final ip = _routerService!.selectedRouter!.ipAddress;
-    final useHttps = _routerService!.selectedRouter!.useHttps;
+    // Use the logged-in session host when available.
+    final ip = _authService?.ipAddress ??
+        _routerService?.selectedRouter?.ipAddress;
+    if (ip == null) {
+      return;
+    }
+    final useHttps = _authService?.ipAddress != null
+        ? _authService!.useHttps
+        : (_routerService?.selectedRouter?.useHttps ?? false);
 
     _isDashboardLoading = true;
     _dashboardError = null;
