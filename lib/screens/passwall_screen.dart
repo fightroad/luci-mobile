@@ -54,10 +54,38 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     setState(() => _draft = update(current));
   }
 
-  void _discard() {
-    final base = _baseline;
-    if (base == null) return;
-    setState(() => _draft = base);
+  void _showToast(String message, {required bool success}) {
+    if (!mounted) return;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              success ? Icons.check_circle : Icons.error_outline,
+              color: success ? colorScheme.onPrimary : colorScheme.onError,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: success ? colorScheme.onPrimary : colorScheme.onError,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: success ? colorScheme.primary : colorScheme.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   Future<void> _apply() async {
@@ -88,11 +116,9 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
 
     setState(() => _busy = true);
     final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
     final ok = await ref.read(appStateProvider).applyPasswallSettings(
       globalValues: globalValues.isEmpty ? null : globalValues,
       nodeUpdates: nodeUpdates.isEmpty ? null : nodeUpdates,
-      restart: true,
       context: context,
     );
     if (!mounted) return;
@@ -108,25 +134,9 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
       setState(() => _busy = false);
     }
 
-    messenger.showSnackBar(
-      SnackBar(content: Text(ok ? l10n.passwallSaved : l10n.passwallSaveFailed)),
-    );
-  }
-
-  Future<void> _restart() async {
-    if (_busy || _isDirty()) return;
-    setState(() => _busy = true);
-    final l10n = AppLocalizations.of(context)!;
-    final messenger = ScaffoldMessenger.of(context);
-    final ok = await ref
-        .read(appStateProvider)
-        .restartPasswall(context: context);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(ok ? l10n.passwallRestarted : l10n.passwallRestartFailed),
-      ),
+    _showToast(
+      ok ? l10n.passwallSaved : l10n.passwallSaveFailed,
+      success: ok,
     );
   }
 
@@ -139,6 +149,131 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     };
   }
 
+  String _nodeLabel(PasswallNode node, AppLocalizations l10n) {
+    return node.label(shunt: l10n.passwallShunt);
+  }
+
+  String _labelForValue({
+    required String value,
+    required List<PasswallNode> nodes,
+    required AppLocalizations l10n,
+    Map<String, String>? specialLabels,
+    String? emptyLabel,
+    String? tcpAliasLabel,
+  }) {
+    if (specialLabels != null && specialLabels.containsKey(value)) {
+      return specialLabels[value]!;
+    }
+    if (value.isEmpty) return emptyLabel ?? value;
+    if (value == 'tcp') return tcpAliasLabel ?? value;
+    for (final n in nodes) {
+      if (n.id == value) return _nodeLabel(n, l10n);
+    }
+    return value;
+  }
+
+  Future<void> _pickOption({
+    required String title,
+    required String currentValue,
+    required List<_SheetOption> options,
+    required ValueChanged<String> onSelected,
+  }) async {
+    if (_busy || options.isEmpty) return;
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        final maxHeight = MediaQuery.of(context).size.height * 0.7;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 8),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxHeight),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 4,
+                    ),
+                    child: Center(
+                      child: Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 16),
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: options.length,
+                      itemBuilder: (context, index) {
+                        final option = options[index];
+                        final isSelected = option.value == currentValue;
+                        return ListTile(
+                          title: Text(
+                            option.label,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.w500,
+                                ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                          trailing: isSelected
+                              ? Icon(
+                                  Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : null,
+                          selected: isSelected,
+                          selectedTileColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.07),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          onTap: () => Navigator.of(context).pop(option.value),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    if (selected != null && selected != currentValue) {
+      onSelected(selected);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -146,9 +281,30 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     final draft = _draft;
     final loading = appState.isPasswallLoading && draft == null;
     final dirty = draft != null && _baseline != null && _isDirty();
+    final shuntLabels = _shuntValueLabels(l10n);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: LuciAppBar(title: l10n.passwall, showBack: true),
+      appBar: LuciAppBar(
+        title: l10n.passwall,
+        showBack: true,
+        actions: dirty
+            ? [
+                TextButton(
+                  onPressed: _busy ? null : _apply,
+                  child: Text(
+                    l10n.passwallApply,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: _busy
+                          ? colorScheme.onSurface.withValues(alpha: 0.38)
+                          : colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
+      ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : draft == null
@@ -162,17 +318,93 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
               children: [
                 if (_busy) const LinearProgressIndicator(minHeight: 2),
                 Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      if (dirty) return;
-                      await _reload();
-                    },
-                    child: ListView(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: LuciSpacing.sm,
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: LuciSpacing.sm,
+                    ),
+                    children: [
+                      LuciSectionHeader(l10n.passwallMain),
+                      Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: LuciSpacing.md,
+                          vertical: LuciSpacing.sm,
+                        ),
+                        child: Column(
+                          children: [
+                            SwitchListTile(
+                              title: Text(l10n.passwallEnabled),
+                              subtitle: Text(l10n.passwallEnabledSubtitle),
+                              value: draft.enabled,
+                              onChanged: _busy
+                                  ? null
+                                  : (v) => _updateDraft(
+                                      (c) => c.copyWith(enabled: v),
+                                    ),
+                            ),
+                            const Divider(height: 1),
+                            _SelectTile(
+                              title: l10n.passwallTcpNode,
+                              valueLabel: _labelForValue(
+                                value: draft.tcpNode,
+                                nodes: draft.nodes,
+                                l10n: l10n,
+                                emptyLabel: l10n.passwallNodeClose,
+                              ),
+                              enabled: !_busy,
+                              onTap: () => _pickOption(
+                                title: l10n.passwallTcpNode,
+                                currentValue: draft.tcpNode,
+                                options: [
+                                  _SheetOption('', l10n.passwallNodeClose),
+                                  ...draft.nodes.map(
+                                    (n) => _SheetOption(
+                                      n.id,
+                                      _nodeLabel(n, l10n),
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (id) => _updateDraft(
+                                  (c) => c.copyWith(tcpNode: id),
+                                ),
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            _SelectTile(
+                              title: l10n.passwallUdpNode,
+                              valueLabel: _labelForValue(
+                                value: draft.udpNode,
+                                nodes: draft.nodes,
+                                l10n: l10n,
+                                emptyLabel: l10n.passwallNodeClose,
+                                tcpAliasLabel: l10n.passwallUdpSameAsTcp,
+                              ),
+                              enabled: !_busy,
+                              onTap: () => _pickOption(
+                                title: l10n.passwallUdpNode,
+                                currentValue: draft.udpNode,
+                                options: [
+                                  _SheetOption('', l10n.passwallNodeClose),
+                                  _SheetOption(
+                                    'tcp',
+                                    l10n.passwallUdpSameAsTcp,
+                                  ),
+                                  ...draft.nodes.map(
+                                    (n) => _SheetOption(
+                                      n.id,
+                                      _nodeLabel(n, l10n),
+                                    ),
+                                  ),
+                                ],
+                                onSelected: (id) => _updateDraft(
+                                  (c) => c.copyWith(udpNode: id),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      children: [
-                        LuciSectionHeader(l10n.passwallMain),
+                      if (draft.tcpIsShunt) ...[
+                        LuciSectionHeader(l10n.passwallShuntRules),
                         Card(
                           margin: const EdgeInsets.symmetric(
                             horizontal: LuciSpacing.md,
@@ -180,260 +412,109 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                           ),
                           child: Column(
                             children: [
-                              SwitchListTile(
-                                title: Text(l10n.passwallEnabled),
-                                subtitle: Text(l10n.passwallEnabledSubtitle),
-                                value: draft.enabled,
-                                onChanged: _busy
-                                    ? null
-                                    : (v) => _updateDraft(
-                                        (c) => c.copyWith(enabled: v),
+                              for (final entry
+                                  in draft.shuntRules.asMap().entries) ...[
+                                if (entry.key > 0) const Divider(height: 1),
+                                _SelectTile(
+                                  title: entry.value.isDefault
+                                      ? l10n.passwallShuntDefault
+                                      : entry.value.remarks,
+                                  valueLabel: _labelForValue(
+                                    value: draft.shuntAssignment(
+                                      entry.value.option,
+                                    ),
+                                    nodes: draft.selectableNodes,
+                                    l10n: l10n,
+                                    specialLabels: shuntLabels,
+                                  ),
+                                  enabled: !_busy,
+                                  onTap: () {
+                                    final rule = entry.value;
+                                    final value = draft.shuntAssignment(
+                                      rule.option,
+                                    );
+                                    _pickOption(
+                                      title: rule.isDefault
+                                          ? l10n.passwallShuntDefault
+                                          : rule.remarks,
+                                      currentValue: value,
+                                      options: [
+                                        ...shuntLabels.entries.map(
+                                          (e) =>
+                                              _SheetOption(e.key, e.value),
+                                        ),
+                                        ...draft.selectableNodes.map(
+                                          (n) => _SheetOption(
+                                            n.id,
+                                            _nodeLabel(n, l10n),
+                                          ),
+                                        ),
+                                      ],
+                                      onSelected: (v) => _updateDraft(
+                                        (c) => c.withShuntAssignment(
+                                          rule.option,
+                                          v,
+                                        ),
                                       ),
-                              ),
-                              const Divider(height: 1),
-                              _NodeDropdown(
-                                title: l10n.passwallTcpNode,
-                                value: draft.tcpNode,
-                                nodes: draft.nodes,
-                                allowEmpty: true,
-                                emptyLabel: l10n.passwallNodeClose,
-                                enabled: !_busy,
-                                onChanged: (id) => _updateDraft(
-                                  (c) => c.copyWith(tcpNode: id),
+                                    );
+                                  },
                                 ),
-                              ),
-                              const Divider(height: 1),
-                              _NodeDropdown(
-                                title: l10n.passwallUdpNode,
-                                value: draft.udpNode,
-                                nodes: draft.nodes,
-                                allowEmpty: true,
-                                emptyLabel: l10n.passwallNodeClose,
-                                allowTcpAlias: true,
-                                tcpAliasLabel: l10n.passwallUdpSameAsTcp,
-                                enabled: !_busy,
-                                onChanged: (id) => _updateDraft(
-                                  (c) => c.copyWith(udpNode: id),
-                                ),
-                              ),
-                              const Divider(height: 1),
-                              ListTile(
-                                title: Text(l10n.passwallRestart),
-                                subtitle: Text(l10n.passwallRestartSubtitle),
-                                trailing: const Icon(Icons.refresh),
-                                enabled: !_busy && !dirty,
-                                onTap: dirty ? null : _restart,
-                              ),
+                              ],
                             ],
                           ),
                         ),
-                        if (draft.tcpIsShunt) ...[
-                          LuciSectionHeader(l10n.passwallShuntRules),
-                          Card(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: LuciSpacing.md,
-                              vertical: LuciSpacing.sm,
-                            ),
-                            child: Column(
-                              children: [
-                                for (var i = 0;
-                                    i < draft.shuntRules.length;
-                                    i++) ...[
-                                  if (i > 0) const Divider(height: 1),
-                                  _ShuntRuleDropdown(
-                                    title: draft.shuntRules[i].isDefault
-                                        ? l10n.passwallShuntDefault
-                                        : draft.shuntRules[i].remarks,
-                                    value: draft.shuntAssignment(
-                                      draft.shuntRules[i].option,
-                                    ),
-                                    specialLabels: _shuntValueLabels(l10n),
-                                    nodes: draft.selectableNodes,
-                                    enabled: !_busy,
-                                    onChanged: (v) => _updateDraft(
-                                      (c) => c.withShuntAssignment(
-                                        draft.shuntRules[i].option,
-                                        v,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                        Padding(
-                          padding: const EdgeInsets.all(LuciSpacing.md),
-                          child: Text(
-                            l10n.passwallFooterHint,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ),
-                        if (dirty) const SizedBox(height: 72),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-                if (dirty)
-                  SafeArea(
-                    top: false,
-                    child: Material(
-                      elevation: 8,
-                      color: Theme.of(context).colorScheme.surface,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          LuciSpacing.md,
-                          LuciSpacing.sm,
-                          LuciSpacing.md,
-                          LuciSpacing.sm,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: _busy ? null : _discard,
-                                child: Text(l10n.passwallDiscard),
-                              ),
-                            ),
-                            const SizedBox(width: LuciSpacing.sm),
-                            Expanded(
-                              flex: 2,
-                              child: FilledButton(
-                                onPressed: _busy ? null : _apply,
-                                child: Text(l10n.passwallApply),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
     );
   }
 }
 
-class _ShuntRuleDropdown extends StatelessWidget {
-  final String title;
+class _SheetOption {
   final String value;
-  final Map<String, String> specialLabels;
-  final List<PasswallNode> nodes;
-  final bool enabled;
-  final ValueChanged<String> onChanged;
-
-  const _ShuntRuleDropdown({
-    required this.title,
-    required this.value,
-    required this.specialLabels,
-    required this.nodes,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final ids = <String>{...specialLabels.keys, ...nodes.map((n) => n.id)};
-    if (value.isNotEmpty && !ids.contains(value)) ids.add(value);
-    final effective = ids.contains(value) ? value : '';
-
-    return ListTile(
-      title: Text(title),
-      subtitle: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: effective,
-          onChanged: enabled
-              ? (v) {
-                  if (v != null) onChanged(v);
-                }
-              : null,
-          items: [
-            ...specialLabels.entries.map(
-              (e) => DropdownMenuItem(value: e.key, child: Text(e.value)),
-            ),
-            ...nodes.map(
-              (n) => DropdownMenuItem(value: n.id, child: Text(n.label)),
-            ),
-            if (value.isNotEmpty &&
-                !specialLabels.containsKey(value) &&
-                !nodes.any((n) => n.id == value))
-              DropdownMenuItem(value: value, child: Text(value)),
-          ],
-        ),
-      ),
-    );
-  }
+  final String label;
+  const _SheetOption(this.value, this.label);
 }
 
-class _NodeDropdown extends StatelessWidget {
+class _SelectTile extends StatelessWidget {
   final String title;
-  final String value;
-  final List<PasswallNode> nodes;
-  final bool allowEmpty;
-  final String emptyLabel;
-  final bool allowTcpAlias;
-  final String? tcpAliasLabel;
+  final String valueLabel;
   final bool enabled;
-  final ValueChanged<String> onChanged;
+  final VoidCallback onTap;
 
-  const _NodeDropdown({
+  const _SelectTile({
     required this.title,
-    required this.value,
-    required this.nodes,
-    required this.allowEmpty,
-    required this.emptyLabel,
-    this.allowTcpAlias = false,
-    this.tcpAliasLabel,
+    required this.valueLabel,
     required this.enabled,
-    required this.onChanged,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final ids = <String>{};
-    if (allowEmpty) ids.add('');
-    if (allowTcpAlias) ids.add('tcp');
-    for (final n in nodes) {
-      ids.add(n.id);
-    }
-    if (value.isNotEmpty && !ids.contains(value)) {
-      ids.add(value);
-    }
-
-    final effective = ids.contains(value) ? value : (allowEmpty ? '' : ids.first);
-
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       title: Text(title),
-      subtitle: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          value: effective,
-          onChanged: enabled
-              ? (v) {
-                  if (v != null) onChanged(v);
-                }
-              : null,
-          items: [
-            if (allowEmpty)
-              DropdownMenuItem(value: '', child: Text(emptyLabel)),
-            if (allowTcpAlias && tcpAliasLabel != null)
-              DropdownMenuItem(value: 'tcp', child: Text(tcpAliasLabel!)),
-            ...nodes.map(
-              (n) => DropdownMenuItem(value: n.id, child: Text(n.label)),
-            ),
-            if (value.isNotEmpty &&
-                value != 'tcp' &&
-                !nodes.any((n) => n.id == value))
-              DropdownMenuItem(value: value, child: Text(value)),
-          ],
+      subtitle: Text(
+        valueLabel,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+          color: enabled
+              ? colorScheme.onSurface
+              : colorScheme.onSurface.withValues(alpha: 0.5),
         ),
       ),
+      trailing: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: enabled
+            ? colorScheme.onSurfaceVariant
+            : colorScheme.onSurface.withValues(alpha: 0.4),
+      ),
+      enabled: enabled,
+      onTap: enabled ? onTap : null,
     );
   }
 }

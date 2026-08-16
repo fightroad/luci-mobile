@@ -651,12 +651,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallEnabledSubtitle => '透明代理总开关';
 
   @override
-  String get passwallRestart => '重启服务';
-
-  @override
-  String get passwallRestartSubtitle => '不改设置，仅重启 Passwall';
-
-  @override
   String get passwallTcpNode => 'TCP 节点';
 
   @override
@@ -675,28 +669,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallSaveFailed => '应用 Passwall 设置失败';
 
   @override
-  String get passwallRestarted => 'Passwall 服务已重启';
-
-  @override
-  String get passwallRestartFailed => '重启 Passwall 失败';
-
-  @override
   String get passwallUnavailable => '无法使用 Passwall';
 
   @override
   String get passwallUnavailableMessage => '无法从路由器读取 Passwall 配置。';
 
   @override
-  String get passwallFooterHint => '点「应用」后才会保存并重启一次 Passwall。';
-
-  @override
   String get passwallApply => '应用';
 
   @override
-  String get passwallDiscard => '放弃';
+  String get passwallShuntRules => '分流规则';
 
   @override
-  String get passwallShuntRules => '分流规则';
+  String get passwallShunt => '分流';
 
   @override
   String get passwallShuntDefault => '默认';

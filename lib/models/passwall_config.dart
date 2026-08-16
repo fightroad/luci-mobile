@@ -19,11 +19,12 @@ class PasswallNode {
 
   bool get isShunt => protocol == '_shunt';
 
-  String get label {
+  /// Display label. [shunt] is localized (e.g. "Shunt" / "分流").
+  String label({String shunt = 'Shunt'}) {
     final name = remarks.trim().isEmpty ? id : remarks.trim();
     final typeLabel = (type == null || type!.isEmpty) ? '' : type!;
     if (isShunt) {
-      return typeLabel.isEmpty ? 'Shunt: [$name]' : '$typeLabel Shunt: [$name]';
+      return typeLabel.isEmpty ? '$shunt: [$name]' : '$typeLabel $shunt: [$name]';
     }
     if (typeLabel.isEmpty) return name;
     final proto = (protocol == null || protocol!.isEmpty) ? '' : ' $protocol';
@@ -32,14 +33,12 @@ class PasswallNode {
 }
 
 class PasswallShuntRule {
-  final String id;
   final String remarks;
   final String group;
   /// UCI option on the shunt node (`Ads`, `Direct`, or `default_node`).
   final String option;
 
   const PasswallShuntRule({
-    required this.id,
     required this.remarks,
     this.group = '',
     required this.option,
@@ -92,7 +91,6 @@ class PasswallConfig {
     return [
       ...rules,
       const PasswallShuntRule(
-        id: '.default',
         remarks: 'Default',
         option: 'default_node',
       ),
@@ -184,7 +182,6 @@ class PasswallConfig {
       } else if (type == 'shunt_rules') {
         allShuntRules.add(
           PasswallShuntRule(
-            id: id,
             remarks: _str(section['remarks'], id),
             group: _str(section['group']),
             option: id,

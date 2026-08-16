@@ -628,6 +628,26 @@ class RealApiService implements IApiService {
   }
 
   @override
+  Future<dynamic> uciApply(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    bool rollback = false,
+    int timeout = 10,
+    BuildContext? context,
+  }) async {
+    return await callWithContext(
+      ipAddress,
+      sysauth,
+      useHttps,
+      object: 'uci',
+      method: 'apply',
+      params: {'rollback': rollback, 'timeout': timeout},
+      context: context,
+    );
+  }
+
+  @override
   Future<dynamic> systemExec(
     String ipAddress,
     String sysauth,

@@ -1340,18 +1340,6 @@ abstract class AppLocalizations {
   /// **'Main transparent proxy switch'**
   String get passwallEnabledSubtitle;
 
-  /// No description provided for @passwallRestart.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart service'**
-  String get passwallRestart;
-
-  /// No description provided for @passwallRestartSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Restart Passwall without changing settings'**
-  String get passwallRestartSubtitle;
-
   /// No description provided for @passwallTcpNode.
   ///
   /// In en, this message translates to:
@@ -1388,18 +1376,6 @@ abstract class AppLocalizations {
   /// **'Failed to apply Passwall settings'**
   String get passwallSaveFailed;
 
-  /// No description provided for @passwallRestarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Passwall service restarted'**
-  String get passwallRestarted;
-
-  /// No description provided for @passwallRestartFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to restart Passwall'**
-  String get passwallRestartFailed;
-
   /// No description provided for @passwallUnavailable.
   ///
   /// In en, this message translates to:
@@ -1412,29 +1388,23 @@ abstract class AppLocalizations {
   /// **'Could not read Passwall configuration from the router.'**
   String get passwallUnavailableMessage;
 
-  /// No description provided for @passwallFooterHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap Apply to save changes and restart Passwall once.'**
-  String get passwallFooterHint;
-
   /// No description provided for @passwallApply.
   ///
   /// In en, this message translates to:
   /// **'Apply'**
   String get passwallApply;
 
-  /// No description provided for @passwallDiscard.
-  ///
-  /// In en, this message translates to:
-  /// **'Discard'**
-  String get passwallDiscard;
-
   /// No description provided for @passwallShuntRules.
   ///
   /// In en, this message translates to:
   /// **'Shunt rules'**
   String get passwallShuntRules;
+
+  /// No description provided for @passwallShunt.
+  ///
+  /// In en, this message translates to:
+  /// **'Shunt'**
+  String get passwallShunt;
 
   /// No description provided for @passwallShuntDefault.
   ///

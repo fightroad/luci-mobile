@@ -1805,7 +1805,6 @@ class AppState extends ChangeNotifier {
   Future<bool> applyPasswallSettings({
     Map<String, String>? globalValues,
     Map<String, Map<String, String>>? nodeUpdates,
-    bool restart = true,
     BuildContext? context,
   }) async {
     if (_authService?.sysauth == null || _authService?.ipAddress == null) {
@@ -1843,21 +1842,19 @@ class AppState extends ChangeNotifier {
           );
         }
       }
-      await _apiService!.uciCommit(
+      // Many firmwares deny uci.commit but allow uci.apply (confirmed on Lean).
+      final applyResult = await _apiService!.uciApply(
         _authService!.ipAddress!,
         _authService!.sysauth!,
         _authService!.useHttps,
-        config: 'passwall',
         context: context?.mounted == true ? context : null,
       );
-      if (restart) {
-        await _apiService!.systemExec(
-          _authService!.ipAddress!,
-          _authService!.sysauth!,
-          _authService!.useHttps,
-          command: '/etc/init.d/passwall restart',
-          context: context?.mounted == true ? context : null,
-        );
+      // 0 = applied; 5 = UBUS_STATUS_NO_DATA (nothing staged) — both OK.
+      if (applyResult is List &&
+          applyResult.isNotEmpty &&
+          applyResult[0] != 0 &&
+          applyResult[0] != 5) {
+        throw Exception('uci.apply failed with status ${applyResult[0]}');
       }
       await fetchPasswallConfig(
         context: context?.mounted == true ? context : null,
@@ -1865,27 +1862,6 @@ class AppState extends ChangeNotifier {
       return true;
     } catch (e, stack) {
       Logger.exception('Failed to apply Passwall settings', e, stack);
-      _passwallError = e.toString();
-      notifyListeners();
-      return false;
-    }
-  }
-
-  Future<bool> restartPasswall({BuildContext? context}) async {
-    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
-      return false;
-    }
-    try {
-      await _apiService!.systemExec(
-        _authService!.ipAddress!,
-        _authService!.sysauth!,
-        _authService!.useHttps,
-        command: '/etc/init.d/passwall restart',
-        context: context,
-      );
-      return true;
-    } catch (e, stack) {
-      Logger.exception('Failed to restart Passwall', e, stack);
       _passwallError = e.toString();
       notifyListeners();
       return false;

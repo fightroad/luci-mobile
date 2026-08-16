@@ -68,6 +68,16 @@ abstract class IApiService {
     required String config,
     BuildContext? context,
   });
+  /// Persist staged UCI changes (`uci.apply`). Prefer over [uciCommit] when
+  /// the session ACL denies `uci.commit` (common on some Lean/iStoreOS builds).
+  Future<dynamic> uciApply(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    bool rollback = false,
+    int timeout = 10,
+    BuildContext? context,
+  });
   Future<dynamic> systemExec(
     String ipAddress,
     String sysauth,

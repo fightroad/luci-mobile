@@ -667,13 +667,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallEnabledSubtitle => 'Main transparent proxy switch';
 
   @override
-  String get passwallRestart => 'Restart service';
-
-  @override
-  String get passwallRestartSubtitle =>
-      'Restart Passwall without changing settings';
-
-  @override
   String get passwallTcpNode => 'TCP node';
 
   @override
@@ -692,12 +685,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallSaveFailed => 'Failed to apply Passwall settings';
 
   @override
-  String get passwallRestarted => 'Passwall service restarted';
-
-  @override
-  String get passwallRestartFailed => 'Failed to restart Passwall';
-
-  @override
   String get passwallUnavailable => 'Passwall unavailable';
 
   @override
@@ -705,17 +692,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not read Passwall configuration from the router.';
 
   @override
-  String get passwallFooterHint =>
-      'Tap Apply to save changes and restart Passwall once.';
-
-  @override
   String get passwallApply => 'Apply';
 
   @override
-  String get passwallDiscard => 'Discard';
+  String get passwallShuntRules => 'Shunt rules';
 
   @override
-  String get passwallShuntRules => 'Shunt rules';
+  String get passwallShunt => 'Shunt';
 
   @override
   String get passwallShuntDefault => 'Default';
