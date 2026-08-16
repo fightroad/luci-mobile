@@ -16,6 +16,7 @@ import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/service_factory.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
 import 'package:luci_mobile/utils/logger.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 
 class AppState extends ChangeNotifier {
   static AppState? _instance;
@@ -318,9 +319,7 @@ class AppState extends ChangeNotifier {
       fromRouter: true,
       context: safeContext, // ignore: use_build_context_synchronously
     );
-    if (loginSuccess) {
-      await fetchDashboardData();
-    }
+    // login() already fetches dashboard data on success.
     _isLoading = false;
     notifyListeners();
     return loginSuccess;
@@ -396,18 +395,29 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage =
-            'Login Failed: Invalid credentials or host unreachable.';
+        _errorMessage = _l10n(context).failedToConnectInvalidCredentials;
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _errorMessage = 'An error occurred: $e';
+      _errorMessage = _l10n(context).failedToConnect(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;
     }
+  }
+
+  AppLocalizations _l10n(BuildContext? context) {
+    if (context != null && context.mounted) {
+      final localizations = AppLocalizations.of(context);
+      if (localizations != null) return localizations;
+    }
+    final languageCode =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    return lookupAppLocalizations(
+      languageCode == 'zh' ? const Locale('zh') : const Locale('en'),
+    );
   }
 
   /// Ends the current session without removing saved routers or preferences.

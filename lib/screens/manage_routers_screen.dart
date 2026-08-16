@@ -96,14 +96,13 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                   });
 
                                   try {
-                                    await appState.selectRouter(
+                                    final switched = await appState.selectRouter(
                                       router.id,
                                       context: context,
                                     );
-                                    // Fetch dashboard data before navigating
-                                    await appState.fetchDashboardData();
                                     if (!context.mounted) return;
-                                    // Pop all the way back to MainScreen
+                                    if (!switched) return;
+                                    // login() already loaded dashboard; go back to Main.
                                     Navigator.of(
                                       context,
                                     ).popUntil((route) => route.isFirst);
