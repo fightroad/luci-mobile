@@ -420,9 +420,8 @@ class AppState extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        // Credentials wrong, host unreachable, or session cookie missing.
         _errorMessage =
-            'Login failed: check username/password, address, HTTP/HTTPS, and try again.';
+            'Login Failed: Invalid credentials or host unreachable.';
         _isLoading = false;
         notifyListeners();
         return false;
