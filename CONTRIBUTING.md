@@ -33,12 +33,12 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 1. Fork the repository on GitHub
 2. Clone your fork locally:
    ```bash
-   git clone https://github.com/cogwheel0/luci-mobile.git
+   git clone https://github.com/fightroad/luci-mobile.git
    cd luci-mobile
    ```
 3. Add the upstream repository:
    ```bash
-   git remote add upstream https://github.com/cogwheel0/luci-mobile.git
+   git remote add upstream https://github.com/fightroad/luci-mobile.git
    ```
 
 ## Development Setup

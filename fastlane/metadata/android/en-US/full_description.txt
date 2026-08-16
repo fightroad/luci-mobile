@@ -24,9 +24,9 @@ This app requires an OpenWrt router with the LuCI web interface enabled. For rem
 
 LuCI Mobile is an open-source project. For support, to report issues, or to view the source code, please visit our GitHub repository:
 
-https://github.com/cogwheel0/luci-mobile
+https://github.com/fightroad/luci-mobile
 
-Email: cogwheel@cogwheel.app
+Issues: https://github.com/fightroad/luci-mobile/issues
 
 -----
 

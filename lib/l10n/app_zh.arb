@@ -185,7 +185,6 @@
   "aboutDialogOpenSource": "开源且免费使用。",
   "githubRepository": "GitHub 仓库",
   "couldNotOpenRepository": "无法打开仓库",
-  "close": "关闭",
   "routerBackOnline": "路由器已重新上线，正在重新连接…",
   "openWrtRouterControl": "OpenWrt 路由器控制",
   "routers": "路由器",

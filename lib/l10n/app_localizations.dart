@@ -1040,12 +1040,6 @@ abstract class AppLocalizations {
   /// **'Could not open repository'**
   String get couldNotOpenRepository;
 
-  /// Close button
-  ///
-  /// In en, this message translates to:
-  /// **'Close'**
-  String get close;
-
   /// Router back online message
   ///
   /// In en, this message translates to:

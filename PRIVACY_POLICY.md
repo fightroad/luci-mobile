@@ -49,4 +49,4 @@ LuCI Mobile ("we", "our", or "us") is committed to protecting your privacy. This
 ## 7. Contact Us
 
 If you have any questions or concerns about this Privacy Policy, please contact us at:  
-[github.com/cogwheel0/luci-mobile/issues] 
+[github.com/fightroad/luci-mobile/issues] 

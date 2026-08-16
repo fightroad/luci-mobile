@@ -489,9 +489,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldNotOpenRepository => '无法打开仓库';
 
   @override
-  String get close => '关闭';
-
-  @override
   String get routerBackOnline => '路由器已重新上线，正在重新连接…';
 
   @override

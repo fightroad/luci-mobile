@@ -648,10 +648,6 @@
   "@couldNotOpenRepository": {
     "description": "Error message when repository cannot be opened"
   },
-  "close": "Close",
-  "@close": {
-    "description": "Close button"
-  },
   "routerBackOnline": "Router is back online, reconnecting…",
   "@routerBackOnline": {
     "description": "Router back online message"

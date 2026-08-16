@@ -280,12 +280,6 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 ),
               ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(l10n.close),
-              ),
-            ],
           );
         },
       ),

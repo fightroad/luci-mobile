@@ -501,9 +501,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotOpenRepository => 'Could not open repository';
 
   @override
-  String get close => 'Close';
-
-  @override
   String get routerBackOnline => 'Router is back online, reconnecting…';
 
   @override

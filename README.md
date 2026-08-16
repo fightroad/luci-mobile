@@ -1,19 +1,13 @@
 # LuCI Mobile
 
 <div align="center">
-  <a href="https://play.google.com/store/apps/details?id=com.cogwheel.LuCIMobile">
-    <img src="store-badges/google.webp" alt="Get it on Google Play" style="height:56px;"/>
-  </a>
-  <a href="https://apps.apple.com/app/luci-mobile/id6749455847">
-    <img src="store-badges/apple.webp" alt="Download on the App Store" style="height:56px;"/>
-  </a>
-  <a href="https://apt.izzysoft.de/fdroid/index/apk/com.cogwheel.LuCIMobile">
-    <img src="store-badges/izzyondroid.webp" alt="Get it on IzzyOnDroid" style="height:56px;"/>
-  </a>
-  <br><br>
 
-![Latest Release](https://shields.rbtlog.dev/simple/com.cogwheel.LuCIMobile)
-![GitHub all downloads](https://img.shields.io/github/downloads/cogwheel0/luci-mobile/total?style=flat-square&label=Downloads&logo=github&color=0A84FF)
+![Latest Release](https://img.shields.io/github/v/release/fightroad/luci-mobile?style=flat-square&label=Latest%20Release&logo=github&color=0A84FF)
+![GitHub all downloads](https://img.shields.io/github/downloads/fightroad/luci-mobile/total?style=flat-square&label=Downloads&logo=github&color=0A84FF)
+
+<br>
+
+[Releases](https://github.com/fightroad/luci-mobile/releases)
 
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_01.png" width="300"/>
 </div>
@@ -33,7 +27,7 @@
 - **Client Management:** See all connected devices, connection type, MAC/IP, vendor, DHCP lease, and more.
 - **System Control:** Remote reboot, settings, and theme customization (light/dark mode).
 - **Modern UI/UX:** Material Design 3, responsive layout, and intuitive navigation.
-- **Open Source:** GPLv3 licensed and available on [Google Play](https://play.google.com/store/apps/details?id=com.cogwheel.LuCIMobile) and [IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.cogwheel.LuCIMobile).
+- **Open Source:** GPLv3 licensed. Builds and releases: [GitHub Releases](https://github.com/fightroad/luci-mobile/releases).
 
 ---
 
@@ -58,10 +52,10 @@
 
 ## Installation
 
-**Get it on [Google Play](https://play.google.com/store/apps/details?id=com.cogwheel.LuCIMobile)**, **[Apple App Store](https://apps.apple.com/app/luci-mobile/id6749455847)**, or **[IzzyOnDroid](https://apt.izzysoft.de/fdroid/index/apk/com.cogwheel.LuCIMobile)**, or build from source:
+**Download from [GitHub Releases](https://github.com/fightroad/luci-mobile/releases)**, or build from source:
 
 ```bash
-git clone https://github.com/cogwheel0/luci-mobile.git
+git clone https://github.com/fightroad/luci-mobile.git
 cd luci-mobile
 flutter pub get
 flutter run
