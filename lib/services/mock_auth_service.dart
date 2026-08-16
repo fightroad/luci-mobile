@@ -20,7 +20,7 @@ class MockAuthService implements IAuthService {
   bool get isAuthenticated => _isAuthenticated;
 
   @override
-  Future<void> login(
+  Future<bool> login(
     String ipAddress,
     String username,
     String password,
@@ -35,6 +35,7 @@ class MockAuthService implements IAuthService {
     _useHttps = useHttps;
     _isAuthenticated = true;
     _sysauth = 'mock_sysauth_token_12345';
+    return true;
   }
 
   @override

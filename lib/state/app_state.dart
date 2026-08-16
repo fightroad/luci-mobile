@@ -367,10 +367,16 @@ class AppState extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService!.login(ip, user, pass, useHttps, context: context);
+      final loginOk = await _authService!.login(
+        ip,
+        user,
+        pass,
+        useHttps,
+        context: context,
+      );
 
-      // Check if authentication was successful
-      if (_authService!.isAuthenticated) {
+      // Only add/update routers when THIS attempt succeeds (not leftover session).
+      if (loginOk) {
         // Get the actual protocol used (might be different due to redirect)
         final actualUseHttps = _authService!.useHttps;
 

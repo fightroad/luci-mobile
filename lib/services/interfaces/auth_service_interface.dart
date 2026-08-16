@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 abstract class IAuthService {
-  Future<void> login(
+  Future<bool> login(
     String ipAddress,
     String username,
     String password,

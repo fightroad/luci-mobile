@@ -26,14 +26,14 @@ class RealAuthService implements IAuthService {
   bool get isAuthenticated => _sysauth != null;
 
   @override
-  Future<void> login(
+  Future<bool> login(
     String ipAddress,
     String username,
     String password,
     bool useHttps, {
     BuildContext? context,
   }) async {
-    await _login(ipAddress, username, password, useHttps, context: context);
+    return await _login(ipAddress, username, password, useHttps, context: context);
   }
 
   Future<bool> _login(
@@ -87,6 +87,9 @@ class RealAuthService implements IAuthService {
           useHttps,
           context: context,
         );
+        if (token.isEmpty) {
+          return false;
+        }
         _sysauth = token;
         _ipAddress = ip;
         _useHttps = useHttps;
