@@ -24,7 +24,9 @@ jobs:
           cache: true
 
       - name: Install Dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter precache --ios
 
       - name: Disable Code Signing
         run: |
@@ -39,57 +41,61 @@ jobs:
       - name: Build iOS (No Codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Ad-hoc sign for TrollStore
-        run: |
-          set -euo pipefail
+      - name: Install ldid
+        run: brew install ldid
 
-          APP_PATH="build/ios/iphoneos/Runner.app"
-          test -d "$APP_PATH"
-
-          BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")"
-          APP_ID="${TEAM_ID}.${BUNDLE_ID}"
-          ENTITLEMENTS="${RUNNER_TEMP}/Runner.signing.entitlements"
-
-          # Identity entitlements only (EasyTier-style ad-hoc). No special capabilities.
-          plutil -create xml1 "$ENTITLEMENTS"
-          /usr/libexec/PlistBuddy \
-            -c "Add :application-identifier string ${APP_ID}" \
-            -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" \
-            "$ENTITLEMENTS"
-
-          if [[ -d "$APP_PATH/Frameworks" ]]; then
-            find "$APP_PATH/Frameworks" -name '*.framework' -maxdepth 1 | while read -r fw; do
-              codesign --force --sign - --timestamp=none --generate-entitlement-der "$fw"
-            done
-            find "$APP_PATH/Frameworks" -name '*.dylib' -maxdepth 1 | while read -r lib; do
-              codesign --force --sign - --timestamp=none --generate-entitlement-der "$lib"
-            done
-          fi
-
-          codesign \
-            --force \
-            --sign - \
-            --timestamp=none \
-            --generate-entitlement-der \
-            --entitlements "$ENTITLEMENTS" \
-            "$APP_PATH"
-
-      - name: Package IPA
+      - name: Package TrollStore IPA
         id: package
         run: |
           set -euo pipefail
 
           APP_PATH="build/ios/iphoneos/Runner.app"
           test -d "$APP_PATH"
+          test -f "$APP_PATH/Info.plist"
+
+          BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")"
+          EXEC_NAME="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP_PATH/Info.plist")"
+          MAIN_BIN="$APP_PATH/$EXEC_NAME"
+          APP_ID="${TEAM_ID}.${BUNDLE_ID}"
+          ENTITLEMENTS="${RUNNER_TEMP}/TrollStore.entitlements"
+          test -f "$MAIN_BIN"
+
+          plutil -create xml1 "$ENTITLEMENTS"
+          /usr/libexec/PlistBuddy \
+            -c "Add :application-identifier string ${APP_ID}" \
+            -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" \
+            -c "Add :get-task-allow bool false" \
+            -c "Add :keychain-access-groups array" \
+            -c "Add :keychain-access-groups:0 string ${APP_ID}" \
+            "$ENTITLEMENTS"
+
+          while IFS= read -r -d '' file; do
+            if [[ "$file" == "$MAIN_BIN" ]]; then
+              continue
+            fi
+            if file "$file" | grep -q 'Mach-O'; then
+              ldid -S "$file" || true
+            fi
+          done < <(find "$APP_PATH" -type f -print0)
+
+          ldid "-S${ENTITLEMENTS}" "$MAIN_BIN"
+          test -f "$APP_PATH/Info.plist"
 
           VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
           BUILD=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f2)
           IPA_NAME="LuCI-Mobile-${VERSION}-${BUILD}-TrollStore.ipa"
 
-          rm -rf Payload
-          mkdir Payload
-          cp -R "$APP_PATH" Payload/Runner.app
+          rm -rf Payload "$IPA_NAME"
+          mkdir -p Payload
+          ditto "$APP_PATH" "Payload/Runner.app"
+          test -f "Payload/Runner.app/Info.plist"
+
           zip -qry "$IPA_NAME" Payload
+          rm -rf Payload
+
+          unzip -l "$IPA_NAME" | grep -q 'Payload/Runner.app/Info.plist'
+          unzip -qo "$IPA_NAME" "Payload/Runner.app/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' Payload/Runner.app/Info.plist
           rm -rf Payload
 
           ls -lh "$IPA_NAME"
@@ -100,4 +106,5 @@ jobs:
         with:
           name: LuCI-Mobile-TrollStore-IPA
           path: ${{ steps.package.outputs.ipa_path }}
+          if-no-files-found: error
           retention-days: 30
