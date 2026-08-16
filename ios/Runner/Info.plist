@@ -34,11 +34,6 @@
 	<!-- Required on iOS 14+ to reach LAN devices (e.g. OpenWrt at 192.168.x.x) -->
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>LuCI Mobile needs local network access to connect to your OpenWrt router.</string>
-	<key>NSBonjourServices</key>
-	<array>
-		<string>_http._tcp.</string>
-		<string>_https._tcp.</string>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -3,6 +3,9 @@ name: Build TrollStore IPA
 on:
   workflow_dispatch:
 
+env:
+  TEAM_ID: X2662V5DT2
+
 jobs:
   build-trollstore-ipa:
     name: Build TrollStore IPA
@@ -35,6 +38,41 @@ jobs:
 
       - name: Build iOS (No Codesign)
         run: flutter build ios --release --no-codesign
+
+      - name: Ad-hoc sign for TrollStore
+        run: |
+          set -euo pipefail
+
+          APP_PATH="build/ios/iphoneos/Runner.app"
+          test -d "$APP_PATH"
+
+          BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")"
+          APP_ID="${TEAM_ID}.${BUNDLE_ID}"
+          ENTITLEMENTS="${RUNNER_TEMP}/Runner.signing.entitlements"
+
+          # Identity entitlements only (EasyTier-style ad-hoc). No special capabilities.
+          plutil -create xml1 "$ENTITLEMENTS"
+          /usr/libexec/PlistBuddy \
+            -c "Add :application-identifier string ${APP_ID}" \
+            -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" \
+            "$ENTITLEMENTS"
+
+          if [[ -d "$APP_PATH/Frameworks" ]]; then
+            find "$APP_PATH/Frameworks" -name '*.framework' -maxdepth 1 | while read -r fw; do
+              codesign --force --sign - --timestamp=none --generate-entitlement-der "$fw"
+            done
+            find "$APP_PATH/Frameworks" -name '*.dylib' -maxdepth 1 | while read -r lib; do
+              codesign --force --sign - --timestamp=none --generate-entitlement-der "$lib"
+            done
+          fi
+
+          codesign \
+            --force \
+            --sign - \
+            --timestamp=none \
+            --generate-entitlement-der \
+            --entitlements "$ENTITLEMENTS" \
+            "$APP_PATH"
 
       - name: Package IPA
         id: package
