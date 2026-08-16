@@ -350,11 +350,53 @@ abstract class AppLocalizations {
   /// **'Model'**
   String get model;
 
+  /// Device info dialog title on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get deviceInfo;
+
+  /// Router hostname label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname'**
+  String get hostname;
+
   /// Version label
   ///
   /// In en, this message translates to:
   /// **'Version'**
   String get versionLabel;
+
+  /// Firmware version label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware'**
+  String get firmwareVersion;
+
+  /// LuCI version label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'LuCI'**
+  String get luciVersion;
+
+  /// CPU/architecture label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Architecture'**
+  String get architecture;
+
+  /// Target platform label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Platform'**
+  String get platform;
+
+  /// Kernel version label in device detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Kernel'**
+  String get kernel;
 
   /// CPU load label
   ///

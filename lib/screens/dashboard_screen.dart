@@ -176,9 +176,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
     final boardInfo =
         appState.dashboardData?['boardInfo'] as Map<String, dynamic>?;
-    final model = boardInfo?['model'] ?? 'N/A';
+    final fullModel = boardInfo?['model']?.toString().trim();
+    final displayModel = _shortModelName(
+      (fullModel == null || fullModel.isEmpty) ? 'N/A' : fullModel,
+    );
     final release = boardInfo?['release'] as Map<String, dynamic>?;
-    final version = release?['version'] ?? 'N/A';
     final channel = _deriveReleaseChannel(release);
     final channelLabel = channel.toUpperCase();
     final channelColors = _channelColors(channel);
@@ -194,72 +196,176 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.model, style: labelStyle),
-                  const SizedBox(height: 4),
-                  Text(
-                    model,
-                    style: valueStyle,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: () => _showDeviceBoardDetailDialog(boardInfo),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.model, style: labelStyle),
+                    const SizedBox(height: 4),
+                    Text(
+                      displayModel,
+                      style: valueStyle,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(l10n.versionLabel, style: labelStyle),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          version,
-                          style: valueStyle,
-                          overflow: TextOverflow.ellipsis,
-                          textAlign: TextAlign.center,
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.versionLabel, style: labelStyle),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: channelColors.background,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        channelLabel,
+                        style: TextStyle(
+                          color: channelColors.foreground,
+                          fontWeight: FontWeight.bold,
+                          fontSize: Theme.of(
+                            context,
+                          ).textTheme.bodySmall?.fontSize,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: channelColors.background,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          channelLabel,
-                          style: TextStyle(
-                            color: channelColors.foreground,
-                            fontWeight: FontWeight.bold,
-                            fontSize: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.fontSize,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// Drop parenthetical suffixes for compact dashboard display.
+  String _shortModelName(String model) {
+    final stripped = model
+        .replaceAll(RegExp(r'\s*[（(][^）)]*[）)]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return stripped.isEmpty ? model.trim() : stripped;
+  }
+
+  /// Split ImmortalWrt-style "… / LuCI …" description; keep stock OpenWrt intact.
+  ({String firmware, String? luci}) _parseFirmwareAndLuci(
+    Map<String, dynamic>? release,
+  ) {
+    final description = release?['description']?.toString().trim();
+    if (description != null && description.isNotEmpty) {
+      final luciMatch = RegExp(
+        r'^(.*?)\s*/\s*(LuCI\b.*)$',
+        caseSensitive: false,
+      ).firstMatch(description);
+      if (luciMatch != null) {
+        final firmware = luciMatch.group(1)?.trim() ?? description;
+        final luci = luciMatch.group(2)?.trim();
+        return (
+          firmware: firmware.isEmpty ? description : firmware,
+          luci: (luci == null || luci.isEmpty) ? null : luci,
+        );
+      }
+      return (firmware: description, luci: null);
+    }
+
+    final parts = <String>[];
+    final distribution = release?['distribution']?.toString().trim();
+    final version = release?['version']?.toString().trim();
+    final revision = release?['revision']?.toString().trim();
+    if (distribution != null && distribution.isNotEmpty) {
+      parts.add(distribution);
+    }
+    if (version != null && version.isNotEmpty) parts.add(version);
+    if (revision != null && revision.isNotEmpty) parts.add(revision);
+    return (
+      firmware: parts.isEmpty ? '' : parts.join(' '),
+      luci: null,
+    );
+  }
+
+  void _showDeviceBoardDetailDialog(Map<String, dynamic>? boardInfo) {
+    final l10n = AppLocalizations.of(context)!;
+    final hostname = boardInfo?['hostname']?.toString().trim();
+    final model = boardInfo?['model']?.toString().trim();
+    final release = boardInfo?['release'] as Map<String, dynamic>?;
+    final parsed = _parseFirmwareAndLuci(release);
+    final architecture = boardInfo?['system']?.toString().trim();
+    final platform = release?['target']?.toString().trim();
+    final kernel = boardInfo?['kernel']?.toString().trim();
+
+    String valueOrDash(String? value) =>
+        (value == null || value.isEmpty) ? '—' : value;
+
+    final rows = <({String label, String value})>[
+      (label: l10n.hostname, value: valueOrDash(hostname)),
+      (label: l10n.model, value: valueOrDash(model)),
+      (
+        label: l10n.firmwareVersion,
+        value: valueOrDash(
+          parsed.firmware.isEmpty ? null : parsed.firmware,
+        ),
+      ),
+      (label: l10n.luciVersion, value: valueOrDash(parsed.luci)),
+      (label: l10n.architecture, value: valueOrDash(architecture)),
+      (label: l10n.platform, value: valueOrDash(platform)),
+      (label: l10n.kernel, value: valueOrDash(kernel)),
+    ];
+
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          title: Text(l10n.deviceInfo),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < rows.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  Text(
+                    rows[i].label,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  SelectableText(
+                    rows[i].value,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.close),
+            ),
+          ],
+        );
+      },
     );
   }
 

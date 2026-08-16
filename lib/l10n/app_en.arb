@@ -178,9 +178,37 @@
   "@model": {
     "description": "Model label"
   },
+  "deviceInfo": "Device",
+  "@deviceInfo": {
+    "description": "Device info dialog title on dashboard"
+  },
+  "hostname": "Hostname",
+  "@hostname": {
+    "description": "Router hostname label in device detail dialog"
+  },
   "versionLabel": "Version",
   "@versionLabel": {
     "description": "Version label"
+  },
+  "firmwareVersion": "Firmware",
+  "@firmwareVersion": {
+    "description": "Firmware version label in device detail dialog"
+  },
+  "luciVersion": "LuCI",
+  "@luciVersion": {
+    "description": "LuCI version label in device detail dialog"
+  },
+  "architecture": "Architecture",
+  "@architecture": {
+    "description": "CPU/architecture label in device detail dialog"
+  },
+  "platform": "Platform",
+  "@platform": {
+    "description": "Target platform label in device detail dialog"
+  },
+  "kernel": "Kernel",
+  "@kernel": {
+    "description": "Kernel version label in device detail dialog"
   },
   "cpuLoad": "CPU Load",
   "@cpuLoad": {

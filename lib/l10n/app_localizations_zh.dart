@@ -140,7 +140,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get model => '型号';
 
   @override
+  String get deviceInfo => '设备信息';
+
+  @override
+  String get hostname => '主机名';
+
+  @override
   String get versionLabel => '版本';
+
+  @override
+  String get firmwareVersion => '固件版本';
+
+  @override
+  String get luciVersion => 'LuCI 版本';
+
+  @override
+  String get architecture => '架构';
+
+  @override
+  String get platform => '平台';
+
+  @override
+  String get kernel => '内核';
 
   @override
   String get cpuLoad => 'CPU 负载';

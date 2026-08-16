@@ -143,7 +143,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get model => 'Model';
 
   @override
+  String get deviceInfo => 'Device';
+
+  @override
+  String get hostname => 'Hostname';
+
+  @override
   String get versionLabel => 'Version';
+
+  @override
+  String get firmwareVersion => 'Firmware';
+
+  @override
+  String get luciVersion => 'LuCI';
+
+  @override
+  String get architecture => 'Architecture';
+
+  @override
+  String get platform => 'Platform';
+
+  @override
+  String get kernel => 'Kernel';
 
   @override
   String get cpuLoad => 'CPU Load';
