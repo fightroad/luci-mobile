@@ -762,7 +762,9 @@ class RealApiService implements IApiService {
       return false;
     }
 
-    final response = await client.post(
+    // Old CBI builds start a background job then redirect (often to /log).
+    // Do not judge by final URL — firing the form is enough to treat as started.
+    await client.post(
       pageUri.toString(),
       data: {
         'token': token,
@@ -776,11 +778,7 @@ class RealApiService implements IApiService {
         validateStatus: (code) => code != null && code < 500,
       ),
     );
-
-    final path = response.realUri.path.toLowerCase();
-    if (path.contains('/log')) return true;
-    if (path.contains('node_subscribe')) return false;
-    return response.statusCode == 200 || response.statusCode == 302;
+    return true;
   }
 
   @override
