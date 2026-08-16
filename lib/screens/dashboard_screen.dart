@@ -29,7 +29,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(appStateProvider).fetchDashboardData();
+      final appState = ref.read(appStateProvider);
+      // Splash / login may already have loaded dashboard — avoid a second spinner.
+      if (appState.dashboardData == null) {
+        appState.fetchDashboardData();
+      }
       // Initialize arrows after layout
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateWirelessArrows();

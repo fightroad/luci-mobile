@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/screens/login_screen.dart' show kLoginSkipAutoLogin;
+import 'package:luci_mobile/utils/app_navigation.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -40,18 +41,24 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     if (appState.reviewerModeEnabled) {
       await splashDelay;
       if (!mounted) return;
-      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      goToMainWithoutTransition(context);
       return;
     }
 
-    // Overlap remaining splash time with the login request when possible.
-    final autoLoginFuture = appState.tryAutoLogin(context: context);
+    // Login (+ dashboard prefetch) overlaps the splash delay so Main opens ready.
+    final readyFuture = () async {
+      final ok = await appState.tryAutoLogin(context: context);
+      if (!ok) return false;
+      await appState.fetchDashboardData();
+      return true;
+    }();
+
     await splashDelay;
-    final success = await autoLoginFuture;
+    final success = await readyFuture;
 
     if (!mounted) return;
     if (success) {
-      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      goToMainWithoutTransition(context);
     } else {
       unawaited(
         Navigator.of(context).pushReplacementNamed(

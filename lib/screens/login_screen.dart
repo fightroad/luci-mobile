@@ -8,6 +8,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/services/secure_storage_service.dart';
 import 'package:luci_mobile/utils/url_parser.dart';
+import 'package:luci_mobile/utils/app_navigation.dart';
 
 /// When true in [RouteSettings.arguments], skip a second auto-login attempt.
 const String kLoginSkipAutoLogin = 'skipAutoLogin';
@@ -59,7 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     );
 
     if (reviewerModeEnabled == 'true' && mounted) {
-      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      goToMainWithoutTransition(context);
       return;
     }
 
@@ -155,7 +156,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     await appState.setReviewerMode(true);
 
     if (mounted) {
-      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      goToMainWithoutTransition(context);
     }
   }
 
@@ -174,7 +175,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final appState = ref.read(appStateProvider);
     final success = await appState.tryAutoLogin(context: context);
     if (success && mounted) {
-      unawaited(Navigator.of(context).pushReplacementNamed('/'));
+      goToMainWithoutTransition(context);
     } else if (mounted) {
       _prefillFromSavedRouter();
       setState(() {
@@ -226,7 +227,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       );
 
       if (success && mounted) {
-        unawaited(Navigator.of(context).pushReplacementNamed('/'));
+        goToMainWithoutTransition(context);
       }
     }
   }
