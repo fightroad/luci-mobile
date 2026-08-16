@@ -39,13 +39,13 @@ class _RouterDashboardSettingsScreenState
   @override
   void initState() {
     super.initState();
-    // Ensure the selected router matches the requested router
     final appState = ref.read(appStateProvider);
     final current = appState.selectedRouter?.id;
     Future(() async {
       if (current != widget.routerId) {
         await appState.selectRouter(widget.routerId);
       }
+      if (!mounted) return;
       await _loadPreferences();
     });
   }
@@ -59,10 +59,23 @@ class _RouterDashboardSettingsScreenState
   Future<void> _loadPreferences() async {
     try {
       final appState = ref.read(appStateProvider);
+      // Require a live session for this router — never reuse another router's dashboard.
+      if (appState.selectedRouter?.id != widget.routerId ||
+          !appState.hasSessionForSelectedRouter) {
+        final l10n = AppLocalizations.of(context)!;
+        setState(() {
+          _errorMessage = l10n.unableToLoadDashboardData;
+          _isLoading = false;
+        });
+        return;
+      }
       if (appState.dashboardData == null) {
         await appState.fetchDashboardData();
       }
-      if (appState.dashboardData == null) {
+      if (!mounted) return;
+      if (appState.dashboardData == null ||
+          appState.selectedRouter?.id != widget.routerId ||
+          !appState.hasSessionForSelectedRouter) {
         final l10n = AppLocalizations.of(context)!;
         setState(() {
           _errorMessage = l10n.unableToLoadDashboardData;
@@ -74,6 +87,7 @@ class _RouterDashboardSettingsScreenState
       _extractAvailableInterfaces(appState.dashboardData);
       setState(() => _isLoading = false);
     } catch (e) {
+      if (!mounted) return;
       final l10n = AppLocalizations.of(context)!;
       setState(() {
         _errorMessage = l10n.failedToLoadSettings(e.toString());

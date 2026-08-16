@@ -238,6 +238,16 @@ class AppState extends ChangeNotifier {
 
   String? get sysauth => _authService?.sysauth;
   bool get isAuthenticated => _authService?.isAuthenticated ?? false;
+  /// True when the auth session host matches the currently selected router.
+  bool get hasSessionForSelectedRouter {
+    final selected = selectedRouter;
+    final authIp = _authService?.ipAddress;
+    return selected != null &&
+        isAuthenticated &&
+        authIp != null &&
+        authIp == selected.ipAddress;
+  }
+
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -310,11 +320,11 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  Future<void> selectRouter(String id, {BuildContext? context}) async {
-    if (_routerService == null || _routerService!.routers.isEmpty) return;
+  Future<bool> selectRouter(String id, {BuildContext? context}) async {
+    if (_routerService == null || _routerService!.routers.isEmpty) return false;
 
     final found = _routerService!.selectRouter(id);
-    if (found == null) return;
+    if (found == null) return false;
 
     _isLoading = true;
     _dashboardError = null;
@@ -343,6 +353,7 @@ class AppState extends ChangeNotifier {
     }
     _isLoading = false;
     notifyListeners();
+    return loginSuccess;
   }
 
   Future<void> updateRouter(model.Router router) async {
