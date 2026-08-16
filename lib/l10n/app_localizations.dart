@@ -374,6 +374,24 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// Online clients count label on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Online'**
+  String get onlineClients;
+
+  /// Active conntrack connections label on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get activeConnections;
+
+  /// Router temperature label on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Temp'**
+  String get temperature;
+
   /// Failed to load clients error title
   ///
   /// In en, this message translates to:

@@ -651,6 +651,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildSystemVitalsCard(AppState appState) {
+    final l10n = AppLocalizations.of(context)!;
     final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
 
     final uptime = sysInfo?['uptime'] as int?;
@@ -667,39 +668,166 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ? '${(usedMem / totalMem * 100).toStringAsFixed(0)}%'
         : 'N/A';
 
+    final onlineClients = appState.dashboardData?['onlineClients'];
+    final onlineValue = onlineClients is int ? '$onlineClients' : 'N/A';
+
+    final connCount = appState.dashboardData?['conntrackCount'] as int?;
+    final connMax = appState.dashboardData?['conntrackMax'] as int?;
+    final connectionsValue = _formatConnections(connCount, connMax);
+    final connectionsDetail = _formatConnectionsDetail(connCount, connMax);
+
+    final temperature = appState.dashboardData?['temperature']?.toString();
+    final temperatureShort =
+        appState.dashboardData?['temperatureShort']?.toString();
+    final temperatureValue =
+        (temperatureShort != null && temperatureShort.isNotEmpty)
+        ? temperatureShort
+        : '—';
+    final temperatureDetail =
+        (temperature != null && temperature.isNotEmpty) ? temperature : null;
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              child: _buildVitalsColumn(
-                context,
-                label: AppLocalizations.of(context)!.cpuLoad,
-                value: cpuLoadValue,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildVitalsColumn(
+                    context,
+                    label: l10n.cpuLoad,
+                    value: cpuLoadValue,
+                  ),
+                ),
+                Expanded(
+                  child: _buildVitalsColumn(
+                    context,
+                    label: l10n.memory,
+                    value: memoryValue,
+                  ),
+                ),
+                Expanded(
+                  child: _buildVitalsColumn(
+                    context,
+                    label: l10n.uptime,
+                    value: uptimeValue,
+                  ),
+                ),
+              ],
             ),
-            Expanded(
-              child: _buildVitalsColumn(
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: Theme.of(
                 context,
-                label: AppLocalizations.of(context)!.memory,
-                value: memoryValue,
-              ),
+              ).colorScheme.outlineVariant.withValues(alpha: 0.6),
             ),
-            Expanded(
-              child: _buildVitalsColumn(
-                context,
-                label: AppLocalizations.of(context)!.uptime,
-                value: uptimeValue,
-              ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () async {
+                      await appState.setClientsAggregateAllRouters(false);
+                      appState.requestTab(1);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: _buildVitalsColumn(
+                        context,
+                        label: l10n.onlineClients,
+                        value: onlineValue,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: connCount == null
+                        ? null
+                        : () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text(l10n.activeConnections),
+                                content: Text(connectionsDetail),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: Text(l10n.close),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: _buildVitalsColumn(
+                        context,
+                        label: l10n.activeConnections,
+                        value: connectionsValue,
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: temperatureDetail == null
+                        ? null
+                        : () {
+                            showDialog<void>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text(l10n.temperature),
+                                content: Text(temperatureDetail),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                    child: Text(l10n.close),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2.0),
+                      child: _buildVitalsColumn(
+                        context,
+                        label: l10n.temperature,
+                        value: temperatureValue,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatConnections(int? count, int? max) {
+    if (count == null) return 'N/A';
+    if (max == null || max <= 0) return 'N/A';
+    final percent = ((count / max) * 100).clamp(0, 100);
+    return '${percent.toStringAsFixed(percent >= 10 ? 0 : 1)}%';
+  }
+
+  String _formatConnectionsDetail(int? count, int? max) {
+    if (count == null) return 'N/A';
+    if (max == null || max <= 0) return '$count';
+    final percent = ((count / max) * 100).clamp(0, 100);
+    return '$count / $max (${percent.toStringAsFixed(1)}%)';
   }
 
   Widget _buildWirelessInfoCardContent(

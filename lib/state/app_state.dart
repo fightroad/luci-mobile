@@ -480,6 +480,11 @@ class AppState extends ChangeNotifier {
           'uciWirelessConfig': results[6][1],
           'wan': _extractWanData(interfaceDump),
           'wireguard': <String, dynamic>{}, // Empty for reviewer mode
+          'onlineClients': 12,
+          'conntrackCount': 842,
+          'conntrackMax': 16384,
+          'temperature': 'CPU: 48.0°C, WiFi: 52.0°C 50.0°C',
+          'temperatureShort': '48.0°C',
           '_lastUpdated':
               DateTime.now().millisecondsSinceEpoch, // Force UI updates
         };
@@ -577,6 +582,27 @@ class AppState extends ChangeNotifier {
         params: {'config': 'wireless'},
       );
 
+      final onlineUsersFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getOnlineUsers',
+        params: {},
+      );
+      final tempInfoFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getTempInfo',
+        params: {},
+      );
+      final conntrackCountFuture = callOptionalRpc(
+        object: 'file',
+        method: 'read',
+        params: {'path': '/proc/sys/net/netfilter/nf_conntrack_count'},
+      );
+      final conntrackMaxFuture = callOptionalRpc(
+        object: 'file',
+        method: 'read',
+        params: {'path': '/proc/sys/net/netfilter/nf_conntrack_max'},
+      );
+
       final results = await Future.wait([
         _apiService!.call(
           ip,
@@ -653,10 +679,20 @@ class AppState extends ChangeNotifier {
       final dhcpLeases = getData(results[4]) as Map<String, dynamic>?;
 
       // Await optional wireless futures in parallel (won't throw — wired-only routers are fine)
-      final optionalResults =
-          await Future.wait([wirelessFuture, uciWirelessFuture]);
+      final optionalResults = await Future.wait([
+        wirelessFuture,
+        uciWirelessFuture,
+        onlineUsersFuture,
+        tempInfoFuture,
+        conntrackCountFuture,
+        conntrackMaxFuture,
+      ]);
       final wirelessRaw = optionalResults[0];
       final uciWirelessRaw = optionalResults[1];
+      final onlineUsersRaw = optionalResults[2];
+      final tempInfoRaw = optionalResults[3];
+      final conntrackCountRaw = optionalResults[4];
+      final conntrackMaxRaw = optionalResults[5];
 
       Map<String, dynamic>? wirelessData;
       if (wirelessRaw != null) {
@@ -672,6 +708,28 @@ class AppState extends ChangeNotifier {
         uciWirelessConfig =
             getOptionalData(uciWirelessRaw, 'uci.get wireless');
       }
+
+      final onlineUsersData = onlineUsersRaw != null
+          ? getOptionalData(onlineUsersRaw, 'luci.getOnlineUsers')
+          : null;
+      final tempInfoData = tempInfoRaw != null
+          ? getOptionalData(tempInfoRaw, 'luci.getTempInfo')
+          : null;
+      final conntrackCountData = conntrackCountRaw != null
+          ? getOptionalData(conntrackCountRaw, 'file.read conntrack_count')
+          : null;
+      final conntrackMaxData = conntrackMaxRaw != null
+          ? getOptionalData(conntrackMaxRaw, 'file.read conntrack_max')
+          : null;
+
+      final conntrackCount = _parseProcInt(conntrackCountData);
+      final conntrackMax = _parseProcInt(conntrackMaxData);
+      final temperature = _parseTemperature(tempInfoData);
+      final onlineClients = _parseOnlineClients(
+        onlineUsersData,
+        wirelessData,
+        dhcpLeases,
+      );
 
       // Fetch WireGuard peer information for WireGuard interfaces
       final wireguardData = <String, dynamic>{};
@@ -764,6 +822,11 @@ class AppState extends ChangeNotifier {
         'wan': _extractWanData(interfaceDump),
         'uciWirelessConfig': uciWirelessConfig,
         'wireguard': wireguardData,
+        'onlineClients': onlineClients,
+        'conntrackCount': conntrackCount,
+        'conntrackMax': conntrackMax,
+        'temperature': temperature,
+        'temperatureShort': _formatTemperatureShort(temperature),
         '_lastUpdated':
             DateTime.now().millisecondsSinceEpoch, // Force UI updates
       };
@@ -826,6 +889,107 @@ class AppState extends ChangeNotifier {
     }
 
     return {'dhcp_leases': leases};
+  }
+
+  int? _parseProcInt(dynamic data) {
+    if (data == null) return null;
+    if (data is Map) {
+      final raw = data['data']?.toString() ?? data['value']?.toString();
+      if (raw != null) {
+        return int.tryParse(raw.trim().split('\n').first.trim());
+      }
+    }
+    return int.tryParse(data.toString().trim());
+  }
+
+  String? _parseTemperature(dynamic data) {
+    if (data == null) return null;
+    if (data is Map) {
+      final raw = data['tempinfo']?.toString().trim();
+      if (raw != null && raw.isNotEmpty && raw != '--') {
+        return raw;
+      }
+    }
+    return null;
+  }
+
+  /// Prefer a short value for dashboard cells (e.g. "64.4°C").
+  String? _formatTemperatureShort(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+
+    // Prefer explicit CPU reading when present.
+    final cpuMatch = RegExp(
+      r'CPU:\s*([0-9]+(?:\.[0-9]+)?)\s*°?\s*C',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (cpuMatch != null) {
+      return '${cpuMatch.group(1)}°C';
+    }
+
+    // Otherwise use the first temperature number in the string.
+    final firstMatch = RegExp(
+      r'([0-9]+(?:\.[0-9]+)?)\s*°?\s*C',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (firstMatch != null) {
+      return '${firstMatch.group(1)}°C';
+    }
+
+    // Fallback: truncate long raw strings.
+    if (raw.length <= 8) return raw;
+    return '${raw.substring(0, 7)}…';
+  }
+
+  int? _parseOnlineClients(
+    dynamic onlineUsersData,
+    Map<String, dynamic>? wirelessData,
+    Map<String, dynamic>? dhcpLeases,
+  ) {
+    if (onlineUsersData is Map) {
+      final raw = onlineUsersData['onlineusers']?.toString().trim();
+      final parsed = int.tryParse(raw ?? '');
+      if (parsed != null) return parsed;
+    }
+
+    // If wireless data exists, trust associated-station count (including 0).
+    // Do not fall back to DHCP leases — leases include offline devices.
+    if (wirelessData != null && wirelessData.isNotEmpty) {
+      return _countAssociatedStations(wirelessData);
+    }
+
+    final leases = dhcpLeases?['dhcp_leases'] as List?;
+    if (leases != null) return leases.length;
+
+    return null;
+  }
+
+  int _countAssociatedStations(Map<String, dynamic>? wirelessData) {
+    if (wirelessData == null || wirelessData.isEmpty) return 0;
+    final macs = <String>{};
+
+    void collectAssoc(dynamic assoclist) {
+      if (assoclist is Map) {
+        for (final key in assoclist.keys) {
+          final mac = key.toString().toUpperCase().replaceAll('-', ':');
+          if (mac.contains(':')) macs.add(mac);
+        }
+      }
+    }
+
+    wirelessData.forEach((_, radioData) {
+      if (radioData is! Map) return;
+      final interfaces = radioData['interfaces'] as List? ?? const [];
+      for (final iface in interfaces) {
+        if (iface is! Map) continue;
+        final iwinfo = iface['iwinfo'];
+        if (iwinfo is Map) {
+          collectAssoc(iwinfo['assoclist']);
+        }
+        collectAssoc(iface['assoclist']);
+      }
+    });
+
+    return macs.length;
   }
 
   Map<String, dynamic>? _extractWanData(Map<String, dynamic>? interfaceDump) {

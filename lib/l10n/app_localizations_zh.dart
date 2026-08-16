@@ -152,6 +152,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get uptime => '运行时间';
 
   @override
+  String get onlineClients => '在线';
+
+  @override
+  String get activeConnections => '连接数';
+
+  @override
+  String get temperature => '温度';
+
+  @override
   String get failedToLoadClients => '加载客户端失败';
 
   @override

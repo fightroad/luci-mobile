@@ -155,6 +155,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get onlineClients => 'Online';
+
+  @override
+  String get activeConnections => 'Connections';
+
+  @override
+  String get temperature => 'Temp';
+
+  @override
   String get failedToLoadClients => 'Failed to Load Clients';
 
   @override

@@ -194,6 +194,18 @@
   "@uptime": {
     "description": "Uptime label"
   },
+  "onlineClients": "Online",
+  "@onlineClients": {
+    "description": "Online clients count label on dashboard"
+  },
+  "activeConnections": "Connections",
+  "@activeConnections": {
+    "description": "Active conntrack connections label on dashboard"
+  },
+  "temperature": "Temp",
+  "@temperature": {
+    "description": "Router temperature label on dashboard"
+  },
   "failedToLoadClients": "Failed to Load Clients",
   "@failedToLoadClients": {
     "description": "Failed to load clients error title"

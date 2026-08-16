@@ -68,17 +68,24 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final watchedAppState = ref.watch(appStateProvider);
-    // Recompute future only when selected router changes
-    Future<List<Client>>? future = _clientsFuture;
-    final currentId = watchedAppState.selectedRouter?.id;
-    if (currentId != _lastSelectedRouterId) {
-      _lastSelectedRouterId = currentId;
-      _computeClientsFuture();
-      future = _clientsFuture;
-    }
+
+    // Sync from AppState outside build mutations (e.g. dashboard → selected).
+    ref.listen(appStateProvider, (previous, next) {
+      final nextAggregate = next.clientsAggregateAllRouters;
+      final nextRouterId = next.selectedRouter?.id;
+      if (nextAggregate == _aggregateAllRouters &&
+          nextRouterId == _lastSelectedRouterId) {
+        return;
+      }
+      setState(() {
+        _aggregateAllRouters = nextAggregate;
+        _lastSelectedRouterId = nextRouterId;
+        _computeClientsFuture();
+      });
+    });
+
     return FutureBuilder<List<Client>>(
-      future: future,
+      future: _clientsFuture,
       builder: (context, snapshot) {
         final aggregatedClients = snapshot.data ?? [];
         final l10n = AppLocalizations.of(context)!;
