@@ -1106,7 +1106,9 @@ class AppState extends ChangeNotifier {
           continue;
         }
         final info = entry.value;
-        final type = info is Map ? info['type']?.toString().toLowerCase() : '';
+        final type = info is Map
+            ? (info['type']?.toString().toLowerCase() ?? '')
+            : '';
         if (type.contains('wireless') || type.contains('bridge')) continue;
         if (lower.startsWith('eth') ||
             lower.startsWith('lan') ||
