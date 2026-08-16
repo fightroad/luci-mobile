@@ -97,9 +97,7 @@ class RealAuthService implements IAuthService {
 
         return true;
       }
-    } catch (e, stack) {
-      LoginProbe.add('auth_service catch: $e');
-      Logger.probe('auth_service login catch: $e\n$stack');
+    } catch (e) {
       return false;
     }
   }

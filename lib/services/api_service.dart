@@ -13,21 +13,6 @@ class LoginResult {
   LoginResult({required this.token, required this.actualUseHttps});
 }
 
-/// Temporary login diagnostics for release builds (shown on failure UI).
-/// Never logs passwords.
-class LoginProbe {
-  static final StringBuffer _buf = StringBuffer();
-
-  static void clear() => _buf.clear();
-
-  static void add(String line) {
-    _buf.writeln(line);
-    Logger.probe(line);
-  }
-
-  static String get text => _buf.toString().trim();
-}
-
 Uri _buildUrl(String ipAddress, bool useHttps, String path) {
   final scheme = useHttps ? 'https' : 'http';
   // Handle cases where ipAddress might already include a port
@@ -84,11 +69,6 @@ class RealApiService implements IApiService {
     bool initialUseHttps, {
     BuildContext? context,
   }) async {
-    LoginProbe.clear();
-    LoginProbe.add(
-      'start host=$ipAddress user=$username https=$initialUseHttps',
-    );
-
     // First try with the initial protocol
     var result = await _login(
       ipAddress,
@@ -103,23 +83,16 @@ class RealApiService implements IApiService {
     if (result != null && result.startsWith('HTTPS_REDIRECT:')) {
       final token = result.substring('HTTPS_REDIRECT:'.length);
       Logger.info('Login successful via HTTP to HTTPS redirect');
-      LoginProbe.add('ok via HTTPS_REDIRECT tokenLen=${token.length}');
       return LoginResult(token: token, actualUseHttps: true);
     }
 
     if (result != null) {
-      LoginProbe.add(
-        'ok via initial protocol https=$initialUseHttps tokenLen=${result.length}',
-      );
       return LoginResult(token: result, actualUseHttps: initialUseHttps);
     }
-
-    LoginProbe.add('initial protocol login returned null');
 
     // If login failed and we were using HTTP, try HTTPS in case of redirect
     if (!initialUseHttps) {
       Logger.info('HTTP login failed or redirected, attempting HTTPS');
-      LoginProbe.add('retry with HTTPS');
       final safeContext = context?.mounted == true ? context : null;
       result = await _login(
         ipAddress,
@@ -132,13 +105,10 @@ class RealApiService implements IApiService {
 
       if (result != null) {
         Logger.info('Login successful with HTTPS after redirect detection');
-        LoginProbe.add('ok via HTTPS retry tokenLen=${result.length}');
         return LoginResult(token: result, actualUseHttps: true);
       }
-      LoginProbe.add('HTTPS retry also returned null');
     }
 
-    LoginProbe.add('FAILED: no token');
     return LoginResult(token: null, actualUseHttps: initialUseHttps);
   }
 
@@ -155,10 +125,6 @@ class RealApiService implements IApiService {
     final params =
         'luci_username=${Uri.encodeComponent(username)}&luci_password=${Uri.encodeComponent(password)}';
 
-    LoginProbe.add(
-      '_login begin https=$useHttps checkRedirect=$checkRedirect uri=$uri',
-    );
-
     try {
       // Normal POST request - Dio will follow redirects by default
       final response = await client.post(
@@ -167,66 +133,29 @@ class RealApiService implements IApiService {
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
           followRedirects: true,
-          validateStatus: (code) =>
-              code != null && code >= 200 && code < 400 || code == 302,
+          validateStatus: (code) => code != null && code >= 200 && code < 400 || code == 302,
         ),
       );
-
-      final setCookies = response.headers.map['set-cookie'];
-      final headerKeys = response.headers.map.keys.toList()..sort();
-      LoginProbe.add(
-        'response status=${response.statusCode} realUri=${response.realUri} '
-        'redirects=${response.redirects.length} '
-        'hasSetCookie=${setCookies != null && setCookies.isNotEmpty} '
-        'setCookieCount=${setCookies?.length ?? 0}',
-      );
-      LoginProbe.add('headerKeys=$headerKeys');
-      if (setCookies != null && setCookies.isNotEmpty) {
-        // Log cookie names only, not full values
-        final names = <String>[];
-        for (final raw in setCookies) {
-          final first = raw.split(';').first;
-          final eq = first.indexOf('=');
-          names.add(eq > 0 ? first.substring(0, eq).trim() : first.trim());
-        }
-        LoginProbe.add('setCookieNames=$names');
-        LoginProbe.add(
-          'setCookieRawPreview=${setCookies.map((e) => e.length > 80 ? '${e.substring(0, 80)}...' : e).toList()}',
-        );
-      }
-      if (response.redirects.isNotEmpty) {
-        for (final r in response.redirects) {
-          LoginProbe.add(
-            'redirect status=${r.statusCode} loc=${r.location} method=${r.method}',
-          );
-        }
-      }
 
       // Check if we were redirected to HTTPS (only relevant for initial HTTP attempts)
       if (checkRedirect && !useHttps) {
         final finalUrl = response.realUri;
         if (finalUrl.scheme == 'https') {
           Logger.info('Detected HTTP to HTTPS redirect: $uri -> $finalUrl');
-          LoginProbe.add('detected scheme upgrade to https');
           // If we got a successful login after redirect, extract the token
           if (response.statusCode == 302 || response.statusCode == 200) {
+            final setCookies = response.headers.map['set-cookie'];
             if (setCookies != null && setCookies.isNotEmpty) {
               final cookies = setCookies.join(',').split(',');
               for (final cookie in cookies) {
                 if (cookie.contains('sysauth')) {
                   final cookieValue = cookie.split(';')[0].split('=')[1];
-                  LoginProbe.add(
-                    'extracted HTTPS_REDIRECT tokenLen=${cookieValue.length}',
-                  );
                   // Signal that HTTPS should be used by returning a special marker
                   // We'll handle this in loginWithProtocolDetection
                   return 'HTTPS_REDIRECT:$cookieValue';
                 }
               }
             }
-            LoginProbe.add(
-              'https upgrade path: status ok but no sysauth in set-cookie',
-            );
           }
           // No token found, trigger HTTPS retry
           return null;
@@ -235,46 +164,26 @@ class RealApiService implements IApiService {
 
       if (response.statusCode == 302 || response.statusCode == 200) {
         // Parse Set-Cookie headers to find sysauth cookie
+        final setCookies = response.headers.map['set-cookie'];
         if (setCookies != null && setCookies.isNotEmpty) {
           final cookies = setCookies.join(',').split(',');
           for (final cookie in cookies) {
             if (cookie.contains('sysauth')) {
               final cookieValue = cookie.split(';')[0].split('=')[1];
-              LoginProbe.add(
-                'extracted sysauth tokenLen=${cookieValue.length}',
-              );
               return cookieValue;
             }
           }
-          LoginProbe.add(
-            'status ${response.statusCode}: set-cookie present but no sysauth* name matched',
-          );
-        } else {
-          LoginProbe.add(
-            'status ${response.statusCode}: NO set-cookie header visible to Dio',
-          );
         }
-      } else {
-        LoginProbe.add('unexpected status=${response.statusCode}');
       }
       return null;
     } on DioException catch (e, stack) {
       Logger.exception('Login failed', e, stack);
-      LoginProbe.add(
-        'DioException type=${e.type} status=${e.response?.statusCode} '
-        'msg=${e.message} error=${e.error}',
-      );
 
       final isCertError =
-          e.error is HandshakeException ||
-          e.message?.contains('CERTIFICATE_VERIFY_FAILED') == true;
-      LoginProbe.add('isCertError=$isCertError');
+          e.error is HandshakeException || e.message?.contains('CERTIFICATE_VERIFY_FAILED') == true;
 
       if (!useHttps && checkRedirect && isCertError) {
-        Logger.info(
-          'Detected HTTPS certificate issue during redirect; retrying with HTTPS',
-        );
-        LoginProbe.add('cert error on HTTP path -> retry HTTPS');
+        Logger.info('Detected HTTPS certificate issue during redirect; retrying with HTTPS');
         final retryContext = context != null && context.mounted ? context : null;
         try {
           return await _login(
@@ -286,32 +195,21 @@ class RealApiService implements IApiService {
             checkRedirect: false,
           );
         } on DioException catch (httpsError, httpsStack) {
-          Logger.exception(
-            'HTTPS retry after redirect failed',
-            httpsError,
-            httpsStack,
-          );
-          LoginProbe.add('HTTPS retry DioException: ${httpsError.message}');
+          Logger.exception('HTTPS retry after redirect failed', httpsError, httpsStack);
         }
       }
 
       if (useHttps && context != null && context.mounted && isCertError) {
         // Try to prompt for certificate acceptance
-        LoginProbe.add('prompting certificate acceptance dialog');
         final accepted = await _httpClientManager.promptForCertificateAcceptance(
           context: context,
           hostWithPort: ipAddress,
           useHttps: useHttps,
         );
-        LoginProbe.add('certificate accepted=$accepted');
 
         if (accepted && context.mounted) {
           // Create a new client and retry the login
-          final retryClient = _createHttpClient(
-            useHttps,
-            ipAddress,
-            context: context,
-          );
+          final retryClient = _createHttpClient(useHttps, ipAddress, context: context);
           try {
             final retryResponse = await retryClient.post(
               uri.toString(),
@@ -319,28 +217,17 @@ class RealApiService implements IApiService {
               options: Options(
                 contentType: Headers.formUrlEncodedContentType,
                 followRedirects: true,
-                validateStatus: (code) =>
-                    code != null && code >= 200 && code < 400 || code == 302,
+                validateStatus: (code) => code != null && code >= 200 && code < 400 || code == 302,
               ),
             );
 
-            LoginProbe.add(
-              'cert-retry status=${retryResponse.statusCode} '
-              'realUri=${retryResponse.realUri} '
-              'setCookie=${retryResponse.headers.map['set-cookie']}',
-            );
-
-            if (retryResponse.statusCode == 302 ||
-                retryResponse.statusCode == 200) {
+            if (retryResponse.statusCode == 302 || retryResponse.statusCode == 200) {
               final setCookies = retryResponse.headers.map['set-cookie'];
               if (setCookies != null && setCookies.isNotEmpty) {
                 final cookies = setCookies.join(',').split(',');
                 for (final cookie in cookies) {
                   if (cookie.contains('sysauth')) {
                     final cookieValue = cookie.split(';')[0].split('=')[1];
-                    LoginProbe.add(
-                      'cert-retry extracted tokenLen=${cookieValue.length}',
-                    );
                     return cookieValue;
                   }
                 }
@@ -348,7 +235,6 @@ class RealApiService implements IApiService {
             }
           } on DioException catch (retryError, retryStack) {
             Logger.exception('Login retry failed', retryError, retryStack);
-            LoginProbe.add('cert-retry DioException: ${retryError.message}');
           }
         }
       }
