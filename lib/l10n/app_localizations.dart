@@ -428,6 +428,48 @@ abstract class AppLocalizations {
   /// **'Boot time'**
   String get bootTime;
 
+  /// Storage usage label on dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Storage'**
+  String get storage;
+
+  /// Storage device label in storage detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get storageDevice;
+
+  /// Storage mount point label in storage detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Mount'**
+  String get storageMount;
+
+  /// LAN IPv4 address label in IP detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'LAN IP'**
+  String get lanIpv4;
+
+  /// Short IP address label on dashboard extras card
+  ///
+  /// In en, this message translates to:
+  /// **'IP Address'**
+  String get ipAddressShort;
+
+  /// WAN IPv4 address label in IP detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'WAN IPv4'**
+  String get wanIpv4;
+
+  /// WAN IPv6 address label in IP detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'WAN IPv6'**
+  String get wanIpv6;
+
   /// Online clients count label on dashboard
   ///
   /// In en, this message translates to:

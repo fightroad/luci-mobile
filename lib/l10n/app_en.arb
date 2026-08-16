@@ -230,6 +230,34 @@
   "@bootTime": {
     "description": "Router boot time label in uptime detail dialog"
   },
+  "storage": "Storage",
+  "@storage": {
+    "description": "Storage usage label on dashboard"
+  },
+  "storageDevice": "Device",
+  "@storageDevice": {
+    "description": "Storage device label in storage detail dialog"
+  },
+  "storageMount": "Mount",
+  "@storageMount": {
+    "description": "Storage mount point label in storage detail dialog"
+  },
+  "lanIpv4": "LAN IP",
+  "@lanIpv4": {
+    "description": "LAN IPv4 address label in IP detail dialog"
+  },
+  "ipAddressShort": "IP Address",
+  "@ipAddressShort": {
+    "description": "Short IP address label on dashboard extras card"
+  },
+  "wanIpv4": "WAN IPv4",
+  "@wanIpv4": {
+    "description": "WAN IPv4 address label in IP detail dialog"
+  },
+  "wanIpv6": "WAN IPv6",
+  "@wanIpv6": {
+    "description": "WAN IPv6 address label in IP detail dialog"
+  },
   "onlineClients": "Online",
   "@onlineClients": {
     "description": "Online clients count label on dashboard"

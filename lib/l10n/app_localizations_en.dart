@@ -182,6 +182,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bootTime => 'Boot time';
 
   @override
+  String get storage => 'Storage';
+
+  @override
+  String get storageDevice => 'Device';
+
+  @override
+  String get storageMount => 'Mount';
+
+  @override
+  String get lanIpv4 => 'LAN IP';
+
+  @override
+  String get ipAddressShort => 'IP Address';
+
+  @override
+  String get wanIpv4 => 'WAN IPv4';
+
+  @override
+  String get wanIpv6 => 'WAN IPv6';
+
+  @override
   String get onlineClients => 'Online';
 
   @override

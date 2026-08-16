@@ -488,6 +488,22 @@ class AppState extends ChangeNotifier {
               'CPU: 2% HWE: 6% ECM: tcp 44 udp 72 other 0 total 116',
           'temperature': 'CPU: 48.0°C, WiFi: 52.0°C 50.0°C',
           'temperatureShort': '48.0°C',
+          'mountPoints': [
+            {
+              'device': '/dev/root',
+              'mount': '/overlay',
+              'size': 134217728,
+              'free': 67108864,
+              'avail': 67108864,
+            },
+            {
+              'device': 'tmpfs',
+              'mount': '/tmp',
+              'size': 268435456,
+              'free': 201326592,
+              'avail': 201326592,
+            },
+          ],
           '_lastUpdated':
               DateTime.now().millisecondsSinceEpoch, // Force UI updates
         };
@@ -610,6 +626,11 @@ class AppState extends ChangeNotifier {
         method: 'read',
         params: {'path': '/proc/sys/net/netfilter/nf_conntrack_max'},
       );
+      final mountPointsFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getMountPoints',
+        params: {},
+      );
 
       final results = await Future.wait([
         _apiService!.call(
@@ -695,6 +716,7 @@ class AppState extends ChangeNotifier {
         tempInfoFuture,
         conntrackCountFuture,
         conntrackMaxFuture,
+        mountPointsFuture,
       ]);
       final wirelessRaw = optionalResults[0];
       final uciWirelessRaw = optionalResults[1];
@@ -703,6 +725,7 @@ class AppState extends ChangeNotifier {
       final tempInfoRaw = optionalResults[4];
       final conntrackCountRaw = optionalResults[5];
       final conntrackMaxRaw = optionalResults[6];
+      final mountPointsRaw = optionalResults[7];
 
       Map<String, dynamic>? wirelessData;
       if (wirelessRaw != null) {
@@ -734,11 +757,15 @@ class AppState extends ChangeNotifier {
       final conntrackMaxData = conntrackMaxRaw != null
           ? getOptionalData(conntrackMaxRaw, 'file.read conntrack_max')
           : null;
+      final mountPointsData = mountPointsRaw != null
+          ? getOptionalData(mountPointsRaw, 'luci.getMountPoints')
+          : null;
 
       final conntrackCount = _parseProcInt(conntrackCountData);
       final conntrackMax = _parseProcInt(conntrackMaxData);
       final temperature = _parseTemperature(tempInfoData);
       final cpuUsageParsed = _parseCpuUsage(cpuUsageData);
+      final mountPoints = _parseMountPoints(mountPointsData);
       final onlineClients = _parseOnlineClients(
         onlineUsersData,
         wirelessData,
@@ -843,6 +870,7 @@ class AppState extends ChangeNotifier {
         'cpuUsageDetail': cpuUsageParsed?.detail,
         'temperature': temperature,
         'temperatureShort': _formatTemperatureShort(temperature),
+        'mountPoints': mountPoints,
         '_lastUpdated':
             DateTime.now().millisecondsSinceEpoch, // Force UI updates
       };
@@ -927,6 +955,52 @@ class AppState extends ChangeNotifier {
       }
     }
     return null;
+  }
+
+  List<Map<String, dynamic>> _parseMountPoints(dynamic data) {
+    dynamic list;
+    if (data is Map) {
+      list = data['result'];
+    } else if (data is List) {
+      list = data;
+    }
+    if (list is! List) return const [];
+
+    final mounts = <Map<String, dynamic>>[];
+    for (final item in list) {
+      if (item is! Map) continue;
+      final mount = item['mount']?.toString() ?? '';
+      if (mount.isEmpty || mount == '/' || mount == '/dev') continue;
+      final size = _asIntValue(item['size']) ?? 0;
+      if (size <= 0) continue;
+      final free = _asIntValue(item['free']) ?? 0;
+      final avail = _asIntValue(item['avail']);
+      mounts.add({
+        'device': item['device']?.toString() ?? '—',
+        'mount': mount,
+        'size': size,
+        'free': free,
+        'avail': avail,
+      });
+    }
+
+    mounts.sort((a, b) {
+      final am = a['mount'] as String;
+      final bm = b['mount'] as String;
+      if (am == '/overlay') return -1;
+      if (bm == '/overlay') return 1;
+      if (am == '/tmp') return -1;
+      if (bm == '/tmp') return 1;
+      return (b['size'] as int).compareTo(a['size'] as int);
+    });
+    return mounts;
+  }
+
+  int? _asIntValue(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.round();
+    return int.tryParse(value.toString());
   }
 
   /// Prefer vendor realtime CPU% (luci.getCPUUsage); null → UI falls back to loadavg.

@@ -785,13 +785,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
     final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
 
-    final uptime = _asInt(sysInfo?['uptime']);
-    final localtime = _asInt(sysInfo?['localtime']);
-    final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
-    final uptimeDetail = uptime != null
-        ? _formatUptimeDetail(uptime, l10n: l10n, localtime: localtime)
-        : null;
-
     final cpuUsage = appState.dashboardData?['cpuUsage']?.toString();
     final cpuUsageDetail = appState.dashboardData?['cpuUsageDetail']?.toString();
     final cpuLoad = sysInfo?['load'] as List<dynamic>?;
@@ -829,6 +822,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           )
         : null;
 
+    final mountPoints = _mountPointsFromDashboard(appState);
+    final primaryMount = mountPoints.isNotEmpty ? mountPoints.first : null;
+    final storageValue = primaryMount == null
+        ? '—'
+        : '${_mountUsagePercent(primaryMount)}%';
+    final storageDetail = mountPoints.isEmpty
+        ? null
+        : _formatStorageDetail(l10n: l10n, mounts: mountPoints);
+
     final onlineClients = _asInt(appState.dashboardData?['onlineClients']);
     final onlineValue = onlineClients != null ? '$onlineClients' : 'N/A';
 
@@ -850,7 +852,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 0),
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
         child: Column(
@@ -872,12 +874,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       : () => _showVitalDetailDialog(l10n.memory, memoryDetail),
                 ),
                 _buildTappableVitalsColumn(
-                  label: l10n.uptime,
-                  value: uptimeValue,
-                  onTap: uptimeDetail == null
+                  label: l10n.storage,
+                  value: storageValue,
+                  onTap: storageDetail == null
                       ? null
                       : () =>
-                            _showVitalDetailDialog(l10n.uptime, uptimeDetail),
+                            _showVitalDetailDialog(l10n.storage, storageDetail),
                 ),
               ],
             ),
@@ -925,6 +927,152 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         ),
       ),
     );
+  }
+
+  /// Extensible extras card (uptime + LAN IP; more can join later).
+  Widget _buildExtrasVitalsCard(AppState appState) {
+    final l10n = AppLocalizations.of(context)!;
+    final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
+    final uptime = _asInt(sysInfo?['uptime']);
+    final localtime = _asInt(sysInfo?['localtime']);
+    final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
+    final uptimeDetail = uptime != null
+        ? _formatUptimeDetail(uptime, l10n: l10n, localtime: localtime)
+        : null;
+
+    final network = _networkAddressSummary(appState);
+    final lanValue = network.lanIpv4 ?? '—';
+    final ipDetail =
+        '${l10n.lanIpv4}: ${network.lanIpv4Detail ?? network.lanIpv4 ?? '—'}\n'
+        '${l10n.wanIpv4}: ${network.wanIpv4 ?? '—'}\n'
+        '${l10n.wanIpv6}: ${network.wanIpv6 ?? '—'}';
+
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+        child: Row(
+          children: [
+            _buildTappableVitalsColumn(
+              label: l10n.ipAddressShort,
+              value: lanValue,
+              onTap: () =>
+                  _showVitalDetailDialog(l10n.ipAddressShort, ipDetail),
+            ),
+            _buildTappableVitalsColumn(
+              label: l10n.uptime,
+              value: uptimeValue,
+              onTap: uptimeDetail == null
+                  ? null
+                  : () => _showVitalDetailDialog(l10n.uptime, uptimeDetail),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  ({
+    String? lanIpv4,
+    String? lanIpv4Detail,
+    String? wanIpv4,
+    String? wanIpv6,
+  })
+  _networkAddressSummary(AppState appState) {
+    final interfaces =
+        appState.dashboardData?['interfaceDump']?['interface']
+            as List<dynamic>?;
+    if (interfaces == null || interfaces.isEmpty) {
+      return (
+        lanIpv4: null,
+        lanIpv4Detail: null,
+        wanIpv4: null,
+        wanIpv6: null,
+      );
+    }
+
+    final wanFromDefaultRoute =
+        appState.dashboardData?['wan'] as Map<String, dynamic>?;
+    final wan =
+        wanFromDefaultRoute ?? _findInterfaceByName(interfaces, 'wan');
+    final wan6 = _findInterfaceByName(interfaces, 'wan6');
+    final lan = _findInterfaceByName(interfaces, 'lan') ??
+        _findInterfaceByName(interfaces, 'br-lan');
+
+    return (
+      lanIpv4: _formatInterfaceAddress(lan, 'ipv4-address', withMask: false),
+      lanIpv4Detail:
+          _formatInterfaceAddress(lan, 'ipv4-address', withMask: true),
+      wanIpv4: _formatInterfaceAddress(wan, 'ipv4-address', withMask: true),
+      wanIpv6: _formatInterfaceAddress(wan, 'ipv6-address', withMask: true) ??
+          _formatInterfaceAddress(wan6, 'ipv6-address', withMask: true),
+    );
+  }
+
+  Map<String, dynamic>? _findInterfaceByName(
+    List<dynamic> interfaces,
+    String name,
+  ) {
+    for (final item in interfaces) {
+      if (item is Map<String, dynamic> && item['interface'] == name) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  String? _formatInterfaceAddress(
+    Map<String, dynamic>? iface,
+    String field, {
+    required bool withMask,
+  }) {
+    final list = iface?[field];
+    if (list is! List || list.isEmpty) return null;
+    final first = list.first;
+    if (first is! Map) return null;
+    final address = first['address']?.toString().trim();
+    if (address == null || address.isEmpty) return null;
+    if (!withMask) return address;
+    final mask = first['mask'];
+    if (mask == null) return address;
+    return '$address/$mask';
+  }
+
+  List<Map<String, dynamic>> _mountPointsFromDashboard(AppState appState) {
+    final raw = appState.dashboardData?['mountPoints'];
+    if (raw is! List) return const [];
+    return raw.whereType<Map<String, dynamic>>().toList();
+  }
+
+  int _mountUsagePercent(Map<String, dynamic> mount) {
+    final size = _asInt(mount['size']) ?? 0;
+    if (size <= 0) return 0;
+    final free = _asInt(mount['free']) ?? 0;
+    final used = (size - free).clamp(0, size);
+    return ((used / size) * 100).round().clamp(0, 100);
+  }
+
+  String _formatStorageDetail({
+    required AppLocalizations l10n,
+    required List<Map<String, dynamic>> mounts,
+  }) {
+    final blocks = <String>[];
+    for (final mount in mounts) {
+      final name = mount['mount']?.toString() ?? '—';
+      final device = mount['device']?.toString() ?? '—';
+      final size = _asInt(mount['size']) ?? 0;
+      final free = _asInt(mount['free']) ?? 0;
+      final used = (size - free).clamp(0, size);
+      final percent = size > 0 ? ((used / size) * 100).round() : 0;
+      blocks.add(
+        '${l10n.storageMount}: $name\n'
+        '${l10n.storageDevice}: $device\n'
+        '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(size)} ($percent%)',
+      );
+    }
+    return blocks.join('\n\n');
   }
 
   Widget _buildTappableVitalsColumn({
@@ -1930,6 +2078,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 12),
               _buildSystemVitalsCard(appState),
               const SizedBox(height: 12),
+              _buildExtrasVitalsCard(appState),
+              const SizedBox(height: 12),
               _buildWirelessNetworksCard(appState),
               const SizedBox(height: 12),
               _buildInterfaceStatusCards(appState),
@@ -1971,6 +2121,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                             const SizedBox(height: 12),
                             _buildSystemVitalsCard(appState),
+                            const SizedBox(height: 12),
+                            _buildExtrasVitalsCard(appState),
                             const SizedBox(height: 12),
                             _buildWirelessNetworksCard(appState),
                             const SizedBox(height: 12),

@@ -179,6 +179,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get bootTime => '开机时间';
 
   @override
+  String get storage => '存储';
+
+  @override
+  String get storageDevice => '设备';
+
+  @override
+  String get storageMount => '挂载点';
+
+  @override
+  String get lanIpv4 => 'LAN IP';
+
+  @override
+  String get ipAddressShort => 'IP 地址';
+
+  @override
+  String get wanIpv4 => 'WAN IPv4';
+
+  @override
+  String get wanIpv6 => 'WAN IPv6';
+
+  @override
   String get onlineClients => '在线';
 
   @override
