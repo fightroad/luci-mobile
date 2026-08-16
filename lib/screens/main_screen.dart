@@ -21,6 +21,7 @@ class MainScreen extends ConsumerStatefulWidget {
 class _MainScreenState extends ConsumerState<MainScreen> {
   int _selectedIndex = 0;
   String? _currentInterfaceToScroll;
+  bool _redirectingToLogin = false;
 
   @override
   void initState() {
@@ -80,6 +81,21 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget build(BuildContext context) {
     // Listen for requestedTab in AppState
     final appState = ref.watch(appStateProvider);
+
+    // Unauthenticated users must not use feature tabs (e.g. after back-swipe).
+    if (!appState.reviewerModeEnabled && !appState.isAuthenticated) {
+      if (!_redirectingToLogin) {
+        _redirectingToLogin = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!context.mounted) return;
+          Navigator.of(
+            context,
+          ).pushNamedAndRemoveUntil('/login', (route) => false);
+        });
+      }
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
     if (appState.requestedTab != null &&
         appState.requestedTab != _selectedIndex) {
       // Store the values before the callback to avoid null reference issues

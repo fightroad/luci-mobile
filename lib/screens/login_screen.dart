@@ -220,6 +220,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Block iOS back-swipe / Android back from revealing Main underneath.
+    return PopScope(
+      canPop: false,
+      child: _buildLoginBody(context),
+    );
+  }
+
+  Widget _buildLoginBody(BuildContext context) {
     if (_isCheckingAutoLogin) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }

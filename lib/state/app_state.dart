@@ -251,6 +251,7 @@ class AppState extends ChangeNotifier {
   }
 
   String? get sysauth => _authService?.sysauth;
+  bool get isAuthenticated => _authService?.isAuthenticated ?? false;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
