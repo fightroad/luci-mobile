@@ -333,6 +333,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get signal => 'Signal';
 
   @override
+  String get encryption => 'Encryption';
+
+  @override
+  String get associatedClients => 'Associated clients';
+
+  @override
   String get network => 'Network';
 
   @override

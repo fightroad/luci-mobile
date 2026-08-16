@@ -124,6 +124,8 @@
   "mode": "模式",
   "channel": "信道",
   "signal": "信号",
+  "encryption": "加密",
+  "associatedClients": "关联客户端",
   "network": "网络",
   "gateway": "网关",
   "dns": "DNS",

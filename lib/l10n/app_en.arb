@@ -427,6 +427,14 @@
   "@signal": {
     "description": "Signal label"
   },
+  "encryption": "Encryption",
+  "@encryption": {
+    "description": "Wi-Fi encryption label"
+  },
+  "associatedClients": "Associated clients",
+  "@associatedClients": {
+    "description": "Wi-Fi associated client count label"
+  },
   "network": "Network",
   "@network": {
     "description": "Network label"

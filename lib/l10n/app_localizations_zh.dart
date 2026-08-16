@@ -325,6 +325,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get signal => '信号';
 
   @override
+  String get encryption => '加密';
+
+  @override
+  String get associatedClients => '关联客户端';
+
+  @override
   String get network => '网络';
 
   @override

@@ -716,6 +716,18 @@ abstract class AppLocalizations {
   /// **'Signal'**
   String get signal;
 
+  /// Wi-Fi encryption label
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption'**
+  String get encryption;
+
+  /// Wi-Fi associated client count label
+  ///
+  /// In en, this message translates to:
+  /// **'Associated clients'**
+  String get associatedClients;
+
   /// Network label
   ///
   /// In en, this message translates to:

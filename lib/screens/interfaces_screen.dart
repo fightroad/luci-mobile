@@ -542,6 +542,20 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
             final mode = _uciString(config['mode']).toUpperCase().isNotEmpty
                 ? _uciString(config['mode']).toUpperCase()
                 : (iwinfo['mode']?.toString().toUpperCase() ?? 'N/A');
+            final uciIface =
+                uciName != null ? uciInterfaces[uciName] : null;
+            final encryption = _formatWifiEncryption(
+              iwinfo['encryption'],
+              config['encryption'] ?? uciIface?['encryption'],
+            );
+            final associations = iwinfo['associations'];
+            final rawPassword = _wifiPasswordFromConfig(config, uciIface);
+            final wifiPassword = _shouldShowWifiPassword(
+                  iwinfo['encryption'],
+                  config['encryption'] ?? uciIface?['encryption'],
+                )
+                ? rawPassword
+                : null;
             interfacesList.add({
               'name': _uciString(config['ssid']).isNotEmpty
                   ? _uciString(config['ssid'])
@@ -553,6 +567,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               'radioName': radioName,
               'ssid': ssid,
               'interfaceName': name,
+              'wifiPassword': wifiPassword,
               'details': {
                 'Device': _uciString(config['device'], radioName),
                 'Mode': _uciString(config['mode']).isNotEmpty
@@ -561,7 +576,9 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                 'Channel':
                     iwinfo['channel']?.toString() ??
                     _uciString(config['channel'], 'N/A'),
+                'Encryption': encryption,
                 'Signal': '${iwinfo['signal']?.toString() ?? '--'} dBm',
+                'AssociatedClients': associations?.toString() ?? '—',
                 'Network': (config['network'] is List)
                     ? (config['network'] as List).join(', ')
                     : _uciString(config['network'], 'N/A'),
@@ -580,6 +597,10 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         final isEnabled = isRadioEnabled && isIfaceEnabled;
 
         final name = _uciString(config['ssid'], l10n.unnamed);
+        final rawPassword = _wifiPasswordFromConfig(config, null);
+        final wifiPassword = _shouldShowWifiPassword(null, config['encryption'])
+            ? rawPassword
+            : null;
         interfacesList.add({
           'name': name,
           'subtitle':
@@ -589,10 +610,16 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
           'radioName': radioName,
           'ssid': name,
           'interfaceName': name,
+          'wifiPassword': wifiPassword,
           'details': {
             'Device': radioName,
             'Mode': _uciString(config['mode'], 'N/A'),
             'SSID': _uciString(config['ssid'], 'N/A'),
+            'Encryption': _formatWifiEncryption(
+              null,
+              config['encryption'],
+            ),
+            'AssociatedClients': '—',
             'Network': (config['network'] is List)
                 ? (config['network'] as List).join(', ')
                 : _uciString(config['network'], 'N/A'),
@@ -643,7 +670,11 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
             subtitle: iface['subtitle'],
             isUp: iface['isEnabled'],
             icon: Icons.wifi,
-            details: _buildGenericDetails(context, iface['details']),
+            details: _buildGenericDetails(
+              context,
+              Map<String, dynamic>.from(iface['details'] as Map),
+              wifiPassword: iface['wifiPassword'] as String?,
+            ),
             initiallyExpanded: shouldExpand,
           ),
         );
@@ -887,37 +918,135 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     );
   }
 
+  String _detailLabel(AppLocalizations l10n, String key) {
+    switch (key) {
+      case 'Device':
+        return l10n.device;
+      case 'Mode':
+        return l10n.mode;
+      case 'Channel':
+        return l10n.channel;
+      case 'Signal':
+        return l10n.signal;
+      case 'Encryption':
+        return l10n.encryption;
+      case 'AssociatedClients':
+        return l10n.associatedClients;
+      case 'Network':
+        return l10n.network;
+      case 'SSID':
+        return l10n.ssid;
+      default:
+        return key;
+    }
+  }
+
   Widget _buildGenericDetails(
     BuildContext context,
-    Map<String, dynamic> details,
-  ) {
+    Map<String, dynamic> details, {
+    String? wifiPassword,
+  }) {
     final l10n = AppLocalizations.of(context)!;
-    // Map English keys to localized labels
-    String getLocalizedKey(String key) {
-      switch (key) {
-        case 'Device':
-          return l10n.device;
-        case 'Mode':
-          return l10n.mode;
-        case 'Channel':
-          return l10n.channel;
-        case 'Signal':
-          return l10n.signal;
-        case 'Network':
-          return l10n.network;
-        case 'SSID':
-          return l10n.ssid;
-        default:
-          return key;
+    final rows = <Widget>[];
+    var passwordAdded = false;
+
+    for (final entry in details.entries) {
+      rows.add(
+        _buildDetailRow(
+          context,
+          _detailLabel(l10n, entry.key),
+          entry.value.toString(),
+        ),
+      );
+      if (entry.key == 'Encryption' &&
+          wifiPassword != null &&
+          wifiPassword.isNotEmpty) {
+        rows.add(
+          _WifiPasswordDetailRow(
+            password: wifiPassword,
+            onCopy: () =>
+                _copyToClipboard(context, wifiPassword, l10n.password),
+          ),
+        );
+        passwordAdded = true;
       }
     }
-    
-    return Column(
-      children: details.entries.map((entry) {
-        final localizedKey = getLocalizedKey(entry.key);
-        return _buildDetailRow(context, localizedKey, entry.value.toString());
-      }).toList(),
-    );
+
+    if (!passwordAdded &&
+        wifiPassword != null &&
+        wifiPassword.isNotEmpty) {
+      rows.add(
+        _WifiPasswordDetailRow(
+          password: wifiPassword,
+          onCopy: () =>
+              _copyToClipboard(context, wifiPassword, l10n.password),
+        ),
+      );
+    }
+
+    return Column(children: rows);
+  }
+
+  /// Prefer iwinfo description; fall back to common UCI encryption codes.
+  static String _formatWifiEncryption(dynamic iwinfoEnc, dynamic configEnc) {
+    if (iwinfoEnc is Map) {
+      final desc = iwinfoEnc['description']?.toString().trim();
+      if (desc != null && desc.isNotEmpty) return desc;
+      if (iwinfoEnc['enabled'] == false) return 'Open';
+    }
+
+    final code = configEnc?.toString().trim().toLowerCase() ?? '';
+    if (code.isEmpty || code == 'none') return 'Open';
+
+    const labels = <String, String>{
+      'psk': 'WPA-PSK',
+      'psk2': 'WPA2-PSK',
+      'psk-mixed': 'WPA/WPA2-PSK',
+      'sae': 'WPA3-SAE',
+      'sae-mixed': 'WPA2/WPA3-SAE',
+      'wpa': 'WPA-EAP',
+      'wpa2': 'WPA2-EAP',
+      'wpa3': 'WPA3-EAP',
+      'wpa-mixed': 'WPA/WPA2-EAP',
+      'wep': 'WEP',
+      'owe': 'OWE',
+    };
+    return labels[code] ??
+        labels[code.split('+').first] ??
+        configEnc.toString();
+  }
+
+  /// Personal/WEP passphrases only — EAP `key` is a RADIUS secret.
+  static bool _shouldShowWifiPassword(dynamic iwinfoEnc, dynamic configEnc) {
+    final code = configEnc?.toString().toLowerCase() ?? '';
+    if (code.contains('psk') ||
+        code.contains('sae') ||
+        code.startsWith('wep')) {
+      return true;
+    }
+    if (iwinfoEnc is Map) {
+      final suites = iwinfoEnc['auth_suites'];
+      if (suites is List) {
+        return suites.any((s) {
+          final u = s.toString().toUpperCase();
+          return u.contains('PSK') || u.contains('SAE');
+        });
+      }
+    }
+    return false;
+  }
+
+  /// UCI `key` holds the PSK; runtime wireless config often masks it as ********.
+  static String? _wifiPasswordFromConfig(Map? config, Map? uciConfig) {
+    for (final source in [uciConfig, config]) {
+      if (source == null) continue;
+      final key = _uciString(source['key']);
+      if (key.isEmpty || key == '********' || key == '*') continue;
+      // WEP sometimes stores slot index 1–4 here; skip rather than show "1".
+      if (RegExp(r'^[1-4]$').hasMatch(key)) continue;
+      return key;
+    }
+    return null;
   }
 
   Widget _buildDetailRow(
@@ -1088,6 +1217,81 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     } else {
       return '${iface.protocol} • $shown';
     }
+  }
+}
+
+class _WifiPasswordDetailRow extends StatefulWidget {
+  final String password;
+  final VoidCallback onCopy;
+
+  const _WifiPasswordDetailRow({
+    required this.password,
+    required this.onCopy,
+  });
+
+  @override
+  State<_WifiPasswordDetailRow> createState() => _WifiPasswordDetailRowState();
+}
+
+class _WifiPasswordDetailRowState extends State<_WifiPasswordDetailRow> {
+  bool _visible = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final display = _visible ? widget.password : '••••••••';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        children: [
+          Text(
+            l10n.password,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              display,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            tooltip: _visible ? l10n.hidePassword : l10n.showPassword,
+            icon: Icon(
+              _visible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onPressed: () => setState(() => _visible = !_visible),
+          ),
+          IconButton(
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            tooltip: l10n.copy,
+            icon: Icon(
+              Icons.copy_all_outlined,
+              size: 18,
+              color: colorScheme.onSurfaceVariant,
+            ),
+            onPressed: widget.onCopy,
+          ),
+        ],
+      ),
+    );
   }
 }
 
