@@ -219,14 +219,14 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                               20,
                                             ),
                                           ),
-                                          backgroundColor: Theme.of(context)
-                                              .colorScheme
-                                              .surface
-                                              .withValues(alpha: 0.95),
+                                          backgroundColor: Theme.of(
+                                            context,
+                                          ).colorScheme.surface,
+                                          elevation: 6,
                                           shadowColor: Theme.of(context)
                                               .colorScheme
-                                              .primary
-                                              .withValues(alpha: 0.10),
+                                              .shadow
+                                              .withValues(alpha: 0.25),
                                           insetPadding:
                                               const EdgeInsets.symmetric(
                                                 horizontal: 16,
