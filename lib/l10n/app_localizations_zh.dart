@@ -236,12 +236,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get clearSearch => '清除搜索';
 
   @override
-  String get all => '全部';
-
-  @override
-  String get selected => '已选择';
-
-  @override
   String get noActiveClientsFound => '未找到活动客户端';
 
   @override

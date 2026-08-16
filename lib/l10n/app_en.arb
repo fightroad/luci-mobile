@@ -306,14 +306,6 @@
   "@clearSearch": {
     "description": "Clear search button tooltip"
   },
-  "all": "All",
-  "@all": {
-    "description": "All label"
-  },
-  "selected": "Selected",
-  "@selected": {
-    "description": "Selected label"
-  },
   "noActiveClientsFound": "No Active Clients Found",
   "@noActiveClientsFound": {
     "description": "No active clients found title"

@@ -13,7 +13,6 @@ import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/models/dashboard_preferences.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
-import 'package:luci_mobile/services/api_service.dart';
 import 'package:luci_mobile/services/service_factory.dart';
 import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
@@ -54,11 +53,6 @@ class AppState extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
   static const String _themeModeKey = 'themeMode';
 
-  // Clients view mode (aggregate across routers)
-  bool _clientsAggregateAllRouters = true;
-  static const String _clientsAggregateKey = 'clients_aggregate_all';
-  bool get clientsAggregateAllRouters => _clientsAggregateAllRouters;
-
   // Dashboard preferences state
   DashboardPreferences _dashboardPreferences = DashboardPreferences();
   DashboardPreferences get dashboardPreferences => _dashboardPreferences;
@@ -92,7 +86,6 @@ class AppState extends ChangeNotifier {
     await _loadThemeMode();
     await loadRouters(); // Load routers on app start (sets selectedRouter)
     await _migrateGlobalDashboardPreferencesIfNeeded(); // Proactively migrate legacy prefs
-    await _loadClientsViewMode();
     await loadDashboardPreferences(); // Load prefs scoped to selected router
   }
 
@@ -190,24 +183,6 @@ class AppState extends ChangeNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     _themeMode = mode;
     await _secureStorageService.writeValue(_themeModeKey, mode.name);
-    notifyListeners();
-  }
-
-  Future<void> _loadClientsViewMode() async {
-    final stored = await _secureStorageService.readValue(_clientsAggregateKey);
-    if (stored == 'true') {
-      _clientsAggregateAllRouters = true;
-    } else if (stored == 'false') {
-      _clientsAggregateAllRouters = false;
-    }
-  }
-
-  Future<void> setClientsAggregateAllRouters(bool aggregate) async {
-    _clientsAggregateAllRouters = aggregate;
-    await _secureStorageService.writeValue(
-      _clientsAggregateKey,
-      aggregate.toString(),
-    );
     notifyListeners();
   }
 
@@ -1828,26 +1803,6 @@ class AppState extends ChangeNotifier {
     return list;
   }
 
-  /// Aggregates DHCP leases and wireless associations across routers.
-  Future<List<Client>> fetchAggregatedClients() async {
-    try {
-      final results = await Future.wait([
-        fetchAllAssociatedStationAccessPointsAggregated()
-            .catchError((Object _, StackTrace __) => <String, String>{}),
-        fetchAggregatedDhcpLeases().catchError(
-          (Object _, StackTrace __) => <Map<String, dynamic>>[],
-        ),
-      ]);
-      return _buildClientsFromSources(
-        leases: results[1] as List<Map<String, dynamic>>,
-        macToAccessPoint: results[0] as Map<String, String>,
-      );
-    } catch (e, stack) {
-      Logger.exception('Failed to aggregate clients', e, stack);
-      return [];
-    }
-  }
-
   /// Returns clients for the currently selected router only
   Future<List<Client>> fetchClientsForSelectedRouter() async {
     try {
@@ -1917,126 +1872,6 @@ class AppState extends ChangeNotifier {
       );
     } catch (e, stack) {
       Logger.exception('Failed to fetch clients for selected router', e, stack);
-      return [];
-    }
-  }
-
-  /// Returns MAC → SSID for associated stations across all routers.
-  Future<Map<String, String>>
-      fetchAllAssociatedStationAccessPointsAggregated() async {
-    try {
-      if (_reviewerModeEnabled) {
-        return await _apiService!.fetchAllAssociatedWirelessMacsWithContext(
-          ipAddress: 'mock',
-          sysauth: 'mock',
-          useHttps: false,
-        );
-      }
-
-      final routers = _routerService?.routers ?? const <model.Router>[];
-      if (routers.isEmpty) return {};
-
-      final tasks = routers.map((r) async {
-        try {
-          if (_apiService is RealApiService) {
-            final real = _apiService as RealApiService;
-            final res = await real.loginWithProtocolDetection(
-              r.ipAddress,
-              r.username,
-              r.password,
-              r.useHttps,
-            );
-            if (res.token == null) return <String, String>{};
-            return await _apiService!.fetchAllAssociatedWirelessMacsWithContext(
-              ipAddress: r.ipAddress,
-              sysauth: res.token!,
-              useHttps: res.actualUseHttps,
-            );
-          }
-        } catch (e) {
-          // Skip router on failure
-        }
-        return <String, String>{};
-      }).toList();
-
-      final results = await Future.wait(tasks);
-      final merged = <String, String>{};
-      for (final map in results) {
-        merged.addAll(map);
-      }
-      return merged;
-    } catch (e, stack) {
-      Logger.exception('Failed to aggregate wireless access points', e, stack);
-      return {};
-    }
-  }
-
-  /// Returns a union set of associated wireless MAC addresses across all routers
-  Future<Set<String>> fetchAllAssociatedWirelessMacsAggregated() async {
-    final map = await fetchAllAssociatedStationAccessPointsAggregated();
-    return map.keys.toSet();
-  }
-
-  /// Returns a combined list of DHCP lease maps from all routers
-  Future<List<Map<String, dynamic>>> fetchAggregatedDhcpLeases() async {
-    try {
-      if (_reviewerModeEnabled) {
-        // Use mock data
-        final result = await _apiService!.callSimple('luci-rpc', 'getDHCPLeases', {});
-        if (result is List && result.length > 1 && result[0] == 0) {
-          return _extractDhcpLeaseMaps(result[1]);
-        }
-        return [];
-      }
-
-      final routers = _routerService?.routers ?? const <model.Router>[];
-      if (routers.isEmpty) return [];
-
-      final tasks = routers.map((r) async {
-        try {
-          if (_apiService is RealApiService) {
-            final real = _apiService as RealApiService;
-            final res = await real.loginWithProtocolDetection(
-              r.ipAddress,
-              r.username,
-              r.password,
-              r.useHttps,
-            );
-            if (res.token == null) return <Map<String, dynamic>>[];
-            final callRes = await _apiService!.call(
-              r.ipAddress,
-              res.token!,
-              res.actualUseHttps,
-              object: 'luci-rpc',
-              method: 'getDHCPLeases',
-              params: {},
-            );
-            if (callRes is List && callRes.length > 1 && callRes[0] == 0) {
-              return _extractDhcpLeaseMaps(callRes[1]);
-            }
-          }
-        } catch (e) {
-          // Skip router on failure
-        }
-        return <Map<String, dynamic>>[];
-      }).toList();
-
-      final results = await Future.wait(tasks);
-      // Deduplicate by MAC + IP
-      final seen = <String, Map<String, dynamic>>{};
-      for (final list in results) {
-        for (final lease in list) {
-          final mac = (lease['macaddr']?.toString() ?? '').toUpperCase();
-          final ip = lease['ipaddr']?.toString() ?? '';
-          final key = '$mac|$ip';
-          if (!seen.containsKey(key)) {
-            seen[key] = lease;
-          }
-        }
-      }
-      return seen.values.toList();
-    } catch (e, stack) {
-      Logger.exception('Failed to aggregate DHCP leases', e, stack);
       return [];
     }
   }

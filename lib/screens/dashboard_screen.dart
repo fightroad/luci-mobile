@@ -884,8 +884,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 _buildTappableVitalsColumn(
                   label: l10n.onlineClients,
                   value: onlineValue,
-                  onTap: () async {
-                    await appState.setClientsAggregateAllRouters(false);
+                  onTap: () {
                     appState.requestTab(1);
                   },
                 ),

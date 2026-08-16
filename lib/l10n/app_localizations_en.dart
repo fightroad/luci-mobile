@@ -240,12 +240,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearSearch => 'Clear search';
 
   @override
-  String get all => 'All';
-
-  @override
-  String get selected => 'Selected';
-
-  @override
   String get noActiveClientsFound => 'No Active Clients Found';
 
   @override

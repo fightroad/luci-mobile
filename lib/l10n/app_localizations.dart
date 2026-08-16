@@ -542,18 +542,6 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get clearSearch;
 
-  /// All label
-  ///
-  /// In en, this message translates to:
-  /// **'All'**
-  String get all;
-
-  /// Selected label
-  ///
-  /// In en, this message translates to:
-  /// **'Selected'**
-  String get selected;
-
   /// No active clients found title
   ///
   /// In en, this message translates to:

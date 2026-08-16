@@ -88,8 +88,6 @@
   "retry": "重试",
   "searchClients": "按名称、IP、MAC、厂商搜索...",
   "clearSearch": "清除搜索",
-  "all": "全部",
-  "selected": "已选择",
   "noActiveClientsFound": "未找到活动客户端",
   "noActiveClientsMessage": "当前没有客户端连接到路由器。下拉刷新列表。",
   "noMatchingClients": "未找到匹配的客户端",

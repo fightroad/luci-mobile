@@ -23,7 +23,6 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
   final Set<int> _expandedClientIndices = {};
   late AnimationController _controller;
   late TextEditingController _searchController;
-  bool _aggregateAllRouters = true;
   Future<List<Client>>? _clientsFuture;
   String? _lastSelectedRouterId;
 
@@ -42,19 +41,13 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
         });
       }
     });
-    // Initialize toggle from persisted state
-    final initState = ref.read(appStateProvider);
-    _aggregateAllRouters = initState.clientsAggregateAllRouters;
-    _lastSelectedRouterId = initState.selectedRouter?.id;
+    _lastSelectedRouterId = ref.read(appStateProvider).selectedRouter?.id;
     _computeClientsFuture();
-
   }
 
   void _computeClientsFuture() {
     final appState = ref.read(appStateProvider);
-    _clientsFuture = _aggregateAllRouters
-        ? appState.fetchAggregatedClients()
-        : appState.fetchClientsForSelectedRouter();
+    _clientsFuture = appState.fetchClientsForSelectedRouter();
   }
 
   @override
@@ -69,16 +62,12 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // Sync from AppState outside build mutations (e.g. dashboard → selected).
     ref.listen(appStateProvider, (previous, next) {
-      final nextAggregate = next.clientsAggregateAllRouters;
       final nextRouterId = next.selectedRouter?.id;
-      if (nextAggregate == _aggregateAllRouters &&
-          nextRouterId == _lastSelectedRouterId) {
+      if (nextRouterId == _lastSelectedRouterId) {
         return;
       }
       setState(() {
-        _aggregateAllRouters = nextAggregate;
         _lastSelectedRouterId = nextRouterId;
         _computeClientsFuture();
       });
@@ -87,7 +76,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
     return FutureBuilder<List<Client>>(
       future: _clientsFuture,
       builder: (context, snapshot) {
-        final aggregatedClients = snapshot.data ?? [];
+        final clients = snapshot.data ?? [];
         final l10n = AppLocalizations.of(context)!;
         return Scaffold(
           appBar: LuciAppBar(title: l10n.clients),
@@ -95,14 +84,17 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
             children: [
               LuciPullToRefresh(
                 onRefresh: () async {
-                  // Trigger a refresh by re-fetching dashboard data for selected router
                   await ref.read(appStateProvider).fetchDashboardData();
-                  setState(() { _computeClientsFuture(); });
+                  setState(() {
+                    _computeClientsFuture();
+                  });
                 },
                 child: Builder(
                   builder: (context) {
                     final appState = ref.watch(appStateProvider);
-                    final isLoading = snapshot.connectionState == ConnectionState.waiting && (aggregatedClients.isEmpty);
+                    final isLoading =
+                        snapshot.connectionState == ConnectionState.waiting &&
+                        clients.isEmpty;
                     final dashboardError = appState.dashboardError;
 
                     if (isLoading) {
@@ -140,7 +132,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                       );
                     }
 
-                    if (dashboardError != null && aggregatedClients.isEmpty) {
+                    if (dashboardError != null && clients.isEmpty) {
                       final l10n = AppLocalizations.of(context)!;
                       return LuciErrorDisplay(
                         title: l10n.failedToLoadClients,
@@ -151,8 +143,6 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                         icon: Icons.wifi_off_rounded,
                       );
                     }
-
-                    final clients = aggregatedClients;
 
                     final filteredClients = clients.where((client) {
                       final query = _searchQuery.toLowerCase();
@@ -205,43 +195,6 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                                 ),
                               ),
                             ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16.0,
-                            vertical: 4.0,
-                          ),
-                          child: SegmentedButton<bool>(
-                            segments: [
-                              ButtonSegment<bool>(
-                                value: true,
-                                label: Text(l10n.all),
-                                icon: const Icon(Icons.apartment),
-                              ),
-                              ButtonSegment<bool>(
-                                value: false,
-                                label: Text(l10n.selected),
-                                icon: const Icon(Icons.router),
-                              ),
-                            ],
-                            selected: {_aggregateAllRouters},
-                            showSelectedIcon: false,
-                            style: SegmentedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
-                            ),
-                            onSelectionChanged: (s) {
-                              setState(() {
-                                _aggregateAllRouters = s.first;
-                                _computeClientsFuture();
-                              });
-                              // Persist selection
-                              ref
-                                  .read(appStateProvider)
-                                  .setClientsAggregateAllRouters(
-                                      _aggregateAllRouters);
-                            },
                           ),
                         ),
                         Expanded(
