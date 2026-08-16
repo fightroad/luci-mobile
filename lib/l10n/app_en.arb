@@ -856,5 +856,39 @@
   "back": "Back",
   "@back": {
     "description": "Back button tooltip"
-  }
+  },
+  "plugins": "Plugin Management",
+  "@plugins": {
+    "description": "More screen section for optional router plugins"
+  },
+  "passwall": "Passwall",
+  "@passwall": {
+    "description": "Passwall plugin title"
+  },
+  "passwallSubtitle": "Enable, nodes, and shunt rules",
+  "@passwallSubtitle": {
+    "description": "Passwall entry subtitle on More screen"
+  },
+  "passwallMain": "Main",
+  "passwallEnabled": "Enable Passwall",
+  "passwallEnabledSubtitle": "Main transparent proxy switch",
+  "passwallRestart": "Restart service",
+  "passwallRestartSubtitle": "Restart Passwall without changing settings",
+  "passwallTcpNode": "TCP node",
+  "passwallUdpNode": "UDP node",
+  "passwallNodeClose": "Close",
+  "passwallUdpSameAsTcp": "Same as TCP node",
+  "passwallSaved": "Passwall settings applied",
+  "passwallSaveFailed": "Failed to apply Passwall settings",
+  "passwallRestarted": "Passwall service restarted",
+  "passwallRestartFailed": "Failed to restart Passwall",
+  "passwallUnavailable": "Passwall unavailable",
+  "passwallUnavailableMessage": "Could not read Passwall configuration from the router.",
+  "passwallFooterHint": "Tap Apply to save changes and restart Passwall once.",
+  "passwallApply": "Apply",
+  "passwallDiscard": "Discard",
+  "passwallShuntRules": "Shunt rules",
+  "passwallShuntDefault": "Default",
+  "passwallShuntDirect": "Direct",
+  "passwallShuntBlackhole": "Blackhole"
 }

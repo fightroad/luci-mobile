@@ -631,4 +631,79 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get back => '返回';
+
+  @override
+  String get plugins => '插件管理';
+
+  @override
+  String get passwall => 'Passwall';
+
+  @override
+  String get passwallSubtitle => '开关、节点与分流规则';
+
+  @override
+  String get passwallMain => '主设置';
+
+  @override
+  String get passwallEnabled => '启用 Passwall';
+
+  @override
+  String get passwallEnabledSubtitle => '透明代理总开关';
+
+  @override
+  String get passwallRestart => '重启服务';
+
+  @override
+  String get passwallRestartSubtitle => '不改设置，仅重启 Passwall';
+
+  @override
+  String get passwallTcpNode => 'TCP 节点';
+
+  @override
+  String get passwallUdpNode => 'UDP 节点';
+
+  @override
+  String get passwallNodeClose => '关闭';
+
+  @override
+  String get passwallUdpSameAsTcp => '与 TCP 节点相同';
+
+  @override
+  String get passwallSaved => 'Passwall 设置已应用';
+
+  @override
+  String get passwallSaveFailed => '应用 Passwall 设置失败';
+
+  @override
+  String get passwallRestarted => 'Passwall 服务已重启';
+
+  @override
+  String get passwallRestartFailed => '重启 Passwall 失败';
+
+  @override
+  String get passwallUnavailable => '无法使用 Passwall';
+
+  @override
+  String get passwallUnavailableMessage => '无法从路由器读取 Passwall 配置。';
+
+  @override
+  String get passwallFooterHint => '点「应用」后才会保存并重启一次 Passwall。';
+
+  @override
+  String get passwallApply => '应用';
+
+  @override
+  String get passwallDiscard => '放弃';
+
+  @override
+  String get passwallShuntRules => '分流规则';
+
+  @override
+  String get passwallShuntDefault => '默认';
+
+  @override
+  String get passwallShuntDirect => '直连';
+
+  @override
+  String get passwallShuntBlackhole => '黑洞';
 }

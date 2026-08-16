@@ -11,6 +11,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/screens/manage_routers_screen.dart';
+import 'package:luci_mobile/screens/passwall_screen.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
 import 'package:luci_mobile/state/app_state.dart';
 
@@ -46,18 +47,24 @@ class MoreScreen extends ConsumerStatefulWidget {
 
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   AppState? _appState;
-
-  @override
-  void initState() {
-    super.initState();
-    // Do not use context here
-  }
+  bool _passwallDetectScheduled = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _appState = ref.read(appStateProvider);
     _appState!.onRouterBackOnline = _showRouterBackOnlineMessage;
+    final appState = _appState!;
+    if (appState.isAuthenticated &&
+        appState.passwallInstalled == null &&
+        !_passwallDetectScheduled) {
+      _passwallDetectScheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await appState.detectPasswall(context: context);
+        if (mounted) _passwallDetectScheduled = false;
+      });
+    }
   }
 
   @override
@@ -296,6 +303,40 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Builder(
+              builder: (context) {
+                final passwallInstalled = ref.watch(
+                  appStateProvider.select((state) => state.passwallInstalled),
+                );
+                if (passwallInstalled != true) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LuciSectionHeader(l10n.plugins),
+                    _MoreScreenSection(
+                      tiles: [
+                        _buildMoreTile(
+                          context,
+                          icon: Icons.shield_outlined,
+                          iconColor: Theme.of(context).colorScheme.primary,
+                          title: l10n.passwall,
+                          subtitle: l10n.passwallSubtitle,
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => const PasswallScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
             LuciSectionHeader(l10n.deviceManagement),
             Builder(
               builder: (context) {

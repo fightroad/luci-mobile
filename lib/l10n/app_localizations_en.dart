@@ -647,4 +647,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get back => 'Back';
+
+  @override
+  String get plugins => 'Plugin Management';
+
+  @override
+  String get passwall => 'Passwall';
+
+  @override
+  String get passwallSubtitle => 'Enable, nodes, and shunt rules';
+
+  @override
+  String get passwallMain => 'Main';
+
+  @override
+  String get passwallEnabled => 'Enable Passwall';
+
+  @override
+  String get passwallEnabledSubtitle => 'Main transparent proxy switch';
+
+  @override
+  String get passwallRestart => 'Restart service';
+
+  @override
+  String get passwallRestartSubtitle =>
+      'Restart Passwall without changing settings';
+
+  @override
+  String get passwallTcpNode => 'TCP node';
+
+  @override
+  String get passwallUdpNode => 'UDP node';
+
+  @override
+  String get passwallNodeClose => 'Close';
+
+  @override
+  String get passwallUdpSameAsTcp => 'Same as TCP node';
+
+  @override
+  String get passwallSaved => 'Passwall settings applied';
+
+  @override
+  String get passwallSaveFailed => 'Failed to apply Passwall settings';
+
+  @override
+  String get passwallRestarted => 'Passwall service restarted';
+
+  @override
+  String get passwallRestartFailed => 'Failed to restart Passwall';
+
+  @override
+  String get passwallUnavailable => 'Passwall unavailable';
+
+  @override
+  String get passwallUnavailableMessage =>
+      'Could not read Passwall configuration from the router.';
+
+  @override
+  String get passwallFooterHint =>
+      'Tap Apply to save changes and restart Passwall once.';
+
+  @override
+  String get passwallApply => 'Apply';
+
+  @override
+  String get passwallDiscard => 'Discard';
+
+  @override
+  String get passwallShuntRules => 'Shunt rules';
+
+  @override
+  String get passwallShuntDefault => 'Default';
+
+  @override
+  String get passwallShuntDirect => 'Direct';
+
+  @override
+  String get passwallShuntBlackhole => 'Blackhole';
 }

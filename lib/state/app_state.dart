@@ -11,6 +11,7 @@ import 'package:luci_mobile/services/throughput_service.dart';
 import 'package:luci_mobile/models/client.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/models/dashboard_preferences.dart';
+import 'package:luci_mobile/models/passwall_config.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/service_factory.dart';
@@ -44,6 +45,16 @@ class AppState extends ChangeNotifier {
   // Add rebooting state
   bool _isRebooting = false;
   bool get isRebooting => _isRebooting;
+
+  /// null = not checked yet; true when `/etc/config/passwall` is readable via UCI.
+  bool? _passwallInstalled;
+  bool? get passwallInstalled => _passwallInstalled;
+  PasswallConfig? _passwallConfig;
+  PasswallConfig? get passwallConfig => _passwallConfig;
+  bool _isPasswallLoading = false;
+  bool get isPasswallLoading => _isPasswallLoading;
+  String? _passwallError;
+  String? get passwallError => _passwallError;
 
   // Theme mode state
   ThemeMode _themeMode = ThemeMode.system;
@@ -311,6 +322,9 @@ class AppState extends ChangeNotifier {
 
     // Clear throughput data when switching routers to prevent mixing data from different routers
     _cancelThroughputTimer();
+    _passwallInstalled = null;
+    _passwallConfig = null;
+    _passwallError = null;
 
     // Determine a safe context before any awaits
     final safeContext = context?.mounted == true ? context : null; // ignore: use_build_context_synchronously
@@ -450,6 +464,9 @@ class AppState extends ChangeNotifier {
     await _authService?.logout();
     _dashboardData = null;
     _dashboardError = null;
+    _passwallInstalled = null;
+    _passwallConfig = null;
+    _passwallError = null;
     _cancelThroughputTimer();
     // Re-sync routers from storage (loadRouters notifies listeners).
     await loadRouters();
@@ -1691,6 +1708,187 @@ class AppState extends ChangeNotifier {
     } catch (e, stack) {
       Logger.exception('Failed to fetch clients for selected router', e, stack);
       return [];
+    }
+  }
+
+  dynamic _unwrapLuciRpc(dynamic result) {
+    if (result is List && result.length > 1) {
+      if (result[0] == 0) return result[1];
+      final errorMessage = result[1] is String ? result[1] : 'Unknown API Error';
+      throw Exception(errorMessage);
+    }
+    return result;
+  }
+
+  /// Detects luci-app-passwall by reading UCI config `passwall`.
+  Future<bool> detectPasswall({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      _passwallInstalled = false;
+      _passwallConfig = null;
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final result = await _apiService!.call(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'uci',
+        method: 'get',
+        params: {'config': 'passwall'},
+        context: context,
+      );
+      final data = _unwrapLuciRpc(result);
+      final values = data is Map ? data['values'] : null;
+      final installed = values is Map && values.isNotEmpty;
+      _passwallInstalled = installed;
+      if (!installed) {
+        _passwallConfig = null;
+      }
+      notifyListeners();
+      return installed;
+    } catch (e, stack) {
+      Logger.debug('Passwall not detected: $e');
+      Logger.debug('Passwall detect stack: $stack');
+      _passwallInstalled = false;
+      _passwallConfig = null;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<PasswallConfig?> fetchPasswallConfig({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+
+    _isPasswallLoading = true;
+    _passwallError = null;
+    notifyListeners();
+
+    try {
+      final result = await _apiService!.call(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'uci',
+        method: 'get',
+        params: {'config': 'passwall'},
+        context: context,
+      );
+      final data = _unwrapLuciRpc(result);
+      final values = data is Map ? data['values'] : null;
+      if (values is! Map || values.isEmpty) {
+        _passwallInstalled = false;
+        _passwallConfig = null;
+        _passwallError = 'Passwall config not found';
+        return null;
+      }
+
+      final config = PasswallConfig.fromUciValues(values);
+      _passwallInstalled = true;
+      _passwallConfig = config;
+      return config;
+    } catch (e, stack) {
+      Logger.exception('Failed to fetch Passwall config', e, stack);
+      _passwallError = e.toString();
+      _passwallInstalled = false;
+      _passwallConfig = null;
+      return null;
+    } finally {
+      _isPasswallLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> applyPasswallSettings({
+    Map<String, String>? globalValues,
+    Map<String, Map<String, String>>? nodeUpdates,
+    bool restart = true,
+    BuildContext? context,
+  }) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+    final hasGlobal = globalValues != null && globalValues.isNotEmpty;
+    final hasNodes = nodeUpdates != null && nodeUpdates.isNotEmpty;
+    if (!hasGlobal && !hasNodes) return false;
+
+    final globalSection = _passwallConfig?.globalSection ?? '@global[0]';
+
+    try {
+      if (hasGlobal) {
+        await _apiService!.uciSet(
+          _authService!.ipAddress!,
+          _authService!.sysauth!,
+          _authService!.useHttps,
+          config: 'passwall',
+          section: globalSection,
+          values: globalValues,
+          context: context,
+        );
+      }
+      if (hasNodes) {
+        for (final entry in nodeUpdates.entries) {
+          if (entry.value.isEmpty) continue;
+          await _apiService!.uciSet(
+            _authService!.ipAddress!,
+            _authService!.sysauth!,
+            _authService!.useHttps,
+            config: 'passwall',
+            section: entry.key,
+            values: entry.value,
+            context: context?.mounted == true ? context : null,
+          );
+        }
+      }
+      await _apiService!.uciCommit(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        config: 'passwall',
+        context: context?.mounted == true ? context : null,
+      );
+      if (restart) {
+        await _apiService!.systemExec(
+          _authService!.ipAddress!,
+          _authService!.sysauth!,
+          _authService!.useHttps,
+          command: '/etc/init.d/passwall restart',
+          context: context?.mounted == true ? context : null,
+        );
+      }
+      await fetchPasswallConfig(
+        context: context?.mounted == true ? context : null,
+      );
+      return true;
+    } catch (e, stack) {
+      Logger.exception('Failed to apply Passwall settings', e, stack);
+      _passwallError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> restartPasswall({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+    try {
+      await _apiService!.systemExec(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        command: '/etc/init.d/passwall restart',
+        context: context,
+      );
+      return true;
+    } catch (e, stack) {
+      Logger.exception('Failed to restart Passwall', e, stack);
+      _passwallError = e.toString();
+      notifyListeners();
+      return false;
     }
   }
 }

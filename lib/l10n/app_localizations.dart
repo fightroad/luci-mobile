@@ -1303,6 +1303,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get back;
+
+  /// More screen section for optional router plugins
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin Management'**
+  String get plugins;
+
+  /// Passwall plugin title
+  ///
+  /// In en, this message translates to:
+  /// **'Passwall'**
+  String get passwall;
+
+  /// Passwall entry subtitle on More screen
+  ///
+  /// In en, this message translates to:
+  /// **'Enable, nodes, and shunt rules'**
+  String get passwallSubtitle;
+
+  /// No description provided for @passwallMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Main'**
+  String get passwallMain;
+
+  /// No description provided for @passwallEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Passwall'**
+  String get passwallEnabled;
+
+  /// No description provided for @passwallEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Main transparent proxy switch'**
+  String get passwallEnabledSubtitle;
+
+  /// No description provided for @passwallRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart service'**
+  String get passwallRestart;
+
+  /// No description provided for @passwallRestartSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart Passwall without changing settings'**
+  String get passwallRestartSubtitle;
+
+  /// No description provided for @passwallTcpNode.
+  ///
+  /// In en, this message translates to:
+  /// **'TCP node'**
+  String get passwallTcpNode;
+
+  /// No description provided for @passwallUdpNode.
+  ///
+  /// In en, this message translates to:
+  /// **'UDP node'**
+  String get passwallUdpNode;
+
+  /// No description provided for @passwallNodeClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get passwallNodeClose;
+
+  /// No description provided for @passwallUdpSameAsTcp.
+  ///
+  /// In en, this message translates to:
+  /// **'Same as TCP node'**
+  String get passwallUdpSameAsTcp;
+
+  /// No description provided for @passwallSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwall settings applied'**
+  String get passwallSaved;
+
+  /// No description provided for @passwallSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to apply Passwall settings'**
+  String get passwallSaveFailed;
+
+  /// No description provided for @passwallRestarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwall service restarted'**
+  String get passwallRestarted;
+
+  /// No description provided for @passwallRestartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restart Passwall'**
+  String get passwallRestartFailed;
+
+  /// No description provided for @passwallUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwall unavailable'**
+  String get passwallUnavailable;
+
+  /// No description provided for @passwallUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read Passwall configuration from the router.'**
+  String get passwallUnavailableMessage;
+
+  /// No description provided for @passwallFooterHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Apply to save changes and restart Passwall once.'**
+  String get passwallFooterHint;
+
+  /// No description provided for @passwallApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get passwallApply;
+
+  /// No description provided for @passwallDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get passwallDiscard;
+
+  /// No description provided for @passwallShuntRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Shunt rules'**
+  String get passwallShuntRules;
+
+  /// No description provided for @passwallShuntDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get passwallShuntDefault;
+
+  /// No description provided for @passwallShuntDirect.
+  ///
+  /// In en, this message translates to:
+  /// **'Direct'**
+  String get passwallShuntDirect;
+
+  /// No description provided for @passwallShuntBlackhole.
+  ///
+  /// In en, this message translates to:
+  /// **'Blackhole'**
+  String get passwallShuntBlackhole;
 }
 
 class _AppLocalizationsDelegate
