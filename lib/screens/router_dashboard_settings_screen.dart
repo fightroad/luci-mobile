@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/dashboard_preferences.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
@@ -63,9 +64,9 @@ class _RouterDashboardSettingsScreenState
         await appState.fetchDashboardData();
       }
       if (appState.dashboardData == null) {
+        final l10n = AppLocalizations.of(context)!;
         setState(() {
-          _errorMessage =
-              'Unable to load dashboard data. Please check your connection.';
+          _errorMessage = l10n.unableToLoadDashboardData;
           _isLoading = false;
         });
         return;
@@ -74,8 +75,9 @@ class _RouterDashboardSettingsScreenState
       _extractAvailableInterfaces(appState.dashboardData);
       setState(() => _isLoading = false);
     } catch (e) {
+      final l10n = AppLocalizations.of(context)!;
       setState(() {
-        _errorMessage = 'Failed to load settings: $e';
+        _errorMessage = l10n.failedToLoadSettings(e.toString());
         _isLoading = false;
       });
     }
@@ -163,10 +165,11 @@ class _RouterDashboardSettingsScreenState
   }
 
   Widget _buildThroughputSection() {
+    final l10n = AppLocalizations.of(context)!;
     final interfaces = _availableWiredInterfaces.toList()..sort();
     return _buildSection(
-      title: 'Throughput Monitoring',
-      subtitle: 'Configure which interfaces to monitor',
+      title: l10n.throughputMonitoring,
+      subtitle: l10n.throughputMonitoringSubtitle,
       icon: Icons.speed,
       initiallyExpanded: true,
       children: [
@@ -180,7 +183,7 @@ class _RouterDashboardSettingsScreenState
             children: [
               SwitchListTile.adaptive(
                 title: Text(
-                  'Show All Interfaces',
+                  l10n.showAllInterfaces,
                   style: LuciTextStyles.detailValue(context)
                       .copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -244,10 +247,11 @@ class _RouterDashboardSettingsScreenState
 
   Widget _buildWirelessInterfacesSection() {
     if (_availableWirelessInterfaces.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
     final sortedInterfaces = _availableWirelessInterfaces.toList()..sort();
     return _buildSection(
-      title: 'Wireless Networks',
-      subtitle: 'Choose which wireless networks to display',
+      title: l10n.wirelessNetworks,
+      subtitle: l10n.wirelessNetworksSubtitle,
       icon: Icons.wifi,
       children: [
         Container(
@@ -260,7 +264,7 @@ class _RouterDashboardSettingsScreenState
             children: [
               SwitchListTile.adaptive(
                 title: Text(
-                  'Show All Networks',
+                  l10n.showAllNetworks,
                   style: LuciTextStyles.detailValue(context)
                       .copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -334,10 +338,11 @@ class _RouterDashboardSettingsScreenState
 
   Widget _buildWiredInterfacesSection() {
     if (_availableWiredInterfaces.isEmpty) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context)!;
     final sortedInterfaces = _availableWiredInterfaces.toList()..sort();
     return _buildSection(
-      title: 'Network Interfaces',
-      subtitle: 'Choose which wired/VPN interfaces to display',
+      title: l10n.networkInterfaces,
+      subtitle: l10n.networkInterfacesSubtitle,
       icon: Icons.cable,
       children: [
         Container(
@@ -350,7 +355,7 @@ class _RouterDashboardSettingsScreenState
             children: [
               SwitchListTile.adaptive(
                 title: Text(
-                  'Show All Interfaces',
+                  l10n.showAllInterfaces,
                   style: LuciTextStyles.detailValue(context)
                       .copyWith(fontWeight: FontWeight.w600),
                 ),
@@ -426,20 +431,21 @@ class _RouterDashboardSettingsScreenState
   }
 
   Widget? _getInterfaceDescription(String interface) {
+    final l10n = AppLocalizations.of(context)!;
     final lower = interface.toLowerCase();
     if (lower.startsWith('wan')) {
-      return Text('Wide Area Network',
+      return Text(l10n.wideAreaNetwork,
           style: LuciTextStyles.cardSubtitle(context));
     } else if (lower.startsWith('lan')) {
-      return Text('Local Area Network',
+      return Text(l10n.localAreaNetwork,
           style: LuciTextStyles.cardSubtitle(context));
     } else if (lower.contains('wireguard') || lower.startsWith('wg')) {
-      return Text('WireGuard VPN',
+      return Text(l10n.wireGuardVpn,
           style: LuciTextStyles.cardSubtitle(context));
     } else if (lower.contains('openvpn')) {
-      return Text('OpenVPN', style: LuciTextStyles.cardSubtitle(context));
+      return Text(l10n.openVpn, style: LuciTextStyles.cardSubtitle(context));
     } else if (lower.contains('pppoe')) {
-      return Text('PPPoE Connection',
+      return Text(l10n.pppoeConnection,
           style: LuciTextStyles.cardSubtitle(context));
     }
     return null;
@@ -447,21 +453,22 @@ class _RouterDashboardSettingsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
-      return const Scaffold(
-        appBar: LuciAppBar(title: 'Dashboard Settings', showBack: true),
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        appBar: LuciAppBar(title: l10n.dashboardSettingsTitle, showBack: true),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_errorMessage != null) {
       return Scaffold(
-        appBar: const LuciAppBar(title: 'Dashboard Settings', showBack: true),
+        appBar: LuciAppBar(title: l10n.dashboardSettingsTitle, showBack: true),
         body: Center(child: Text(_errorMessage!)),
       );
     }
 
     return Scaffold(
-      appBar: const LuciAppBar(title: 'Dashboard Settings', showBack: true),
+      appBar: LuciAppBar(title: l10n.dashboardSettingsTitle, showBack: true),
       body: ListView(
         padding: EdgeInsets.symmetric(vertical: LuciSpacing.sm),
         children: [

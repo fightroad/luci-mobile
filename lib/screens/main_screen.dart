@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/screens/dashboard_screen.dart';
 import 'package:luci_mobile/screens/clients_screen.dart';
 import 'package:luci_mobile/screens/interfaces_screen.dart';
@@ -120,49 +121,69 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             },
             selectedIndex: _selectedIndex,
             destinations: [
-              NavigationDestination(
-                selectedIcon: Opacity(
-                  opacity: getTabOpacity(0),
-                  child: Icon(Icons.dashboard, color: getTabColor(0)),
-                ),
-                icon: Opacity(
-                  opacity: getTabOpacity(0),
-                  child: Icon(Icons.dashboard_outlined, color: getTabColor(0)),
-                ),
-                label: 'Dashboard',
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return NavigationDestination(
+                    selectedIcon: Opacity(
+                      opacity: getTabOpacity(0),
+                      child: Icon(Icons.dashboard, color: getTabColor(0)),
+                    ),
+                    icon: Opacity(
+                      opacity: getTabOpacity(0),
+                      child: Icon(Icons.dashboard_outlined, color: getTabColor(0)),
+                    ),
+                    label: l10n.dashboard,
+                  );
+                },
               ),
-              NavigationDestination(
-                selectedIcon: Opacity(
-                  opacity: getTabOpacity(1),
-                  child: Icon(Icons.people, color: getTabColor(1)),
-                ),
-                icon: Opacity(
-                  opacity: getTabOpacity(1),
-                  child: Icon(Icons.people_outline, color: getTabColor(1)),
-                ),
-                label: 'Clients',
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return NavigationDestination(
+                    selectedIcon: Opacity(
+                      opacity: getTabOpacity(1),
+                      child: Icon(Icons.people, color: getTabColor(1)),
+                    ),
+                    icon: Opacity(
+                      opacity: getTabOpacity(1),
+                      child: Icon(Icons.people_outline, color: getTabColor(1)),
+                    ),
+                    label: l10n.clients,
+                  );
+                },
               ),
-              NavigationDestination(
-                selectedIcon: Opacity(
-                  opacity: getTabOpacity(2),
-                  child: Icon(Icons.lan, color: getTabColor(2)),
-                ),
-                icon: Opacity(
-                  opacity: getTabOpacity(2),
-                  child: Icon(Icons.lan_outlined, color: getTabColor(2)),
-                ),
-                label: 'Interfaces',
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return NavigationDestination(
+                    selectedIcon: Opacity(
+                      opacity: getTabOpacity(2),
+                      child: Icon(Icons.lan, color: getTabColor(2)),
+                    ),
+                    icon: Opacity(
+                      opacity: getTabOpacity(2),
+                      child: Icon(Icons.lan_outlined, color: getTabColor(2)),
+                    ),
+                    label: l10n.interfaces,
+                  );
+                },
               ),
-              NavigationDestination(
-                selectedIcon: Opacity(
-                  opacity: getTabOpacity(3),
-                  child: Icon(Icons.more_horiz),
-                ),
-                icon: Opacity(
-                  opacity: getTabOpacity(3),
-                  child: Icon(Icons.more_horiz_outlined),
-                ),
-                label: 'More',
+              Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return NavigationDestination(
+                    selectedIcon: Opacity(
+                      opacity: getTabOpacity(3),
+                      child: Icon(Icons.more_horiz),
+                    ),
+                    icon: Opacity(
+                      opacity: getTabOpacity(3),
+                      child: Icon(Icons.more_horiz_outlined),
+                    ),
+                    label: l10n.more,
+                  );
+                },
               ),
             ],
           );

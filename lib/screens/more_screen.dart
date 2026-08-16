@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/screens/login_screen.dart';
 import 'package:luci_mobile/screens/settings_screen.dart';
@@ -80,11 +81,16 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
               Icon(Icons.check_circle, color: colorScheme.onPrimary, size: 20),
               const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  'Router is back online, reconnecting…',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onPrimary,
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    return Text(
+                      l10n.routerBackOnline,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onPrimary,
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -106,21 +112,22 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
 
   Future<void> _showLogoutDialog(BuildContext context) async {
     final appState = ref.read(appStateProvider);
+    final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Logout?'),
-          content: const Text('Are you sure you want to logout?'),
+          title: Text(l10n.logoutTitle),
+          content: Text(l10n.logoutMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Logout'),
+              child: Text(l10n.logout),
               onPressed: () async {
                 appState.logout();
                 // Clear all accepted certificates on logout
@@ -145,21 +152,22 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
 
   Future<void> _showRebootDialog(BuildContext context) async {
     final appState = ref.read(appStateProvider);
+    final l10n = AppLocalizations.of(context)!;
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Reboot Router?'),
-          content: const Text('Are you sure you want to reboot the router?'),
+          title: Text(l10n.rebootRouterTitle),
+          content: Text(l10n.rebootRouterMessage),
           actions: <Widget>[
             TextButton(
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Reboot'),
+              child: Text(l10n.reboot),
               onPressed: () async {
                 Navigator.of(context).pop();
                 // Show persistent warning snackbar
@@ -177,7 +185,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Rebooting… Connection will be interrupted.',
+                            l10n.rebooting,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: colorScheme.onPrimary,
                             ),
@@ -203,8 +211,8 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   SnackBar(
                     content: Text(
                       success
-                          ? 'Reboot command sent successfully.'
-                          : 'Failed to send reboot command.',
+                          ? l10n.rebootCommandSent
+                          : l10n.rebootCommandFailed,
                     ),
                   ),
                 );
@@ -224,23 +232,24 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
       showDialog(
         context: context,
         builder: (BuildContext context) {
+          final l10n = AppLocalizations.of(context)!;
           return AlertDialog(
             title: Row(
               children: [
                 const Icon(Icons.router, size: 32),
                 const SizedBox(width: 12),
-                const Text('LuCI Mobile'),
+                Text(l10n.aboutDialogTitle),
               ],
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Version ${info.version}'),
+                Text(l10n.aboutDialogVersion(info.version)),
                 const SizedBox(height: 16),
-                const Text('A mobile client for OpenWrt routers.'),
+                Text(l10n.aboutDialogDescription),
                 const SizedBox(height: 16),
-                const Text('Open source and free to use.'),
+                Text(l10n.aboutDialogOpenSource),
                 const SizedBox(height: 16),
                 InkWell(
                   onTap: () async {
@@ -252,7 +261,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                     if (!success && context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: const Text('Could not open repository'),
+                          content: Text(l10n.couldNotOpenRepository),
                           backgroundColor: Theme.of(context).colorScheme.error,
                         ),
                       );
@@ -268,7 +277,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'GitHub Repository',
+                          l10n.githubRepository,
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.primary,
                             decoration: TextDecoration.underline,
@@ -283,7 +292,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text(l10n.close),
               ),
             ],
           );
@@ -294,14 +303,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const LuciAppBar(title: 'More'),
+      appBar: LuciAppBar(title: l10n.more),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(vertical: LuciSpacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const LuciSectionHeader('Device Management'),
+            LuciSectionHeader(l10n.deviceManagement),
             Builder(
               builder: (context) {
                 final isRebooting = ref.watch(
@@ -313,8 +323,8 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                       context,
                       icon: Icons.restart_alt,
                       iconColor: Theme.of(context).colorScheme.primary,
-                      title: 'Reboot Router',
-                      subtitle: 'Perform a system restart',
+                      title: l10n.rebootRouter,
+                      subtitle: l10n.rebootRouterSubtitle,
                       onTap: isRebooting
                           ? null
                           : () => _showRebootDialog(context),
@@ -325,15 +335,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 );
               },
             ),
-            const LuciSectionHeader('Application'),
+            LuciSectionHeader(l10n.application),
             _MoreScreenSection(
               tiles: [
                 _buildMoreTile(
                   context,
                   icon: Icons.router,
                   iconColor: Theme.of(context).colorScheme.primary,
-                  title: 'Manage Routers',
-                  subtitle: 'Edit or remove saved routers',
+                  title: l10n.manageRouters,
+                  subtitle: l10n.manageRoutersSubtitle,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -346,8 +356,8 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   context,
                   icon: Icons.settings_outlined,
                   iconColor: Theme.of(context).colorScheme.primary,
-                  title: 'Settings',
-                  subtitle: 'Configure app preferences',
+                  title: l10n.settings,
+                  subtitle: l10n.settingsSubtitle,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -360,16 +370,16 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                   context,
                   icon: Icons.info_outline,
                   iconColor: Theme.of(context).colorScheme.secondary,
-                  title: 'About',
-                  subtitle: 'App version and information',
+                  title: l10n.about,
+                  subtitle: l10n.aboutSubtitle,
                   onTap: () => _showAboutDialog(context),
                 ),
                 _buildMoreTile(
                   context,
                   icon: Icons.logout,
                   iconColor: Theme.of(context).colorScheme.error,
-                  title: 'Logout',
-                  subtitle: 'End your session and sign out',
+                  title: l10n.logout,
+                  subtitle: l10n.logoutSubtitle,
                   titleColor: Theme.of(context).colorScheme.error,
                   subtitleColor: Theme.of(
                     context,

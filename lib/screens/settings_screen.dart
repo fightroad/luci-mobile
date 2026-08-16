@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/screens/dashboard_settings_list_screen.dart';
@@ -11,18 +12,16 @@ class SettingsScreen extends ConsumerWidget {
 
   void _showReviewerModeResetDialog(BuildContext context, WidgetRef ref) {
     final appState = ref.read(appStateProvider);
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Exit Reviewer Mode?'),
-        content: const Text(
-          'This will disable reviewer mode and return to normal authentication. '
-          'You will need to log in with real router credentials.',
-        ),
+        title: Text(l10n.exitReviewerModeTitle),
+        content: Text(l10n.exitReviewerModeMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             onPressed: () async {
@@ -37,7 +36,7 @@ class SettingsScreen extends ConsumerWidget {
                 );
               }
             },
-            child: const Text('Exit'),
+            child: Text(l10n.exit),
           ),
         ],
       ),
@@ -46,8 +45,9 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const LuciAppBar(title: 'Settings', showBack: true),
+      appBar: LuciAppBar(title: l10n.settings, showBack: true),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8.0),
         children: [
@@ -60,7 +60,7 @@ class SettingsScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 28, 16, 8),
                     child: Text(
-                      'Theme',
+                      l10n.theme,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -74,15 +74,15 @@ class SettingsScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         RadioListTile<ThemeMode>(
-                          title: const Text('System Default'),
+                          title: Text(l10n.systemDefault),
                           value: ThemeMode.system,
                         ),
                         RadioListTile<ThemeMode>(
-                          title: const Text('Light'),
+                          title: Text(l10n.light),
                           value: ThemeMode.light,
                         ),
                         RadioListTile<ThemeMode>(
-                          title: const Text('Dark'),
+                          title: Text(l10n.dark),
                           value: ThemeMode.dark,
                         ),
                       ],
@@ -92,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     child: Text(
-                      'Dashboard',
+                      l10n.dashboardSettings,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -117,11 +117,11 @@ class SettingsScreen extends ConsumerWidget {
                           size: 24,
                         ),
                       ),
-                      title: const Text(
-                        'Customize Dashboard',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      title: Text(
+                        l10n.customizeDashboard,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
-                      subtitle: const Text('Configure interface visibility and throughput monitoring'),
+                      subtitle: Text(l10n.customizeDashboardSubtitle),
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
@@ -142,7 +142,7 @@ class SettingsScreen extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       child: Text(
-                        'Reviewer Mode',
+                        l10n.reviewerMode,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.bold),
                       ),
@@ -152,9 +152,9 @@ class SettingsScreen extends ConsumerWidget {
                         Icons.info_outline,
                         color: Colors.orange,
                       ),
-                      title: const Text('Reviewer Mode Active'),
+                      title: Text(l10n.reviewerModeActive),
                       subtitle: Text(
-                        'Mock data is being used for demonstration',
+                        l10n.reviewerModeActiveSubtitle,
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ),
@@ -167,7 +167,7 @@ class SettingsScreen extends ConsumerWidget {
                         onPressed: () =>
                             _showReviewerModeResetDialog(context, ref),
                         icon: const Icon(Icons.exit_to_app),
-                        label: const Text('Exit Reviewer Mode'),
+                        label: Text(l10n.exitReviewerMode),
                         style: FilledButton.styleFrom(
                           backgroundColor: Theme.of(context).colorScheme.error,
                           foregroundColor: Theme.of(

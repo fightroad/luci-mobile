@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -84,32 +85,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   }
 
   void _showReviewerModeDialog() {
+    final l10n = AppLocalizations.of(context)!;
     _confirmationController.clear();
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Activate Reviewer Mode?'),
+          title: Text(l10n.activateReviewerMode),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'This will enable reviewer mode which bypasses authentication '
-                'and provides mock data for app demonstration purposes.',
-              ),
+              Text(l10n.reviewerModeDescription),
               const SizedBox(height: 16),
-              const Text(
-                'To confirm, type "REVIEWER" below:',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                l10n.reviewerModeConfirm,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               TextField(
                 controller: _confirmationController,
-                decoration: const InputDecoration(
-                  hintText: 'Type REVIEWER',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: l10n.typeReviewer,
+                  border: const OutlineInputBorder(),
                 ),
                 onChanged: (_) => setDialogState(() {}),
               ),
@@ -118,7 +117,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
+              child: Text(l10n.cancel),
             ),
             FilledButton(
               onPressed: _confirmationController.text == 'REVIEWER'
@@ -127,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       _activateReviewerMode();
                     }
                   : null,
-              child: const Text('Activate'),
+              child: Text(l10n.activate),
             ),
           ],
         ),
@@ -181,7 +180,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
       if (!parsedUrl.isValid) {
         // Show error message
-        appState.setError(parsedUrl.error ?? 'Invalid address format');
+        final l10n = AppLocalizations.of(context)!;
+        appState.setError(parsedUrl.error ?? l10n.invalidAddressFormat);
         return;
       }
 
@@ -208,9 +208,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       mode: LaunchMode.externalApplication,
     );
     if (!success && mounted) {
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Could not open GitHub issues'),
+          content: Text(l10n.couldNotOpenGitHubIssues),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
@@ -268,31 +269,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           },
                           child: Column(
                             children: [
-                              Column(
-                                children: [
-                                  Text(
-                                    'LuCI Mobile',
-                                    style: textTheme.headlineLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'Connect to your OpenWrt router',
-                                    style: textTheme.titleMedium?.copyWith(
-                                      color: colorScheme.onSurface.withValues(
-                                        alpha: 0.8,
+                              Builder(
+                                builder: (context) {
+                                  final l10n = AppLocalizations.of(context)!;
+                                  return Column(
+                                    children: [
+                                      Text(
+                                        l10n.appTitle,
+                                        style: textTheme.headlineLarge?.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'Fast. Secure. Open Source.',
-                                    style: textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.primary,
-                                    ),
-                                  ),
-                                ],
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        l10n.appSubtitle,
+                                        style: textTheme.titleMedium?.copyWith(
+                                          color: colorScheme.onSurface.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        l10n.appTagline,
+                                        style: textTheme.bodySmall?.copyWith(
+                                          color: colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
                               AnimatedSwitcher(
                                 duration: const Duration(milliseconds: 200),
@@ -305,16 +311,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                           builder: (context, child) {
                                             return Column(
                                               children: [
-                                                Text(
-                                                  'Hold to activate reviewer mode...',
-                                                  style: textTheme.bodySmall
-                                                      ?.copyWith(
-                                                        color:
-                                                            colorScheme.primary,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        fontSize: 13,
-                                                      ),
+                                                Builder(
+                                                  builder: (context) {
+                                                    final l10n = AppLocalizations.of(context)!;
+                                                    return Text(
+                                                      l10n.holdToActivateReviewerMode,
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                            color:
+                                                                colorScheme.primary,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            fontSize: 13,
+                                                          ),
+                                                    );
+                                                  },
                                                 ),
                                                 const SizedBox(height: 12),
                                                 Container(
@@ -412,111 +423,120 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                             CrossAxisAlignment.stretch,
                                         mainAxisSize: MainAxisSize.min,
                                         children: <Widget>[
-                                          Tooltip(
-                                            message:
-                                                'Enter the IP address, hostname, or full URL of your router',
-                                            child: TextFormField(
-                                              controller: _ipController,
-                                              autofocus: true,
-                                              autofillHints: const [
-                                                AutofillHints.url,
-                                                AutofillHints.username,
-                                              ],
-                                              decoration: const InputDecoration(
-                                                labelText: 'Router Address',
-                                                border: OutlineInputBorder(),
-                                                prefixIcon: Icon(
-                                                  Icons.router_outlined,
+                                          Builder(
+                                            builder: (context) {
+                                              final l10n = AppLocalizations.of(context)!;
+                                              return Tooltip(
+                                                message: l10n.enterRouterAddressTooltip,
+                                                child: TextFormField(
+                                                  controller: _ipController,
+                                                  autofocus: true,
+                                                  autofillHints: const [
+                                                    AutofillHints.url,
+                                                    AutofillHints.username,
+                                                  ],
+                                                  decoration: InputDecoration(
+                                                    labelText: l10n.routerAddress,
+                                                    border: const OutlineInputBorder(),
+                                                    prefixIcon: const Icon(
+                                                      Icons.router_outlined,
+                                                    ),
+                                                    helperText: l10n.routerAddressHelper,
+                                                  ),
+                                                  textInputAction:
+                                                      TextInputAction.next,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return l10n.pleaseEnterRouterAddress;
+                                                    }
+                                                    final parsed = UrlParser.parse(
+                                                      value,
+                                                    );
+                                                    if (!parsed.isValid) {
+                                                      return parsed.error ??
+                                                          l10n.invalidAddressFormat;
+                                                    }
+                                                    return null;
+                                                  },
                                                 ),
-                                                helperText:
-                                                    'e.g. 192.168.1.1, router.local:8080, https://192.168.1.1',
-                                              ),
-                                              textInputAction:
-                                                  TextInputAction.next,
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'Please enter the router address';
-                                                }
-                                                final parsed = UrlParser.parse(
-                                                  value,
-                                                );
-                                                if (!parsed.isValid) {
-                                                  return parsed.error ??
-                                                      'Invalid address format';
-                                                }
-                                                return null;
-                                              },
-                                            ),
+                                              );
+                                            },
                                           ),
                                           const SizedBox(height: 10),
-                                          Tooltip(
-                                            message:
-                                                'Enter your router username',
-                                            child: TextFormField(
-                                              controller: _usernameController,
-                                              autofillHints: const [
-                                                AutofillHints.username,
-                                              ],
-                                              decoration: const InputDecoration(
-                                                labelText: 'Username',
-                                                border: OutlineInputBorder(),
-                                                prefixIcon: Icon(
-                                                  Icons.person_outline,
+                                          Builder(
+                                            builder: (context) {
+                                              final l10n = AppLocalizations.of(context)!;
+                                              return Tooltip(
+                                                message: l10n.enterRouterUsernameTooltip,
+                                                child: TextFormField(
+                                                  controller: _usernameController,
+                                                  autofillHints: const [
+                                                    AutofillHints.username,
+                                                  ],
+                                                  decoration: InputDecoration(
+                                                    labelText: l10n.username,
+                                                    border: const OutlineInputBorder(),
+                                                    prefixIcon: const Icon(
+                                                      Icons.person_outline,
+                                                    ),
+                                                    helperText: l10n.usernameHelper,
+                                                  ),
+                                                  textInputAction:
+                                                      TextInputAction.next,
+                                                  validator: (value) {
+                                                    if (value == null ||
+                                                        value.isEmpty) {
+                                                      return l10n.pleaseEnterUsername;
+                                                    }
+                                                    return null;
+                                                  },
                                                 ),
-                                                helperText:
-                                                    'Default is usually root',
-                                              ),
-                                              textInputAction:
-                                                  TextInputAction.next,
-                                              validator: (value) {
-                                                if (value == null ||
-                                                    value.isEmpty) {
-                                                  return 'Please enter the username';
-                                                }
-                                                return null;
-                                              },
-                                            ),
+                                              );
+                                            },
                                           ),
                                           const SizedBox(height: 10),
-                                          Tooltip(
-                                            message:
-                                                'Enter your router password',
-                                            child: TextFormField(
-                                              controller: _passwordController,
-                                              obscureText: !_passwordVisible,
-                                              autofillHints: const [
-                                                AutofillHints.password,
-                                              ],
-                                              decoration: InputDecoration(
-                                                labelText: 'Password',
-                                                border:
-                                                    const OutlineInputBorder(),
-                                                prefixIcon: const Icon(
-                                                  Icons.lock_outline,
-                                                ),
-                                                helperText:
-                                                    'Your router password',
-                                                suffixIcon: IconButton(
-                                                  icon: Icon(
-                                                    _passwordVisible
-                                                        ? Icons
-                                                              .visibility_outlined
-                                                        : Icons
-                                                              .visibility_off_outlined,
+                                          Builder(
+                                            builder: (context) {
+                                              final l10n = AppLocalizations.of(context)!;
+                                              return Tooltip(
+                                                message: l10n.enterRouterPasswordTooltip,
+                                                child: TextFormField(
+                                                  controller: _passwordController,
+                                                  obscureText: !_passwordVisible,
+                                                  autofillHints: const [
+                                                    AutofillHints.password,
+                                                  ],
+                                                  decoration: InputDecoration(
+                                                    labelText: l10n.password,
+                                                    border:
+                                                        const OutlineInputBorder(),
+                                                    prefixIcon: const Icon(
+                                                      Icons.lock_outline,
+                                                    ),
+                                                    helperText: l10n.passwordHelper,
+                                                    suffixIcon: IconButton(
+                                                      icon: Icon(
+                                                        _passwordVisible
+                                                            ? Icons
+                                                                  .visibility_outlined
+                                                            : Icons
+                                                                  .visibility_off_outlined,
+                                                      ),
+                                                      onPressed: () => setState(
+                                                        () => _passwordVisible =
+                                                            !_passwordVisible,
+                                                      ),
+                                                      tooltip: _passwordVisible
+                                                          ? l10n.hidePassword
+                                                          : l10n.showPassword,
+                                                    ),
                                                   ),
-                                                  onPressed: () => setState(
-                                                    () => _passwordVisible =
-                                                        !_passwordVisible,
-                                                  ),
-                                                  tooltip: _passwordVisible
-                                                      ? 'Hide password'
-                                                      : 'Show password',
+                                                  textInputAction:
+                                                      TextInputAction.done,
                                                 ),
-                                              ),
-                                              textInputAction:
-                                                  TextInputAction.done,
-                                            ),
+                                              );
+                                            },
                                           ),
                                           AnimatedSwitcher(
                                             duration: const Duration(
@@ -630,16 +650,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                                                   Colors.white,
                                                             ),
                                                       )
-                                                    : Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: const [
-                                                          Icon(Icons.login),
-                                                          SizedBox(width: 12),
-                                                          Text('Connect'),
-                                                        ],
-                                                      ),
+                                                    :                                                     Builder(
+                                                      builder: (context) {
+                                                        final l10n = AppLocalizations.of(context)!;
+                                                        return Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            const Icon(Icons.login),
+                                                            const SizedBox(width: 12),
+                                                            Text(l10n.loginConnect),
+                                                          ],
+                                                        );
+                                                      },
+                                                    ),
                                               ),
                                             ),
                                           ),
@@ -653,15 +678,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Tooltip(
-                          message: 'Open GitHub issues for support',
-                          child: TextButton(
-                            onPressed: _openGitHubIssues,
-                            style: TextButton.styleFrom(
-                              foregroundColor: colorScheme.primary,
-                            ),
-                            child: const Text('Need help?'),
-                          ),
+                        Builder(
+                          builder: (context) {
+                            final l10n = AppLocalizations.of(context)!;
+                            return Tooltip(
+                              message: l10n.openGitHubIssuesTooltip,
+                              child: TextButton(
+                                onPressed: _openGitHubIssues,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: colorScheme.primary,
+                                ),
+                                child: Text(l10n.needHelp),
+                              ),
+                            );
+                          },
                         ),
                         FutureBuilder<PackageInfo>(
                           future: PackageInfo.fromPlatform(),
@@ -670,10 +700,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               return const SizedBox.shrink();
                             }
                             final info = snapshot.data!;
+                            final l10n = AppLocalizations.of(context)!;
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Text(
-                                'Version ${info.version}',
+                                l10n.version(info.version),
                                 style: textTheme.bodySmall?.copyWith(
                                   color: colorScheme.onSurfaceVariant
                                       .withValues(alpha: 0.7),

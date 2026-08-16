@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/design/luci_design_system.dart';
 
 class LuciAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -32,13 +33,18 @@ class LuciAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: centerTitle,
       titleSpacing: 16.0,
       leading: showBack
-          ? IconButton(
-              icon: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                color: theme.colorScheme.onSurface,
-              ),
-              onPressed: () => Navigator.of(context).maybePop(),
-              tooltip: 'Back',
+          ? Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context)!;
+                return IconButton(
+                  icon: Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  tooltip: l10n.back,
+                );
+              },
             )
           : null,
       title:
@@ -154,7 +160,12 @@ class LuciErrorDisplay extends StatelessWidget {
                 ElevatedButton.icon(
                   onPressed: onAction,
                   icon: const Icon(Icons.refresh_rounded),
-                  label: Text(actionLabel ?? 'Retry'),
+                  label: Builder(
+                    builder: (context) {
+                      final l10n = AppLocalizations.of(context)!;
+                      return Text(actionLabel ?? l10n.retry);
+                    },
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: colorScheme.primary,
                     foregroundColor: colorScheme.onPrimary,
@@ -227,7 +238,12 @@ class LuciEmptyState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onAction,
                 icon: const Icon(Icons.add_rounded),
-                label: Text(actionLabel ?? 'Add'),
+                label: Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    return Text(actionLabel ?? l10n.add);
+                  },
+                ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: colorScheme.onPrimary,

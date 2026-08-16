@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import '../design/luci_design_system.dart';
 
 /// Utility components and formatters for enhanced user experience
@@ -53,7 +54,7 @@ class LuciUtilityComponents {
       ),
       child: DropdownButton<String>(
         value: selectedRouter?.id,
-        hint: const Text('Select Router'),
+        hint: Text(AppLocalizations.of(context)!.selectRouter),
         underline: const SizedBox(),
         borderRadius: BorderRadius.circular(LuciSpacing.sm),
         items: routers
@@ -177,6 +178,7 @@ class LuciUtilityComponents {
     required String type,
     required bool isConnected,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     IconData icon;
     String label;
 
@@ -184,21 +186,21 @@ class LuciUtilityComponents {
       case 'wireless':
       case 'wifi':
         icon = Icons.wifi;
-        label = 'WiFi';
+        label = l10n.wiFi;
         break;
       case 'wired':
       case 'ethernet':
         icon = Icons.cable;
-        label = 'Wired';
+        label = l10n.wired;
         break;
       case 'mobile':
       case 'cellular':
         icon = Icons.signal_cellular_alt;
-        label = 'Mobile';
+        label = l10n.mobile;
         break;
       default:
         icon = Icons.device_unknown;
-        label = 'Unknown';
+        label = l10n.unknown;
     }
 
     return statusChip(
@@ -264,12 +266,14 @@ class LuciUtilityComponents {
 
   /// Enhanced accessibility label generator
   static String generateAccessibilityLabel({
+    required BuildContext context,
     required String type,
     required String name,
     required bool isActive,
     String? additionalInfo,
   }) {
-    final status = isActive ? 'active' : 'inactive';
+    final l10n = AppLocalizations.of(context)!;
+    final status = isActive ? l10n.active : l10n.inactive;
     final base = '$type $name is $status';
 
     if (additionalInfo != null && additionalInfo.isNotEmpty) {

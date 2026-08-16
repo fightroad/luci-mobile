@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -272,63 +273,78 @@ class HttpClientManager {
                 color: Theme.of(context).colorScheme.error,
                 size: 32,
               ),
-              title: const Text('Certificate Warning'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'The certificate for $host is not trusted by your device. This could indicate a security risk.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.errorContainer.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.error.withValues(alpha: 0.3),
+              title: Text(AppLocalizations.of(context)!.certificateWarning),
+              content: Builder(
+                builder: (context) {
+                  final l10n = AppLocalizations.of(context)!;
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.certificateWarningMessage(host),
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          color: Theme.of(context).colorScheme.error,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Only proceed if you trust this router and understand the security implications.',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Theme.of(context).colorScheme.error,
-                                ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.errorContainer.withValues(alpha: 0.3),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.error.withValues(alpha: 0.3),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                l10n.certificateWarningInfo,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(false),
-                  child: const Text('Cancel'),
+                Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    return TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: Text(l10n.cancel),
+                    );
+                  },
                 ),
-                FilledButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(true),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                    foregroundColor: Theme.of(context).colorScheme.onError,
-                  ),
-                  child: const Text('Accept Risk'),
+                Builder(
+                  builder: (context) {
+                    final l10n = AppLocalizations.of(context)!;
+                    return FilledButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.error,
+                        foregroundColor: Theme.of(context).colorScheme.onError,
+                      ),
+                      child: Text(l10n.acceptRisk),
+                    );
+                  },
                 ),
               ],
             ),
@@ -365,6 +381,7 @@ class CertificateWarningDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
@@ -374,14 +391,14 @@ class CertificateWarningDialog extends StatelessWidget {
         color: colorScheme.error,
         size: 32,
       ),
-      title: const Text('Certificate Warning'),
+      title: Text(l10n.certificateWarning),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'The certificate for $host:$port is not trusted by your device. This could indicate a security risk.',
+              l10n.certificateWarningMessageWithPort(host, port.toString()),
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
@@ -398,22 +415,22 @@ class CertificateWarningDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Certificate Details:',
+                    l10n.certificateDetails,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  _buildCertDetail('Subject', certificate.subject),
-                  _buildCertDetail('Issuer', certificate.issuer),
+                  _buildCertDetail(l10n.subject, certificate.subject),
+                  _buildCertDetail(l10n.issuer, certificate.issuer),
                   _buildCertDetail(
-                    'Valid From',
+                    l10n.validFrom,
                     certificate.startValidity.toLocal().toString().split(
                       '.',
                     )[0],
                   ),
                   _buildCertDetail(
-                    'Valid Until',
+                    l10n.validUntil,
                     certificate.endValidity.toLocal().toString().split('.')[0],
                   ),
                 ],
@@ -435,7 +452,7 @@ class CertificateWarningDialog extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Only proceed if you trust this router and understand the security implications.',
+                      l10n.certificateWarningInfo,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.error,
                       ),
@@ -450,7 +467,7 @@ class CertificateWarningDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(true),
@@ -458,7 +475,7 @@ class CertificateWarningDialog extends StatelessWidget {
             backgroundColor: colorScheme.error,
             foregroundColor: colorScheme.onError,
           ),
-          child: const Text('Accept Risk'),
+          child: Text(l10n.acceptRisk),
         ),
       ],
     );

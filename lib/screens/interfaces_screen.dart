@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:flutter/services.dart';
 import 'package:luci_mobile/models/interface.dart';
@@ -342,8 +343,9 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   Widget build(BuildContext context) {
     final appState = ref.read(appStateProvider);
 
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const LuciAppBar(title: 'Interfaces'),
+      appBar: LuciAppBar(title: l10n.interfaces),
       body: SafeArea(
         top: true,
         bottom: false,
@@ -383,34 +385,35 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                   }
 
                   if (dashboardError != null && dashboardData == null) {
+                    final l10n = AppLocalizations.of(context)!;
                     return LuciErrorDisplay(
-                      title: 'Failed to Load Interfaces',
-                      message:
-                          'Could not connect to the router. Please check your network connection and router settings.',
-                      actionLabel: 'Retry',
+                      title: l10n.failedToLoadInterfaces,
+                      message: l10n.failedToLoadInterfacesMessage,
+                      actionLabel: l10n.retry,
                       onAction: () => appState.fetchDashboardData(),
                       icon: Icons.wifi_off_rounded,
                     );
                   }
 
                   if (dashboardData == null) {
+                    final l10n = AppLocalizations.of(context)!;
                     return LuciEmptyState(
-                      title: 'No Interface Data',
-                      message:
-                          'Unable to fetch interface information. Pull down to refresh or tap the button below.',
+                      title: l10n.noInterfaceData,
+                      message: l10n.noInterfaceDataMessage,
                       icon: Icons.device_hub_outlined,
-                      actionLabel: 'Fetch Data',
+                      actionLabel: l10n.fetchData,
                       onAction: () => appState.fetchDashboardData(),
                     );
                   }
 
+                  final l10n = AppLocalizations.of(context)!;
                   return CustomScrollView(
                     controller: _scrollController,
                     slivers: [
-                      SliverToBoxAdapter(child: LuciSectionHeader('Wired')),
-                      _buildWiredInterfacesList(),
-                      SliverToBoxAdapter(child: LuciSectionHeader('Wireless')),
-                      _buildWirelessInterfacesList(),
+                      SliverToBoxAdapter(child: LuciSectionHeader(l10n.wiredSection)),
+                      _buildWiredInterfacesList(context),
+                      SliverToBoxAdapter(child: LuciSectionHeader(l10n.wirelessSection)),
+                      _buildWirelessInterfacesList(context),
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: EdgeInsets.only(bottom: 16),
@@ -428,7 +431,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     );
   }
 
-  Widget _buildWiredInterfacesList() {
+  Widget _buildWiredInterfacesList(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     final dynamic detailedData = appState.dashboardData?['interfaceDump'];
     final dynamic statsDataSource = appState.dashboardData?['networkDevices'];
@@ -491,7 +494,8 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     );
   }
 
-  Widget _buildWirelessInterfacesList() {
+  Widget _buildWirelessInterfacesList(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final appState = ref.watch(appStateProvider);
     final dashboardData = appState.dashboardData;
     final wirelessData = dashboardData?['wireless'] as Map<String, dynamic>?;
@@ -541,9 +545,9 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
             interfacesList.add({
               'name': _uciString(config['ssid']).isNotEmpty
                   ? _uciString(config['ssid'])
-                  : (iwinfo['ssid']?.toString() ?? 'Unnamed'),
+                  : (iwinfo['ssid']?.toString() ?? l10n.unnamed),
               'subtitle':
-                  '$mode • Ch. ${iwinfo['channel']?.toString() ?? _uciString(config['channel'], 'N/A')}',
+                  '$mode • ${l10n.channelShort} ${iwinfo['channel']?.toString() ?? _uciString(config['channel'], 'N/A')}',
               'isEnabled': isEnabled,
               'deviceName': deviceName,
               'radioName': radioName,
@@ -575,11 +579,11 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         final isIfaceEnabled = _uciString(config['disabled']) != '1';
         final isEnabled = isRadioEnabled && isIfaceEnabled;
 
-        final name = _uciString(config['ssid'], 'Unnamed');
+        final name = _uciString(config['ssid'], l10n.unnamed);
         interfacesList.add({
           'name': name,
           'subtitle':
-              '${_uciString(config['mode'], 'N/A').toUpperCase()} • Disabled',
+              '${_uciString(config['mode'], 'N/A').toUpperCase()} • ${l10n.disabled}',
           'isEnabled': isEnabled,
           'deviceName': radioName,
           'radioName': radioName,
@@ -648,45 +652,46 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   }
 
   Widget _buildWiredDetails(BuildContext context, NetworkInterface interface) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       children: [
-        _buildDetailRow(context, 'Device', interface.device),
-        _buildDetailRow(context, 'Uptime', interface.formattedUptime),
+        _buildDetailRow(context, l10n.device, interface.device),
+        _buildDetailRow(context, l10n.uptime, interface.formattedUptime),
         if (interface.ipAddress != null)
           _buildDetailRow(
             context,
-            'IP Address',
+            l10n.ipAddress,
             interface.ipAddress!,
             onTap: () =>
-                _copyToClipboard(context, interface.ipAddress!, 'IP Address'),
+                _copyToClipboard(context, interface.ipAddress!, l10n.ipAddress),
           ),
         if (interface.ipv6Addresses != null &&
             interface.ipv6Addresses!.isNotEmpty)
           ...interface.ipv6Addresses!.map(
             (ipv6) => _buildDetailRow(
               context,
-              'IPv6 Address',
+              l10n.ipv6Address,
               ipv6,
-              onTap: () => _copyToClipboard(context, ipv6, 'IPv6 Address'),
+              onTap: () => _copyToClipboard(context, ipv6, l10n.ipv6Address),
             ),
           ),
         if (interface.gateway != null)
           _buildDetailRow(
             context,
-            'Gateway',
+            l10n.gateway,
             interface.gateway!,
             onTap: () =>
-                _copyToClipboard(context, interface.gateway!, 'Gateway IP'),
+                _copyToClipboard(context, interface.gateway!, l10n.gatewayIp),
           ),
         if (interface.dnsServers.isNotEmpty)
           _buildDetailRow(
             context,
-            'DNS',
+            l10n.dns,
             interface.dnsServers.join(', '),
             onTap: () => _copyToClipboard(
               context,
               interface.dnsServers.join(', '),
-              'DNS Servers',
+              l10n.dnsServers,
             ),
           ),
         // Add WireGuard peer information if this is a WireGuard interface
@@ -748,6 +753,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
     final publicKey = peer['public_key'] as String? ?? 'Unknown';
     final endpoint = peer['endpoint'] as String? ?? 'N/A';
     final peerName = peer['name'] as String?;
@@ -764,13 +770,13 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         ? '${publicKey.substring(0, 8)}...${publicKey.substring(publicKey.length - 8)}'
         : publicKey;
     String formatHandshakeTime(int timestamp) {
-      if (timestamp == 0) return 'Never';
+      if (timestamp == 0) return l10n.never;
       final now = DateTime.now();
       final handshakeTime = DateTime.fromMillisecondsSinceEpoch(
         timestamp * 1000,
       );
       final difference = now.difference(handshakeTime);
-      if (difference.inSeconds < 0) return 'Never';
+      if (difference.inSeconds < 0) return l10n.never;
       if (difference.inDays > 0) {
         return '${difference.inDays}d ago';
       } else if (difference.inHours > 0) {
@@ -829,7 +835,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'Last Handshake',
+                      l10n.lastHandshake,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 12,
@@ -854,7 +860,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
-                      'Endpoint',
+                      l10n.endpoint,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: colorScheme.onSurfaceVariant,
                         fontSize: 12,
@@ -885,9 +891,31 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     BuildContext context,
     Map<String, dynamic> details,
   ) {
+    final l10n = AppLocalizations.of(context)!;
+    // Map English keys to localized labels
+    String getLocalizedKey(String key) {
+      switch (key) {
+        case 'Device':
+          return l10n.device;
+        case 'Mode':
+          return l10n.mode;
+        case 'Channel':
+          return l10n.channel;
+        case 'Signal':
+          return l10n.signal;
+        case 'Network':
+          return l10n.network;
+        case 'SSID':
+          return l10n.ssid;
+        default:
+          return key;
+      }
+    }
+    
     return Column(
       children: details.entries.map((entry) {
-        return _buildDetailRow(context, entry.key, entry.value.toString());
+        final localizedKey = getLocalizedKey(entry.key);
+        return _buildDetailRow(context, localizedKey, entry.value.toString());
       }).toList(),
     );
   }
@@ -928,14 +956,18 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                 if (onTap != null)
                   GestureDetector(
                     onTap: onTap,
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 8.0),
-                      child: Icon(
-                        Icons.copy_all_outlined,
-                        size: 16,
-                        semanticLabel: 'Copy',
-                      ),
-                    ),
+                        child: Builder(
+                          builder: (context) {
+                            return Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Icon(
+                                Icons.copy_all_outlined,
+                                size: 16,
+                                semanticLabel: AppLocalizations.of(context)!.copy,
+                              ),
+                            );
+                          },
+                        ),
                   ),
               ],
             ),
@@ -946,16 +978,18 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   }
 
   void _copyToClipboard(BuildContext context, String text, String label) {
+    final l10n = AppLocalizations.of(context)!;
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label copied to clipboard'),
+        content: Text(l10n.copiedToClipboard(label)),
         duration: const Duration(seconds: 2),
       ),
     );
   }
 
   Widget _buildStatsRow(BuildContext context, Map<String, dynamic> stats) {
+    final l10n = AppLocalizations.of(context)!;
     String formatBytes(int bytes) {
       if (bytes <= 0) return '0 B';
       const suffixes = ["B", "KB", "MB", "GB", "TB"];
@@ -968,14 +1002,14 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
       children: [
         _buildStatColumn(
           context,
-          'Received',
+          l10n.received,
           formatBytes(stats['rx_bytes'] ?? 0),
           Icons.arrow_downward,
           Colors.green,
         ),
         _buildStatColumn(
           context,
-          'Transmitted',
+          l10n.transmitted,
           formatBytes(stats['tx_bytes'] ?? 0),
           Icons.arrow_upward,
           Colors.blue,
@@ -1204,21 +1238,26 @@ class _UnifiedNetworkCardState extends State<_UnifiedNetworkCard>
                                   ? colorScheme.primary
                                   : colorScheme.onSurface,
                               size: 22,
-                              semanticLabel: 'Interface icon',
+                              semanticLabel: AppLocalizations.of(context)!.interfaceIcon,
                             ),
                           ),
                         ),
                         Positioned(
                           right: 0,
                           top: 0,
-                          child: Tooltip(
-                            message: widget.isUp
-                                ? 'Interface is up'
-                                : 'Interface is down',
-                            child: LuciStatusIndicators.statusDot(
-                              context,
-                              widget.isUp,
-                            ),
+                          child: Builder(
+                            builder: (context) {
+                              final l10n = AppLocalizations.of(context)!;
+                              return Tooltip(
+                                message: widget.isUp
+                                    ? l10n.interfaceIsUp
+                                    : l10n.interfaceIsDown,
+                                child: LuciStatusIndicators.statusDot(
+                                  context,
+                                  widget.isUp,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -1255,20 +1294,29 @@ class _UnifiedNetworkCardState extends State<_UnifiedNetworkCard>
                     if (!widget.isUp)
                       Padding(
                         padding: const EdgeInsets.only(right: LuciSpacing.xs),
-                        child: LuciStatusIndicators.statusChip(
-                          context,
-                          'OFF',
-                          false,
+                        child: Builder(
+                          builder: (context) {
+                            return LuciStatusIndicators.statusChip(
+                              context,
+                              AppLocalizations.of(context)!.off,
+                              false,
+                            );
+                          },
                         ),
                       ),
                     const SizedBox(width: LuciSpacing.sm),
-                    Icon(
-                      _isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: colorScheme.onSurfaceVariant,
-                      size: 26,
-                      semanticLabel: _isExpanded
-                          ? 'Collapse details'
-                          : 'Expand details',
+                    Builder(
+                      builder: (context) {
+                        final l10n = AppLocalizations.of(context)!;
+                        return Icon(
+                          _isExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: colorScheme.onSurfaceVariant,
+                          size: 26,
+                          semanticLabel: _isExpanded
+                              ? l10n.collapseDetails
+                              : l10n.expandDetails,
+                        );
+                      },
                     ),
                   ],
                 ),

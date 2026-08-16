@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
@@ -21,8 +22,9 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
     final appState = ref.watch(appStateProvider);
     final List<model.Router> routers = appState.routers;
     final String? selectedId = appState.selectedRouter?.id;
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: const LuciAppBar(title: 'Routers', showBack: true),
+      appBar: LuciAppBar(title: l10n.routers, showBack: true),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
@@ -39,7 +41,7 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                         ),
                         Center(
                           child: Text(
-                            'No routers added yet.',
+                            l10n.noRoutersAdded,
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   color: Theme.of(
@@ -136,23 +138,24 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                 } else {
                                   routerLabel = router.ipAddress;
                                 }
+                                final l10n = AppLocalizations.of(context)!;
                                 final confirm = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text('Remove Router'),
+                                    title: Text(l10n.removeRouter),
                                     content: Text(
-                                      'Are you sure you want to remove $routerLabel?',
+                                      l10n.removeRouterMessage(routerLabel),
                                     ),
                                     actions: [
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(context, false),
-                                        child: const Text('Cancel'),
+                                        child: Text(l10n.cancel),
                                       ),
                                       TextButton(
                                         onPressed: () =>
                                             Navigator.pop(context, true),
-                                        child: const Text('Remove'),
+                                        child: Text(l10n.remove),
                                       ),
                                     ],
                                   ),
@@ -172,7 +175,7 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               icon: const Icon(Icons.add, size: 20),
-                              label: const Text('Add Router'),
+                              label: Text(l10n.addRouter),
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 16,
@@ -245,108 +248,119 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                     mainAxisSize:
                                                         MainAxisSize.min,
                                                     children: [
-                                                      TextFormField(
-                                                        controller:
-                                                            ipController,
-                                                        decoration: const InputDecoration(
-                                                          labelText:
-                                                              'Router Address',
-                                                          border:
-                                                              OutlineInputBorder(),
-                                                          prefixIcon: Icon(
-                                                            Icons
-                                                                .router_outlined,
-                                                          ),
-                                                          helperText:
-                                                              'e.g. 192.168.1.1, router.local:8080, https://192.168.1.1',
-                                                        ),
-                                                        validator: (value) {
-                                                          if (value == null ||
-                                                              value.isEmpty) {
-                                                            return 'Please enter the router address';
-                                                          }
-                                                          final parsed =
-                                                              UrlParser.parse(
-                                                                value,
-                                                              );
-                                                          if (!parsed.isValid) {
-                                                            return parsed
-                                                                    .error ??
-                                                                'Invalid address format';
-                                                          }
-                                                          return null;
+                                                      Builder(
+                                                        builder: (context) {
+                                                          final l10n = AppLocalizations.of(context)!;
+                                                          return TextFormField(
+                                                            controller:
+                                                                ipController,
+                                                            decoration: InputDecoration(
+                                                              labelText: l10n.routerAddress,
+                                                              border:
+                                                                  const OutlineInputBorder(),
+                                                              prefixIcon: const Icon(
+                                                                Icons
+                                                                    .router_outlined,
+                                                              ),
+                                                              helperText: l10n.routerAddressHelper,
+                                                            ),
+                                                            validator: (value) {
+                                                              if (value == null ||
+                                                                  value.isEmpty) {
+                                                                return l10n.pleaseEnterRouterAddress;
+                                                              }
+                                                              final parsed =
+                                                                  UrlParser.parse(
+                                                                    value,
+                                                                  );
+                                                              if (!parsed.isValid) {
+                                                                return parsed
+                                                                        .error ??
+                                                                    l10n.invalidAddressFormat;
+                                                              }
+                                                              return null;
+                                                            },
+                                                            autofillHints: const [
+                                                              AutofillHints.url,
+                                                              AutofillHints
+                                                                  .username,
+                                                            ],
+                                                          );
                                                         },
-                                                        autofillHints: const [
-                                                          AutofillHints.url,
-                                                          AutofillHints
-                                                              .username,
-                                                        ],
                                                       ),
                                                       const SizedBox(
                                                         height: 20,
                                                       ),
-                                                      TextFormField(
-                                                        controller:
-                                                            userController,
-                                                        decoration: const InputDecoration(
-                                                          labelText: 'Username',
-                                                          border:
-                                                              OutlineInputBorder(),
-                                                          prefixIcon: Icon(
-                                                            Icons
-                                                                .person_outline,
-                                                          ),
-                                                          helperText:
-                                                              'Default is usually root',
-                                                        ),
-                                                        validator: (v) =>
-                                                            v == null ||
-                                                                v.isEmpty
-                                                            ? 'Required'
-                                                            : null,
-                                                        autofillHints: const [
-                                                          AutofillHints
-                                                              .username,
-                                                        ],
+                                                      Builder(
+                                                        builder: (context) {
+                                                          final l10n = AppLocalizations.of(context)!;
+                                                          return TextFormField(
+                                                            controller:
+                                                                userController,
+                                                            decoration: InputDecoration(
+                                                              labelText: l10n.username,
+                                                              border:
+                                                                  const OutlineInputBorder(),
+                                                              prefixIcon: const Icon(
+                                                                Icons
+                                                                    .person_outline,
+                                                              ),
+                                                              helperText: l10n.usernameHelper,
+                                                            ),
+                                                            validator: (v) =>
+                                                                v == null ||
+                                                                    v.isEmpty
+                                                                ? l10n.required
+                                                                : null,
+                                                            autofillHints: const [
+                                                              AutofillHints
+                                                                  .username,
+                                                            ],
+                                                          );
+                                                        },
                                                       ),
                                                       const SizedBox(
                                                         height: 20,
                                                       ),
-                                                      TextFormField(
-                                                        controller:
-                                                            passController,
-                                                        decoration: InputDecoration(
-                                                          labelText: 'Password',
-                                                          border:
-                                                              const OutlineInputBorder(),
-                                                          prefixIcon: const Icon(
-                                                            Icons.lock_outline,
-                                                          ),
-                                                          helperText:
-                                                              'Your router password',
-                                                          suffixIcon: IconButton(
-                                                            icon: Icon(
-                                                              obscureText
-                                                                  ? Icons
-                                                                        .visibility_outlined
-                                                                  : Icons
-                                                                        .visibility_off_outlined,
+                                                      Builder(
+                                                        builder: (context) {
+                                                          final l10n = AppLocalizations.of(context)!;
+                                                          return TextFormField(
+                                                            controller:
+                                                                passController,
+                                                            decoration: InputDecoration(
+                                                              labelText: l10n.password,
+                                                              border:
+                                                                  const OutlineInputBorder(),
+                                                              prefixIcon: const Icon(
+                                                                Icons.lock_outline,
+                                                              ),
+                                                              helperText: l10n.passwordHelper,
+                                                              suffixIcon: IconButton(
+                                                                icon: Icon(
+                                                                  obscureText
+                                                                      ? Icons
+                                                                            .visibility_outlined
+                                                                      : Icons
+                                                                            .visibility_off_outlined,
+                                                                ),
+                                                                onPressed: () => setState(
+                                                                  () => obscureText =
+                                                                      !obscureText,
+                                                                ),
+                                                                tooltip: obscureText
+                                                                    ? l10n.hidePassword
+                                                                    : l10n.showPassword,
+                                                              ),
                                                             ),
-                                                            onPressed: () => setState(
-                                                              () => obscureText =
-                                                                  !obscureText,
-                                                            ),
-                                                            tooltip: obscureText
-                                                                ? 'Hide password'
-                                                                : 'Show password',
-                                                          ),
-                                                        ),
-                                                        obscureText:
-                                                            obscureText,
-                                                        autofillHints: const [
-                                                          AutofillHints
-                                                              .password,
-                                                        ],
+                                                            obscureText:
+                                                                obscureText,
+                                                            autofillHints: const [
+                                                              AutofillHints
+                                                                  .password,
+                                                            ],
+                                                          );
+                                                        },
                                                       ),
                                                       if (errorMessage !=
                                                           null) ...[
@@ -435,10 +449,11 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
 
                                                                     if (!parsedUrl
                                                                         .isValid) {
+                                                                      final l10n = AppLocalizations.of(context)!;
                                                                       setState(() {
                                                                         errorMessage =
                                                                             parsedUrl.error ??
-                                                                            'Invalid address format';
+                                                                            l10n.invalidAddressFormat;
                                                                       });
                                                                       return;
                                                                     }
@@ -457,9 +472,9 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                                           r.id ==
                                                                           id,
                                                                     )) {
+                                                                      final l10n = AppLocalizations.of(context)!;
                                                                       setState(() {
-                                                                        errorMessage =
-                                                                            'Router already exists.';
+                                                                        errorMessage = l10n.routerAlreadyExists;
                                                                       });
                                                                       return;
                                                                     }
@@ -486,10 +501,11 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                                             context,
                                                                       );
                                                                       if (!loginSuccess) {
+                                                                        final l10n = AppLocalizations.of(context)!;
                                                                         setState(() {
                                                                           errorMessage =
                                                                               appState.errorMessage ??
-                                                                              'Failed to connect: Invalid credentials or host unreachable.';
+                                                                              l10n.failedToConnectInvalidCredentials;
                                                                           isConnecting =
                                                                               false;
                                                                         });
@@ -506,9 +522,9 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                                     } catch (
                                                                       e
                                                                     ) {
+                                                                      final l10n = AppLocalizations.of(context)!;
                                                                       setState(() {
-                                                                        errorMessage =
-                                                                            'Failed to connect: ${e.toString()}';
+                                                                        errorMessage = l10n.failedToConnect(e.toString());
                                                                         isConnecting =
                                                                             false;
                                                                       });
@@ -580,27 +596,32 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                                     const SizedBox(
                                                                       width: 12,
                                                                     ),
-                                                                    const Text(
-                                                                      'Connecting...',
+                                                                    Text(
+                                                                      AppLocalizations.of(context)!.connecting,
                                                                     ),
                                                                   ],
                                                                 )
-                                                              : Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .center,
-                                                                  mainAxisSize:
-                                                                      MainAxisSize
-                                                                          .min,
-                                                                  children: const [
-                                                                    Icon(
-                                                                      Icons.add,
-                                                                    ),
-                                                                    SizedBox(
-                                                                      width: 12,
-                                                                    ),
-                                                                    Text('Add'),
-                                                                  ],
+                                                              : Builder(
+                                                                  builder: (context) {
+                                                                    final l10n = AppLocalizations.of(context)!;
+                                                                    return Row(
+                                                                      mainAxisAlignment:
+                                                                          MainAxisAlignment
+                                                                              .center,
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        const Icon(
+                                                                          Icons.add,
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          width: 12,
+                                                                        ),
+                                                                        Text(l10n.add),
+                                                                      ],
+                                                                    );
+                                                                  },
                                                                 ),
                                                         ),
                                                       ),
@@ -683,7 +704,7 @@ class _UnifiedRouterCard extends StatelessWidget {
                       ? colorScheme.primary
                       : colorScheme.onSurface,
                   size: 22,
-                  semanticLabel: 'Router icon',
+                  semanticLabel: AppLocalizations.of(context)!.routerIcon,
                 ),
               ),
               const SizedBox(width: 16),
@@ -718,14 +739,18 @@ class _UnifiedRouterCard extends StatelessWidget {
               if (isSelected && !isSwitching)
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
-                  child: Chip(
-                    label: const Text('Active'),
+                  child: Builder(
+                    builder: (context) {
+                      return Chip(
+                        label: Text(AppLocalizations.of(context)!.active),
                     labelStyle: theme.textTheme.labelSmall?.copyWith(
                       color: colorScheme.onPrimary,
                     ),
                     backgroundColor: colorScheme.primary,
                     visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
+                        padding: EdgeInsets.zero,
+                      );
+                    },
                   ),
                 ),
               if (isSwitching)
@@ -743,10 +768,14 @@ class _UnifiedRouterCard extends StatelessWidget {
                   ),
                 ),
               if (onDelete != null)
-                IconButton(
-                  icon: const Icon(Icons.delete_outline),
-                  tooltip: 'Remove',
-                  onPressed: onDelete,
+                Builder(
+                  builder: (context) {
+                    return IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: AppLocalizations.of(context)!.removeTooltip,
+                      onPressed: onDelete,
+                    );
+                  },
                 ),
             ],
           ),

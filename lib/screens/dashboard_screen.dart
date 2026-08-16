@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/state/app_state.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
@@ -172,6 +173,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildDeviceInfoCard(AppState appState) {
+    final l10n = AppLocalizations.of(context)!;
     final boardInfo =
         appState.dashboardData?['boardInfo'] as Map<String, dynamic>?;
     final model = boardInfo?['model'] ?? 'N/A';
@@ -200,7 +202,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Model', style: labelStyle),
+                  Text(l10n.model, style: labelStyle),
                   const SizedBox(height: 4),
                   Text(
                     model,
@@ -215,7 +217,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Version', style: labelStyle),
+                  Text(l10n.versionLabel, style: labelStyle),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -324,7 +326,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               padding: const EdgeInsets.only(top: 8.0),
               child: Center(
                 child: Text(
-                  'Throughput$throughputLabel',
+                  AppLocalizations.of(context)!.throughputLabel(throughputLabel.replaceFirst(' - ', '')),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     color: Theme.of(
                       context,
@@ -453,8 +455,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             const SizedBox(height: 8),
                             Text(
                               isSwitchingRouter
-                                  ? 'Switching router...'
-                                  : 'Collecting throughput data...',
+                                  ? AppLocalizations.of(context)!.switchingRouter
+                                  : AppLocalizations.of(context)!.collectingThroughputData,
                               style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(context)
@@ -676,21 +678,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             Expanded(
               child: _buildVitalsColumn(
                 context,
-                label: 'CPU Load',
+                label: AppLocalizations.of(context)!.cpuLoad,
                 value: cpuLoadValue,
               ),
             ),
             Expanded(
               child: _buildVitalsColumn(
                 context,
-                label: 'Memory',
+                label: AppLocalizations.of(context)!.memory,
                 value: memoryValue,
               ),
             ),
             Expanded(
               child: _buildVitalsColumn(
                 context,
-                label: 'Uptime',
+                label: AppLocalizations.of(context)!.uptime,
                 value: uptimeValue,
               ),
             ),
@@ -1179,15 +1181,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   : Colors.red.shade800,
                             ),
                             const SizedBox(width: 1),
-                            Text(
-                              isUp ? 'UP' : 'DOWN',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isUp
-                                    ? Colors.green.shade900
-                                    : Colors.red.shade900,
-                                fontSize: 10,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                final l10n = AppLocalizations.of(context)!;
+                                return Text(
+                                  isUp ? l10n.up : l10n.down,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: isUp
+                                        ? Colors.green.shade900
+                                        : Colors.red.shade900,
+                                    fontSize: 10,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -1320,7 +1327,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final hostname = boardInfo?['hostname']?.toString();
     final headerText = (hostname != null && hostname.isNotEmpty)
         ? hostname
-        : (selected?.ipAddress ?? 'Loading...');
+        : (selected?.ipAddress ?? AppLocalizations.of(context)!.loading);
     return Scaffold(
       appBar: LuciAppBar(
         centerTitle: true,
@@ -1391,7 +1398,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       ),
                                       child: Center(
                                         child: Text(
-                                          'Select Router',
+                                          AppLocalizations.of(context)!.selectRouter,
                                           style: Theme.of(context)
                                               .textTheme
                                               .titleMedium
@@ -1436,7 +1443,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                         ),
                                         title: Tooltip(
                                           message: isStale
-                                              ? 'Last known hostname (may be out of date)'
+                                              ? AppLocalizations.of(context)!.lastKnownHostname
                                               : '',
                                           child: Text(
                                             routerTitle,
@@ -1553,12 +1560,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _buildBody(AppState appState) {
+    final l10n = AppLocalizations.of(context)!;
     if (appState.dashboardError != null) {
       return LuciErrorDisplay(
-        title: 'Connection Failed',
-        message:
-            'Unable to connect to the router. Please check your network connection and router settings.',
-        actionLabel: 'Retry Connection',
+        title: l10n.connectionFailed,
+        message: l10n.connectionFailedMessage,
+        actionLabel: l10n.retryConnection,
         onAction: () => appState.fetchDashboardData(),
         icon: Icons.wifi_off_rounded,
       );
@@ -1570,11 +1577,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     if (appState.dashboardData == null) {
       return LuciEmptyState(
-        title: 'No Data Available',
-        message:
-            'Unable to fetch dashboard data. Pull down to refresh or tap the button below.',
+        title: l10n.noDataAvailable,
+        message: l10n.noDataAvailableMessage,
         icon: Icons.dashboard_outlined,
-        actionLabel: 'Fetch Data',
+        actionLabel: l10n.fetchData,
         onAction: () => appState.fetchDashboardData(),
       );
     }

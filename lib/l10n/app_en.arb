@@ -1,0 +1,860 @@
+{
+  "@@locale": "en",
+  "appTitle": "LuCI Mobile",
+  "@appTitle": {
+    "description": "Application title"
+  },
+  "appSubtitle": "Connect to your OpenWrt router",
+  "@appSubtitle": {
+    "description": "Application subtitle"
+  },
+  "appTagline": "Fast. Secure. Open Source.",
+  "@appTagline": {
+    "description": "Application tagline"
+  },
+  "dashboard": "Dashboard",
+  "@dashboard": {
+    "description": "Dashboard tab label"
+  },
+  "clients": "Clients",
+  "@clients": {
+    "description": "Clients tab label"
+  },
+  "interfaces": "Interfaces",
+  "@interfaces": {
+    "description": "Interfaces tab label"
+  },
+  "more": "More",
+  "@more": {
+    "description": "More tab label"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings screen title"
+  },
+  "loginConnect": "Connect",
+  "@loginConnect": {
+    "description": "Login button text"
+  },
+  "routerAddress": "Router Address",
+  "@routerAddress": {
+    "description": "Router address input label"
+  },
+  "routerAddressHelper": "e.g. 192.168.1.1, router.local:8080, https://192.168.1.1",
+  "@routerAddressHelper": {
+    "description": "Router address helper text"
+  },
+  "username": "Username",
+  "@username": {
+    "description": "Username input label"
+  },
+  "usernameHelper": "Default is usually root",
+  "@usernameHelper": {
+    "description": "Username helper text"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password input label"
+  },
+  "passwordHelper": "Your router password",
+  "@passwordHelper": {
+    "description": "Password helper text"
+  },
+  "showPassword": "Show password",
+  "@showPassword": {
+    "description": "Show password tooltip"
+  },
+  "hidePassword": "Hide password",
+  "@hidePassword": {
+    "description": "Hide password tooltip"
+  },
+  "pleaseEnterRouterAddress": "Please enter the router address",
+  "@pleaseEnterRouterAddress": {
+    "description": "Router address validation error"
+  },
+  "pleaseEnterUsername": "Please enter the username",
+  "@pleaseEnterUsername": {
+    "description": "Username validation error"
+  },
+  "invalidAddressFormat": "Invalid address format",
+  "@invalidAddressFormat": {
+    "description": "Invalid address format error"
+  },
+  "needHelp": "Need help?",
+  "@needHelp": {
+    "description": "Need help link text"
+  },
+  "version": "Version {version}",
+  "@version": {
+    "description": "Version display text",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "activateReviewerMode": "Activate Reviewer Mode?",
+  "@activateReviewerMode": {
+    "description": "Reviewer mode activation dialog title"
+  },
+  "reviewerModeDescription": "This will enable reviewer mode which bypasses authentication and provides mock data for app demonstration purposes.",
+  "@reviewerModeDescription": {
+    "description": "Reviewer mode description"
+  },
+  "reviewerModeConfirm": "To confirm, type \"REVIEWER\" below:",
+  "@reviewerModeConfirm": {
+    "description": "Reviewer mode confirmation instruction"
+  },
+  "typeReviewer": "Type REVIEWER",
+  "@typeReviewer": {
+    "description": "Reviewer mode confirmation input hint"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+  "activate": "Activate",
+  "@activate": {
+    "description": "Activate button text"
+  },
+  "holdToActivateReviewerMode": "Hold to activate reviewer mode...",
+  "@holdToActivateReviewerMode": {
+    "description": "Reviewer mode activation instruction"
+  },
+  "couldNotOpenGitHubIssues": "Could not open GitHub issues",
+  "@couldNotOpenGitHubIssues": {
+    "description": "Error message when GitHub issues cannot be opened"
+  },
+  "selectRouter": "Select Router",
+  "@selectRouter": {
+    "description": "Select router dialog title"
+  },
+  "connectionFailed": "Connection Failed",
+  "@connectionFailed": {
+    "description": "Connection failed error title"
+  },
+  "connectionFailedMessage": "Unable to connect to the router. Please check your network connection and router settings.",
+  "@connectionFailedMessage": {
+    "description": "Connection failed error message"
+  },
+  "retryConnection": "Retry Connection",
+  "@retryConnection": {
+    "description": "Retry connection button"
+  },
+  "noDataAvailable": "No Data Available",
+  "@noDataAvailable": {
+    "description": "No data available title"
+  },
+  "noDataAvailableMessage": "Unable to fetch dashboard data. Pull down to refresh or tap the button below.",
+  "@noDataAvailableMessage": {
+    "description": "No data available message"
+  },
+  "fetchData": "Fetch Data",
+  "@fetchData": {
+    "description": "Fetch data button"
+  },
+  "switchingRouter": "Switching router...",
+  "@switchingRouter": {
+    "description": "Switching router message"
+  },
+  "collectingThroughputData": "Collecting throughput data...",
+  "@collectingThroughputData": {
+    "description": "Collecting throughput data message"
+  },
+  "throughput": "Throughput",
+  "@throughput": {
+    "description": "Throughput label"
+  },
+  "throughputLabel": "Throughput - {interface}",
+  "@throughputLabel": {
+    "description": "Throughput label with interface",
+    "placeholders": {
+      "interface": {
+        "type": "String"
+      }
+    }
+  },
+  "model": "Model",
+  "@model": {
+    "description": "Model label"
+  },
+  "versionLabel": "Version",
+  "@versionLabel": {
+    "description": "Version label"
+  },
+  "cpuLoad": "CPU Load",
+  "@cpuLoad": {
+    "description": "CPU load label"
+  },
+  "memory": "Memory",
+  "@memory": {
+    "description": "Memory label"
+  },
+  "uptime": "Uptime",
+  "@uptime": {
+    "description": "Uptime label"
+  },
+  "failedToLoadClients": "Failed to Load Clients",
+  "@failedToLoadClients": {
+    "description": "Failed to load clients error title"
+  },
+  "failedToLoadClientsMessage": "Could not connect to the router. Please check your network connection and the router's IP address.",
+  "@failedToLoadClientsMessage": {
+    "description": "Failed to load clients error message"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Retry button"
+  },
+  "searchClients": "Search by name, IP, MAC, vendor...",
+  "@searchClients": {
+    "description": "Client search hint"
+  },
+  "clearSearch": "Clear search",
+  "@clearSearch": {
+    "description": "Clear search button tooltip"
+  },
+  "all": "All",
+  "@all": {
+    "description": "All label"
+  },
+  "selected": "Selected",
+  "@selected": {
+    "description": "Selected label"
+  },
+  "noActiveClientsFound": "No Active Clients Found",
+  "@noActiveClientsFound": {
+    "description": "No active clients found title"
+  },
+  "noActiveClientsMessage": "No clients are currently connected to the router. Pull down to refresh the list.",
+  "@noActiveClientsMessage": {
+    "description": "No active clients message"
+  },
+  "noMatchingClients": "No Matching Clients",
+  "@noMatchingClients": {
+    "description": "No matching clients title"
+  },
+  "noMatchingClientsMessage": "No clients match your search criteria. Try a different search term.",
+  "@noMatchingClientsMessage": {
+    "description": "No matching clients message"
+  },
+  "wiFi": "Wi-Fi",
+  "@wiFi": {
+    "description": "Wi-Fi label"
+  },
+  "wired": "Wired",
+  "@wired": {
+    "description": "Wired label"
+  },
+  "unknown": "Unknown",
+  "@unknown": {
+    "description": "Unknown label"
+  },
+  "ipAddress": "IP Address",
+  "@ipAddress": {
+    "description": "IP Address label"
+  },
+  "ipv6Address": "IPv6 Address",
+  "@ipv6Address": {
+    "description": "IPv6 Address label"
+  },
+  "macAddress": "MAC Address",
+  "@macAddress": {
+    "description": "MAC Address label"
+  },
+  "vendor": "Vendor",
+  "@vendor": {
+    "description": "Vendor label"
+  },
+  "dnsName": "DNS Name",
+  "@dnsName": {
+    "description": "DNS Name label"
+  },
+  "leaseTimeRemaining": "Lease Time Remaining",
+  "@leaseTimeRemaining": {
+    "description": "Lease time remaining label"
+  },
+  "expired": "Expired",
+  "@expired": {
+    "description": "Expired label"
+  },
+  "copiedToClipboard": "{label} copied to clipboard",
+  "@copiedToClipboard": {
+    "description": "Copied to clipboard message",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadInterfaces": "Failed to Load Interfaces",
+  "@failedToLoadInterfaces": {
+    "description": "Failed to load interfaces error title"
+  },
+  "failedToLoadInterfacesMessage": "Could not connect to the router. Please check your network connection and router settings.",
+  "@failedToLoadInterfacesMessage": {
+    "description": "Failed to load interfaces error message"
+  },
+  "noInterfaceData": "No Interface Data",
+  "@noInterfaceData": {
+    "description": "No interface data title"
+  },
+  "noInterfaceDataMessage": "Unable to fetch interface information. Pull down to refresh or tap the button below.",
+  "@noInterfaceDataMessage": {
+    "description": "No interface data message"
+  },
+  "wiredSection": "Wired",
+  "@wiredSection": {
+    "description": "Wired interfaces section header"
+  },
+  "wirelessSection": "Wireless",
+  "@wirelessSection": {
+    "description": "Wireless interfaces section header"
+  },
+  "device": "Device",
+  "@device": {
+    "description": "Device label"
+  },
+  "mode": "Mode",
+  "@mode": {
+    "description": "Mode label"
+  },
+  "channel": "Channel",
+  "@channel": {
+    "description": "Channel label"
+  },
+  "signal": "Signal",
+  "@signal": {
+    "description": "Signal label"
+  },
+  "network": "Network",
+  "@network": {
+    "description": "Network label"
+  },
+  "gateway": "Gateway",
+  "@gateway": {
+    "description": "Gateway label"
+  },
+  "dns": "DNS",
+  "@dns": {
+    "description": "DNS label"
+  },
+  "lastHandshake": "Last Handshake",
+  "@lastHandshake": {
+    "description": "Last handshake label"
+  },
+  "endpoint": "Endpoint",
+  "@endpoint": {
+    "description": "Endpoint label"
+  },
+  "never": "Never",
+  "@never": {
+    "description": "Never label"
+  },
+  "received": "Received",
+  "@received": {
+    "description": "Received label"
+  },
+  "transmitted": "Transmitted",
+  "@transmitted": {
+    "description": "Transmitted label"
+  },
+  "up": "UP",
+  "@up": {
+    "description": "UP status label"
+  },
+  "down": "DOWN",
+  "@down": {
+    "description": "DOWN status label"
+  },
+  "off": "OFF",
+  "@off": {
+    "description": "OFF status label"
+  },
+  "interfaceIsUp": "Interface is up",
+  "@interfaceIsUp": {
+    "description": "Interface is up tooltip"
+  },
+  "interfaceIsDown": "Interface is down",
+  "@interfaceIsDown": {
+    "description": "Interface is down tooltip"
+  },
+  "expandDetails": "Expand details",
+  "@expandDetails": {
+    "description": "Expand details tooltip"
+  },
+  "collapseDetails": "Collapse details",
+  "@collapseDetails": {
+    "description": "Collapse details tooltip"
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "Theme section title"
+  },
+  "systemDefault": "System Default",
+  "@systemDefault": {
+    "description": "System default theme option"
+  },
+  "light": "Light",
+  "@light": {
+    "description": "Light theme option"
+  },
+  "dark": "Dark",
+  "@dark": {
+    "description": "Dark theme option"
+  },
+  "dashboardSettings": "Dashboard",
+  "@dashboardSettings": {
+    "description": "Dashboard settings section title"
+  },
+  "customizeDashboard": "Customize Dashboard",
+  "@customizeDashboard": {
+    "description": "Customize dashboard option"
+  },
+  "customizeDashboardSubtitle": "Configure interface visibility and throughput monitoring",
+  "@customizeDashboardSubtitle": {
+    "description": "Customize dashboard subtitle"
+  },
+  "reviewerMode": "Reviewer Mode",
+  "@reviewerMode": {
+    "description": "Reviewer mode section title"
+  },
+  "reviewerModeActive": "Reviewer Mode Active",
+  "@reviewerModeActive": {
+    "description": "Reviewer mode active label"
+  },
+  "reviewerModeActiveSubtitle": "Mock data is being used for demonstration",
+  "@reviewerModeActiveSubtitle": {
+    "description": "Reviewer mode active subtitle"
+  },
+  "exitReviewerMode": "Exit Reviewer Mode",
+  "@exitReviewerMode": {
+    "description": "Exit reviewer mode button"
+  },
+  "exitReviewerModeTitle": "Exit Reviewer Mode?",
+  "@exitReviewerModeTitle": {
+    "description": "Exit reviewer mode dialog title"
+  },
+  "exitReviewerModeMessage": "This will disable reviewer mode and return to normal authentication. You will need to log in with real router credentials.",
+  "@exitReviewerModeMessage": {
+    "description": "Exit reviewer mode dialog message"
+  },
+  "exit": "Exit",
+  "@exit": {
+    "description": "Exit button"
+  },
+  "deviceManagement": "Device Management",
+  "@deviceManagement": {
+    "description": "Device management section header"
+  },
+  "rebootRouter": "Reboot Router",
+  "@rebootRouter": {
+    "description": "Reboot router option"
+  },
+  "rebootRouterSubtitle": "Perform a system restart",
+  "@rebootRouterSubtitle": {
+    "description": "Reboot router subtitle"
+  },
+  "rebootRouterTitle": "Reboot Router?",
+  "@rebootRouterTitle": {
+    "description": "Reboot router dialog title"
+  },
+  "rebootRouterMessage": "Are you sure you want to reboot the router?",
+  "@rebootRouterMessage": {
+    "description": "Reboot router dialog message"
+  },
+  "reboot": "Reboot",
+  "@reboot": {
+    "description": "Reboot button"
+  },
+  "rebooting": "Rebooting… Connection will be interrupted.",
+  "@rebooting": {
+    "description": "Rebooting message"
+  },
+  "rebootCommandSent": "Reboot command sent successfully.",
+  "@rebootCommandSent": {
+    "description": "Reboot command sent message"
+  },
+  "rebootCommandFailed": "Failed to send reboot command.",
+  "@rebootCommandFailed": {
+    "description": "Reboot command failed message"
+  },
+  "application": "Application",
+  "@application": {
+    "description": "Application section header"
+  },
+  "manageRouters": "Manage Routers",
+  "@manageRouters": {
+    "description": "Manage routers option"
+  },
+  "manageRoutersSubtitle": "Edit or remove saved routers",
+  "@manageRoutersSubtitle": {
+    "description": "Manage routers subtitle"
+  },
+  "settingsSubtitle": "Configure app preferences",
+  "@settingsSubtitle": {
+    "description": "Settings subtitle"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About option"
+  },
+  "aboutSubtitle": "App version and information",
+  "@aboutSubtitle": {
+    "description": "About subtitle"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout option"
+  },
+  "logoutSubtitle": "End your session and sign out",
+  "@logoutSubtitle": {
+    "description": "Logout subtitle"
+  },
+  "logoutTitle": "Logout?",
+  "@logoutTitle": {
+    "description": "Logout dialog title"
+  },
+  "logoutMessage": "Are you sure you want to logout?",
+  "@logoutMessage": {
+    "description": "Logout dialog message"
+  },
+  "aboutDialogTitle": "LuCI Mobile",
+  "@aboutDialogTitle": {
+    "description": "About dialog title"
+  },
+  "aboutDialogVersion": "Version {version}",
+  "@aboutDialogVersion": {
+    "description": "About dialog version",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutDialogDescription": "A mobile client for OpenWrt routers.",
+  "@aboutDialogDescription": {
+    "description": "About dialog description"
+  },
+  "aboutDialogOpenSource": "Open source and free to use.",
+  "@aboutDialogOpenSource": {
+    "description": "About dialog open source message"
+  },
+  "githubRepository": "GitHub Repository",
+  "@githubRepository": {
+    "description": "GitHub repository link"
+  },
+  "couldNotOpenRepository": "Could not open repository",
+  "@couldNotOpenRepository": {
+    "description": "Error message when repository cannot be opened"
+  },
+  "close": "Close",
+  "@close": {
+    "description": "Close button"
+  },
+  "routerBackOnline": "Router is back online, reconnecting…",
+  "@routerBackOnline": {
+    "description": "Router back online message"
+  },
+  "openWrtRouterControl": "OpenWrt Router Control",
+  "@openWrtRouterControl": {
+    "description": "Splash screen subtitle"
+  },
+  "routers": "Routers",
+  "@routers": {
+    "description": "Routers screen title"
+  },
+  "noRoutersAdded": "No routers added yet.",
+  "@noRoutersAdded": {
+    "description": "No routers added message"
+  },
+  "removeRouter": "Remove Router",
+  "@removeRouter": {
+    "description": "Remove router dialog title"
+  },
+  "removeRouterMessage": "Are you sure you want to remove {routerLabel}?",
+  "@removeRouterMessage": {
+    "description": "Remove router dialog message",
+    "placeholders": {
+      "routerLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "remove": "Remove",
+  "@remove": {
+    "description": "Remove button"
+  },
+  "addRouter": "Add Router",
+  "@addRouter": {
+    "description": "Add router button"
+  },
+  "required": "Required",
+  "@required": {
+    "description": "Required validation error"
+  },
+  "routerAlreadyExists": "Router already exists.",
+  "@routerAlreadyExists": {
+    "description": "Router already exists error"
+  },
+  "connecting": "Connecting...",
+  "@connecting": {
+    "description": "Connecting message"
+  },
+  "add": "Add",
+  "@add": {
+    "description": "Add button"
+  },
+  "failedToConnectInvalidCredentials": "Failed to connect: Invalid credentials or host unreachable.",
+  "@failedToConnectInvalidCredentials": {
+    "description": "Failed to connect error message"
+  },
+  "failedToConnect": "Failed to connect: {error}",
+  "@failedToConnect": {
+    "description": "Failed to connect error with details",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "active": "Active",
+  "@active": {
+    "description": "Active label"
+  },
+  "removeTooltip": "Remove",
+  "@removeTooltip": {
+    "description": "Remove tooltip"
+  },
+  "dashboardSettingsTitle": "Dashboard Settings",
+  "@dashboardSettingsTitle": {
+    "description": "Dashboard settings screen title"
+  },
+  "noRoutersAddedForSettings": "No Routers Added",
+  "@noRoutersAddedForSettings": {
+    "description": "No routers added for settings title"
+  },
+  "noRoutersAddedForSettingsMessage": "Add a router to customize its dashboard settings.",
+  "@noRoutersAddedForSettingsMessage": {
+    "description": "No routers added for settings message"
+  },
+  "throughputMonitoring": "Throughput Monitoring",
+  "@throughputMonitoring": {
+    "description": "Throughput monitoring section title"
+  },
+  "throughputMonitoringSubtitle": "Configure which interfaces to monitor",
+  "@throughputMonitoringSubtitle": {
+    "description": "Throughput monitoring subtitle"
+  },
+  "showAllInterfaces": "Show All Interfaces",
+  "@showAllInterfaces": {
+    "description": "Show all interfaces option"
+  },
+  "wirelessNetworks": "Wireless Networks",
+  "@wirelessNetworks": {
+    "description": "Wireless networks section title"
+  },
+  "wirelessNetworksSubtitle": "Choose which wireless networks to display",
+  "@wirelessNetworksSubtitle": {
+    "description": "Wireless networks subtitle"
+  },
+  "showAllNetworks": "Show All Networks",
+  "@showAllNetworks": {
+    "description": "Show all networks option"
+  },
+  "networkInterfaces": "Network Interfaces",
+  "@networkInterfaces": {
+    "description": "Network interfaces section title"
+  },
+  "networkInterfacesSubtitle": "Choose which wired/VPN interfaces to display",
+  "@networkInterfacesSubtitle": {
+    "description": "Network interfaces subtitle"
+  },
+  "wideAreaNetwork": "Wide Area Network",
+  "@wideAreaNetwork": {
+    "description": "WAN description"
+  },
+  "localAreaNetwork": "Local Area Network",
+  "@localAreaNetwork": {
+    "description": "LAN description"
+  },
+  "wireGuardVpn": "WireGuard VPN",
+  "@wireGuardVpn": {
+    "description": "WireGuard VPN description"
+  },
+  "openVpn": "OpenVPN",
+  "@openVpn": {
+    "description": "OpenVPN description"
+  },
+  "pppoeConnection": "PPPoE Connection",
+  "@pppoeConnection": {
+    "description": "PPPoE connection description"
+  },
+  "unableToLoadDashboardData": "Unable to load dashboard data. Please check your connection.",
+  "@unableToLoadDashboardData": {
+    "description": "Unable to load dashboard data error"
+  },
+  "failedToLoadSettings": "Failed to load settings: {error}",
+  "@failedToLoadSettings": {
+    "description": "Failed to load settings error",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "clientIsOnline": "Client is online",
+  "@clientIsOnline": {
+    "description": "Client is online tooltip"
+  },
+  "unknownConnectionType": "Unknown connection type",
+  "@unknownConnectionType": {
+    "description": "Unknown connection type tooltip"
+  },
+  "lastKnownHostname": "Last known hostname (may be out of date)",
+  "@lastKnownHostname": {
+    "description": "Last known hostname tooltip"
+  },
+  "loading": "Loading...",
+  "@loading": {
+    "description": "Loading message"
+  },
+  "gatewayIp": "Gateway IP",
+  "@gatewayIp": {
+    "description": "Gateway IP label"
+  },
+  "dnsServers": "DNS Servers",
+  "@dnsServers": {
+    "description": "DNS Servers label"
+  },
+  "copy": "Copy",
+  "@copy": {
+    "description": "Copy button/tooltip"
+  },
+  "refreshFailed": "Refresh failed: {error}",
+  "@refreshFailed": {
+    "description": "Refresh failed error message",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pullDownToRefresh": "Pull down to refresh",
+  "@pullDownToRefresh": {
+    "description": "Pull down to refresh instruction"
+  },
+  "noItemsToDisplay": "No items to display",
+  "@noItemsToDisplay": {
+    "description": "No items to display message"
+  },
+  "enterRouterAddressTooltip": "Enter the IP address, hostname, or full URL of your router",
+  "@enterRouterAddressTooltip": {
+    "description": "Router address input tooltip"
+  },
+  "enterRouterUsernameTooltip": "Enter your router username",
+  "@enterRouterUsernameTooltip": {
+    "description": "Username input tooltip"
+  },
+  "enterRouterPasswordTooltip": "Enter your router password",
+  "@enterRouterPasswordTooltip": {
+    "description": "Password input tooltip"
+  },
+  "openGitHubIssuesTooltip": "Open GitHub issues for support",
+  "@openGitHubIssuesTooltip": {
+    "description": "GitHub issues link tooltip"
+  },
+  "routerIcon": "Router icon",
+  "@routerIcon": {
+    "description": "Router icon semantic label"
+  },
+  "clientIcon": "Client icon",
+  "@clientIcon": {
+    "description": "Client icon semantic label"
+  },
+  "interfaceIcon": "Interface icon",
+  "@interfaceIcon": {
+    "description": "Interface icon semantic label"
+  },
+  "unnamed": "Unnamed",
+  "@unnamed": {
+    "description": "Unnamed interface/network label"
+  },
+  "disabled": "Disabled",
+  "@disabled": {
+    "description": "Disabled status label"
+  },
+  "channelShort": "Ch.",
+  "@channelShort": {
+    "description": "Channel abbreviation"
+  },
+  "ssid": "SSID",
+  "@ssid": {
+    "description": "SSID label (technical term)"
+  },
+  "certificateWarning": "Certificate Warning",
+  "@certificateWarning": {
+    "description": "Certificate warning dialog title"
+  },
+  "certificateWarningMessage": "The certificate for {host} is not trusted by your device. This could indicate a security risk.",
+  "@certificateWarningMessage": {
+    "description": "Certificate warning message",
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "certificateWarningMessageWithPort": "The certificate for {host}:{port} is not trusted by your device. This could indicate a security risk.",
+  "@certificateWarningMessageWithPort": {
+    "description": "Certificate warning message with port",
+    "placeholders": {
+      "host": {
+        "type": "String"
+      },
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "certificateWarningInfo": "Only proceed if you trust this router and understand the security implications.",
+  "@certificateWarningInfo": {
+    "description": "Certificate warning info message"
+  },
+  "certificateDetails": "Certificate Details:",
+  "@certificateDetails": {
+    "description": "Certificate details label"
+  },
+  "subject": "Subject",
+  "@subject": {
+    "description": "Certificate subject label"
+  },
+  "issuer": "Issuer",
+  "@issuer": {
+    "description": "Certificate issuer label"
+  },
+  "validFrom": "Valid From",
+  "@validFrom": {
+    "description": "Certificate valid from label"
+  },
+  "validUntil": "Valid Until",
+  "@validUntil": {
+    "description": "Certificate valid until label"
+  },
+  "acceptRisk": "Accept Risk",
+  "@acceptRisk": {
+    "description": "Accept risk button"
+  },
+  "mobile": "Mobile",
+  "@mobile": {
+    "description": "Mobile connection type label"
+  },
+  "inactive": "inactive",
+  "@inactive": {
+    "description": "Inactive status for accessibility labels"
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Back button tooltip"
+  }
+}

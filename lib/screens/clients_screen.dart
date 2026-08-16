@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/models/client.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
@@ -80,8 +81,9 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
       future: future,
       builder: (context, snapshot) {
         final aggregatedClients = snapshot.data ?? [];
+        final l10n = AppLocalizations.of(context)!;
         return Scaffold(
-          appBar: const LuciAppBar(title: 'Clients'),
+          appBar: LuciAppBar(title: l10n.clients),
           body: Stack(
             children: [
               LuciPullToRefresh(
@@ -132,11 +134,11 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                     }
 
                     if (dashboardError != null && aggregatedClients.isEmpty) {
+                      final l10n = AppLocalizations.of(context)!;
                       return LuciErrorDisplay(
-                        title: 'Failed to Load Clients',
-                        message:
-                            'Could not connect to the router. Please check your network connection and the router\'s IP address.',
-                        actionLabel: 'Retry',
+                        title: l10n.failedToLoadClients,
+                        message: l10n.failedToLoadClientsMessage,
+                        actionLabel: l10n.retry,
                         onAction: () =>
                             ref.read(appStateProvider).fetchDashboardData(),
                         icon: Icons.wifi_off_rounded,
@@ -170,7 +172,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                             },
                             controller: _searchController,
                             decoration: InputDecoration(
-                              hintText: 'Search by name, IP, MAC, vendor...',
+                              hintText: l10n.searchClients,
                               prefixIcon: const Icon(Icons.search),
                               suffixIcon: _searchQuery.isNotEmpty
                                   ? IconButton(
@@ -180,7 +182,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                                           _searchController.clear();
                                         });
                                       },
-                                      tooltip: 'Clear search',
+                                      tooltip: l10n.clearSearch,
                                     )
                                   : null,
                               filled: true,
@@ -204,16 +206,16 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                             vertical: 4.0,
                           ),
                           child: SegmentedButton<bool>(
-                            segments: const [
+                            segments: [
                               ButtonSegment<bool>(
                                 value: true,
-                                label: Text('All'),
-                                icon: Icon(Icons.apartment),
+                                label: Text(l10n.all),
+                                icon: const Icon(Icons.apartment),
                               ),
                               ButtonSegment<bool>(
                                 value: false,
-                                label: Text('Selected'),
-                                icon: Icon(Icons.router),
+                                label: Text(l10n.selected),
+                                icon: const Icon(Icons.router),
                               ),
                             ],
                             selected: {_aggregateAllRouters},
@@ -239,11 +241,11 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                           child: filteredClients.isEmpty
                               ? LuciEmptyState(
                                   title: _searchQuery.isEmpty
-                                      ? 'No Active Clients Found'
-                                      : 'No Matching Clients',
+                                      ? l10n.noActiveClientsFound
+                                      : l10n.noMatchingClients,
                                   message: _searchQuery.isEmpty
-                                      ? 'No clients are currently connected to the router. Pull down to refresh the list.'
-                                      : 'No clients match your search criteria. Try a different search term.',
+                                      ? l10n.noActiveClientsMessage
+                                      : l10n.noMatchingClientsMessage,
                                   icon: Icons.people_outline,
                                 )
                               : ListView.separated(
@@ -402,7 +404,7 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                               Icons.person_outline,
                               color: colorScheme.primary,
                               size: 22,
-                              semanticLabel: 'Client icon',
+                              semanticLabel: AppLocalizations.of(context)!.clientIcon,
                             ),
                           ),
                         ),
@@ -413,8 +415,8 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                             message:
                                 widget.client.connectionType ==
                                     ConnectionType.unknown
-                                ? 'Unknown connection type'
-                                : 'Client is online',
+                                ? AppLocalizations.of(context)!.unknownConnectionType
+                                : AppLocalizations.of(context)!.clientIsOnline,
                             child: Container(
                               width: 10,
                               height: 10,
@@ -492,8 +494,8 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                       color: colorScheme.onSurfaceVariant,
                       size: 26,
                       semanticLabel: widget.isExpanded
-                          ? 'Collapse details'
-                          : 'Expand details',
+                          ? AppLocalizations.of(context)!.collapseDetails
+                          : AppLocalizations.of(context)!.expandDetails,
                     ),
                   ],
                 ),
@@ -520,21 +522,22 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
     Color bgColor;
     Color fgColor;
 
+    final l10n = AppLocalizations.of(context)!;
     switch (type) {
       case ConnectionType.wireless:
-        label = 'Wi-Fi';
+        label = l10n.wiFi;
         icon = Icons.wifi;
         bgColor = colorScheme.primaryContainer;
         fgColor = colorScheme.onPrimaryContainer;
         break;
       case ConnectionType.wired:
-        label = 'Wired';
+        label = l10n.wired;
         icon = Icons.settings_ethernet;
         bgColor = colorScheme.secondaryContainer;
         fgColor = colorScheme.onSecondaryContainer;
         break;
       default:
-        label = 'Unknown';
+        label = l10n.unknown;
         icon = Icons.devices_other_outlined;
         bgColor = colorScheme.surfaceContainerHighest;
         fgColor = colorScheme.onSurfaceVariant;
@@ -591,12 +594,12 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                   if (onTap != null)
                     GestureDetector(
                       onTap: onTap,
-                      child: const Padding(
-                        padding: EdgeInsets.only(left: 8.0),
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
                         child: Icon(
                           Icons.copy_all_outlined,
                           size: 16,
-                          semanticLabel: 'Copy',
+                          semanticLabel: AppLocalizations.of(context)!.copy,
                         ),
                       ),
                     ),
@@ -617,51 +620,60 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
       ),
       child: Column(
         children: [
-          detailRow(
-            'IP Address',
-            client.ipAddress,
-            onTap: () =>
-                _copyToClipboard(context, client.ipAddress, 'IP Address'),
-            semanticsLabel: 'IP Address: ${client.ipAddress}',
-          ),
-          if (client.ipv6Addresses != null && client.ipv6Addresses!.isNotEmpty)
-            ...client.ipv6Addresses!.map(
-              (ipv6) => detailRow(
-                'IPv6 Address',
-                ipv6,
-                onTap: () => _copyToClipboard(context, ipv6, 'IPv6 Address'),
-                semanticsLabel: 'IPv6 Address: $ipv6',
-              ),
-            ),
-          detailRow(
-            'MAC Address',
-            client.macAddress,
-            onTap: () =>
-                _copyToClipboard(context, client.macAddress, 'MAC Address'),
-            semanticsLabel: 'MAC Address: ${client.macAddress}',
-          ),
-          if (client.vendor != null && client.vendor!.isNotEmpty)
-            detailRow(
-              'Vendor',
-              client.vendor!,
-              semanticsLabel: 'Vendor: ${client.vendor}',
-            ),
-          if (client.dnsName != null && client.dnsName!.isNotEmpty)
-            detailRow(
-              'DNS Name',
-              client.dnsName!,
-              semanticsLabel: 'DNS Name: ${client.dnsName}',
-            ),
-          const Divider(height: 1, indent: 16, endIndent: 16),
-          const SizedBox(height: 8),
-          detailRow(
-            'Lease Time Remaining',
-            client.formattedLeaseTime,
-            valueColor: client.formattedLeaseTime == 'Expired'
-                ? theme.colorScheme.error
-                : null,
-            semanticsLabel:
-                'Lease Time Remaining: ${client.formattedLeaseTime}',
+          Builder(
+            builder: (context) {
+              final l10n = AppLocalizations.of(context)!;
+              return Column(
+                children: [
+                  detailRow(
+                    l10n.ipAddress,
+                    client.ipAddress,
+                    onTap: () =>
+                        _copyToClipboard(context, client.ipAddress, l10n.ipAddress),
+                    semanticsLabel: '${l10n.ipAddress}: ${client.ipAddress}',
+                  ),
+                  if (client.ipv6Addresses != null && client.ipv6Addresses!.isNotEmpty)
+                    ...client.ipv6Addresses!.map(
+                      (ipv6) => detailRow(
+                        l10n.ipv6Address,
+                        ipv6,
+                        onTap: () => _copyToClipboard(context, ipv6, l10n.ipv6Address),
+                        semanticsLabel: '${l10n.ipv6Address}: $ipv6',
+                      ),
+                    ),
+                  detailRow(
+                    l10n.macAddress,
+                    client.macAddress,
+                    onTap: () =>
+                        _copyToClipboard(context, client.macAddress, l10n.macAddress),
+                    semanticsLabel: '${l10n.macAddress}: ${client.macAddress}',
+                  ),
+                  if (client.vendor != null && client.vendor!.isNotEmpty)
+                    detailRow(
+                      l10n.vendor,
+                      client.vendor!,
+                      semanticsLabel: '${l10n.vendor}: ${client.vendor}',
+                    ),
+                  if (client.dnsName != null && client.dnsName!.isNotEmpty)
+                    detailRow(
+                      l10n.dnsName,
+                      client.dnsName!,
+                      semanticsLabel: '${l10n.dnsName}: ${client.dnsName}',
+                    ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  const SizedBox(height: 8),
+                  detailRow(
+                    l10n.leaseTimeRemaining,
+                    client.formattedLeaseTime,
+                    valueColor: client.formattedLeaseTime == l10n.expired
+                        ? theme.colorScheme.error
+                        : null,
+                    semanticsLabel:
+                        '${l10n.leaseTimeRemaining}: ${client.formattedLeaseTime}',
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 8),
         ],
@@ -690,10 +702,11 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
   }
 
   void _copyToClipboard(BuildContext context, String text, String label) {
+    final l10n = AppLocalizations.of(context)!;
     Clipboard.setData(ClipboardData(text: text));
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('$label copied to clipboard'),
+        content: Text(l10n.copiedToClipboard(label)),
         duration: const Duration(seconds: 2),
       ),
     );

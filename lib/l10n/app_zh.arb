@@ -1,0 +1,277 @@
+{
+  "@@locale": "zh",
+  "appTitle": "LuCI Mobile",
+  "appSubtitle": "连接到您的 OpenWrt 路由器",
+  "appTagline": "快速、安全、开源",
+  "dashboard": "仪表板",
+  "clients": "客户端",
+  "interfaces": "接口",
+  "more": "更多",
+  "settings": "设置",
+  "loginConnect": "连接",
+  "routerAddress": "路由器地址",
+  "routerAddressHelper": "例如：192.168.1.1、router.local:8080、https://192.168.1.1",
+  "username": "用户名",
+  "usernameHelper": "默认为 root",
+  "password": "密码",
+  "passwordHelper": "您的路由器密码",
+  "showPassword": "显示密码",
+  "hidePassword": "隐藏密码",
+  "pleaseEnterRouterAddress": "请输入路由器地址",
+  "pleaseEnterUsername": "请输入用户名",
+  "invalidAddressFormat": "地址格式无效",
+  "needHelp": "需要帮助？",
+  "version": "版本 {version}",
+  "@version": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "activateReviewerMode": "激活审核模式？",
+  "reviewerModeDescription": "这将启用审核模式，绕过身份验证并提供用于演示的模拟数据。",
+  "reviewerModeConfirm": "要确认，请在下方输入 \"REVIEWER\"：",
+  "typeReviewer": "输入 REVIEWER",
+  "cancel": "取消",
+  "activate": "激活",
+  "holdToActivateReviewerMode": "长按以激活审核模式...",
+  "couldNotOpenGitHubIssues": "无法打开 GitHub Issues",
+  "selectRouter": "选择路由器",
+  "connectionFailed": "连接失败",
+  "connectionFailedMessage": "无法连接到路由器。请检查您的网络连接和路由器设置。",
+  "retryConnection": "重试连接",
+  "noDataAvailable": "无可用数据",
+  "noDataAvailableMessage": "无法获取仪表板数据。下拉刷新或点击下方按钮。",
+  "fetchData": "获取数据",
+  "switchingRouter": "正在切换路由器...",
+  "collectingThroughputData": "正在收集吞吐量数据...",
+  "throughput": "吞吐量",
+  "throughputLabel": "吞吐量 - {interface}",
+  "@throughputLabel": {
+    "placeholders": {
+      "interface": {
+        "type": "String"
+      }
+    }
+  },
+  "model": "型号",
+  "versionLabel": "版本",
+  "cpuLoad": "CPU 负载",
+  "memory": "内存",
+  "uptime": "运行时间",
+  "failedToLoadClients": "加载客户端失败",
+  "failedToLoadClientsMessage": "无法连接到路由器。请检查您的网络连接和路由器的 IP 地址。",
+  "retry": "重试",
+  "searchClients": "按名称、IP、MAC、厂商搜索...",
+  "clearSearch": "清除搜索",
+  "all": "全部",
+  "selected": "已选择",
+  "noActiveClientsFound": "未找到活动客户端",
+  "noActiveClientsMessage": "当前没有客户端连接到路由器。下拉刷新列表。",
+  "noMatchingClients": "未找到匹配的客户端",
+  "noMatchingClientsMessage": "没有客户端匹配您的搜索条件。请尝试其他搜索词。",
+  "wiFi": "Wi-Fi",
+  "wired": "有线",
+  "unknown": "未知",
+  "ipAddress": "IP 地址",
+  "ipv6Address": "IPv6 地址",
+  "macAddress": "MAC 地址",
+  "vendor": "厂商",
+  "dnsName": "DNS 名称",
+  "leaseTimeRemaining": "剩余租约时间",
+  "expired": "已过期",
+  "copiedToClipboard": "{label} 已复制到剪贴板",
+  "@copiedToClipboard": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "failedToLoadInterfaces": "加载接口失败",
+  "failedToLoadInterfacesMessage": "无法连接到路由器。请检查您的网络连接和路由器设置。",
+  "noInterfaceData": "无接口数据",
+  "noInterfaceDataMessage": "无法获取接口信息。下拉刷新或点击下方按钮。",
+  "wiredSection": "有线",
+  "wirelessSection": "无线",
+  "device": "设备",
+  "mode": "模式",
+  "channel": "信道",
+  "signal": "信号",
+  "network": "网络",
+  "gateway": "网关",
+  "dns": "DNS",
+  "lastHandshake": "最后握手",
+  "endpoint": "端点",
+  "never": "从未",
+  "received": "接收",
+  "transmitted": "发送",
+  "up": "启用",
+  "down": "禁用",
+  "off": "关闭",
+  "interfaceIsUp": "接口已启用",
+  "interfaceIsDown": "接口已禁用",
+  "expandDetails": "展开详情",
+  "collapseDetails": "折叠详情",
+  "theme": "主题",
+  "systemDefault": "跟随系统",
+  "light": "浅色",
+  "dark": "深色",
+  "dashboardSettings": "仪表板",
+  "customizeDashboard": "自定义仪表板",
+  "customizeDashboardSubtitle": "配置接口可见性和吞吐量监控",
+  "reviewerMode": "审核模式",
+  "reviewerModeActive": "审核模式已激活",
+  "reviewerModeActiveSubtitle": "正在使用模拟数据进行演示",
+  "exitReviewerMode": "退出审核模式",
+  "exitReviewerModeTitle": "退出审核模式？",
+  "exitReviewerModeMessage": "这将禁用审核模式并返回正常身份验证。您需要使用真实的路由器凭据登录。",
+  "exit": "退出",
+  "deviceManagement": "设备管理",
+  "rebootRouter": "重启路由器",
+  "rebootRouterSubtitle": "执行系统重启",
+  "rebootRouterTitle": "重启路由器？",
+  "rebootRouterMessage": "您确定要重启路由器吗？",
+  "reboot": "重启",
+  "rebooting": "正在重启…连接将中断。",
+  "rebootCommandSent": "重启命令已成功发送。",
+  "rebootCommandFailed": "发送重启命令失败。",
+  "application": "应用",
+  "manageRouters": "管理路由器",
+  "manageRoutersSubtitle": "编辑或删除已保存的路由器",
+  "settingsSubtitle": "配置应用偏好设置",
+  "about": "关于",
+  "aboutSubtitle": "应用版本和信息",
+  "logout": "退出登录",
+  "logoutSubtitle": "结束会话并退出登录",
+  "logoutTitle": "退出登录？",
+  "logoutMessage": "您确定要退出登录吗？",
+  "aboutDialogTitle": "LuCI Mobile",
+  "aboutDialogVersion": "版本 {version}",
+  "@aboutDialogVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutDialogDescription": "适用于 OpenWrt 路由器的移动客户端。",
+  "aboutDialogOpenSource": "开源且免费使用。",
+  "githubRepository": "GitHub 仓库",
+  "couldNotOpenRepository": "无法打开仓库",
+  "close": "关闭",
+  "routerBackOnline": "路由器已重新上线，正在重新连接…",
+  "openWrtRouterControl": "OpenWrt 路由器控制",
+  "routers": "路由器",
+  "noRoutersAdded": "尚未添加路由器。",
+  "removeRouter": "删除路由器",
+  "removeRouterMessage": "您确定要删除 {routerLabel} 吗？",
+  "@removeRouterMessage": {
+    "placeholders": {
+      "routerLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "remove": "删除",
+  "addRouter": "添加路由器",
+  "required": "必填",
+  "routerAlreadyExists": "路由器已存在。",
+  "connecting": "正在连接...",
+  "add": "添加",
+  "failedToConnectInvalidCredentials": "连接失败：凭据无效或主机无法访问。",
+  "failedToConnect": "连接失败：{error}",
+  "@failedToConnect": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "active": "活动",
+  "removeTooltip": "删除",
+  "dashboardSettingsTitle": "仪表板设置",
+  "noRoutersAddedForSettings": "未添加路由器",
+  "noRoutersAddedForSettingsMessage": "添加路由器以自定义其仪表板设置。",
+  "throughputMonitoring": "吞吐量监控",
+  "throughputMonitoringSubtitle": "配置要监控的接口",
+  "showAllInterfaces": "显示所有接口",
+  "wirelessNetworks": "无线网络",
+  "wirelessNetworksSubtitle": "选择要显示的无线网络",
+  "showAllNetworks": "显示所有网络",
+  "networkInterfaces": "网络接口",
+  "networkInterfacesSubtitle": "选择要显示的有线/VPN 接口",
+  "wideAreaNetwork": "广域网",
+  "localAreaNetwork": "局域网",
+  "wireGuardVpn": "WireGuard VPN",
+  "openVpn": "OpenVPN",
+  "pppoeConnection": "PPPoE 连接",
+  "unableToLoadDashboardData": "无法加载仪表板数据。请检查您的连接。",
+  "failedToLoadSettings": "加载设置失败：{error}",
+  "@failedToLoadSettings": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "clientIsOnline": "客户端在线",
+  "unknownConnectionType": "未知连接类型",
+  "lastKnownHostname": "最后已知主机名（可能已过期）",
+  "loading": "加载中...",
+  "gatewayIp": "网关 IP",
+  "dnsServers": "DNS 服务器",
+  "copy": "复制",
+  "refreshFailed": "刷新失败：{error}",
+  "@refreshFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pullDownToRefresh": "下拉刷新",
+  "noItemsToDisplay": "无项目显示",
+  "enterRouterAddressTooltip": "输入路由器的 IP 地址、主机名或完整 URL",
+  "enterRouterUsernameTooltip": "输入您的路由器用户名",
+  "enterRouterPasswordTooltip": "输入您的路由器密码",
+  "openGitHubIssuesTooltip": "打开 GitHub Issues 获取支持",
+  "routerIcon": "路由器图标",
+  "clientIcon": "客户端图标",
+  "interfaceIcon": "接口图标",
+  "unnamed": "未命名",
+  "disabled": "已禁用",
+  "channelShort": "信道",
+  "ssid": "SSID",
+  "certificateWarning": "证书警告",
+  "certificateWarningMessage": "设备不信任 {host} 的证书。这可能表示存在安全风险。",
+  "@certificateWarningMessage": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
+  "certificateWarningMessageWithPort": "设备不信任 {host}:{port} 的证书。这可能表示存在安全风险。",
+  "@certificateWarningMessageWithPort": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      },
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "certificateWarningInfo": "只有在您信任此路由器并了解安全风险的情况下才继续。",
+  "certificateDetails": "证书详情：",
+  "subject": "主题",
+  "issuer": "颁发者",
+  "validFrom": "有效期起",
+  "validUntil": "有效期至",
+  "acceptRisk": "接受风险",
+  "mobile": "移动网络",
+  "inactive": "非活动",
+  "back": "返回"
+}
