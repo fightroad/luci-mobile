@@ -762,13 +762,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final sharedMem = _asInt(sysInfo?['memory']?['shared']);
     final cachedMem = _asInt(sysInfo?['memory']?['cached']);
     final availableMem = _asInt(sysInfo?['memory']?['available']);
-    // Match LuCI status "Used": total - free (includes buffers/cache as used).
+    // Modern LuCI "已使用" is total - available (Used + Available = 100%).
+    // Fallback when MemAvailable is missing: total - free.
     final usedMem = totalMem > 0
-        ? (totalMem - freeMem).clamp(0, totalMem)
+        ? (availableMem != null
+                  ? totalMem - availableMem
+                  : totalMem - freeMem)
+              .clamp(0, totalMem)
         : 0;
-    // LuCI progressbar uses Math.floor for the percent label.
+    // LuCI: Math.floor((100 / total) * used)
     final memoryValue = totalMem > 0
-        ? '${((usedMem / totalMem) * 100).floor()}%'
+        ? '${((100 * usedMem) / totalMem).floor()}%'
         : 'N/A';
     final memoryDetail = totalMem > 0
         ? _formatMemoryDetail(
@@ -1245,7 +1249,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     int? cached,
     int? available,
   }) {
-    final percent = ((used / total) * 100).floor().clamp(0, 100);
+    final percent = ((100 * used) / total).floor().clamp(0, 100);
     final lines = <String>[
       '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(total)} ($percent%)',
       '${l10n.memoryFree}: ${_formatMemoryBytes(free)}',
