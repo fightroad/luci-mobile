@@ -206,6 +206,26 @@
   "@temperature": {
     "description": "Router temperature label on dashboard"
   },
+  "memoryFree": "Free",
+  "@memoryFree": {
+    "description": "Free memory label in memory detail dialog"
+  },
+  "memoryBuffered": "Buffered",
+  "@memoryBuffered": {
+    "description": "Buffered memory label in memory detail dialog"
+  },
+  "memoryAvailable": "Available",
+  "@memoryAvailable": {
+    "description": "Available memory label in memory detail dialog"
+  },
+  "memoryCached": "Cached",
+  "@memoryCached": {
+    "description": "Cached memory label in memory detail dialog"
+  },
+  "memoryShared": "Shared",
+  "@memoryShared": {
+    "description": "Shared memory label in memory detail dialog"
+  },
   "failedToLoadClients": "Failed to Load Clients",
   "@failedToLoadClients": {
     "description": "Failed to load clients error title"

@@ -164,6 +164,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get temperature => 'Temp';
 
   @override
+  String get memoryFree => 'Free';
+
+  @override
+  String get memoryBuffered => 'Buffered';
+
+  @override
+  String get memoryAvailable => 'Available';
+
+  @override
+  String get memoryCached => 'Cached';
+
+  @override
+  String get memoryShared => 'Shared';
+
+  @override
   String get failedToLoadClients => 'Failed to Load Clients';
 
   @override

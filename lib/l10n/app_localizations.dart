@@ -392,6 +392,36 @@ abstract class AppLocalizations {
   /// **'Temp'**
   String get temperature;
 
+  /// Free memory label in memory detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Free'**
+  String get memoryFree;
+
+  /// Buffered memory label in memory detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Buffered'**
+  String get memoryBuffered;
+
+  /// Available memory label in memory detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Available'**
+  String get memoryAvailable;
+
+  /// Cached memory label in memory detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Cached'**
+  String get memoryCached;
+
+  /// Shared memory label in memory detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get memoryShared;
+
   /// Failed to load clients error title
   ///
   /// In en, this message translates to:

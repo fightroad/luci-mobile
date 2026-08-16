@@ -654,25 +654,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final l10n = AppLocalizations.of(context)!;
     final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
 
-    final uptime = sysInfo?['uptime'] as int?;
+    final uptime = _asInt(sysInfo?['uptime']);
     final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
 
+    final cpuUsage = appState.dashboardData?['cpuUsage']?.toString();
+    final cpuUsageDetail = appState.dashboardData?['cpuUsageDetail']?.toString();
     final cpuLoad = sysInfo?['load'] as List<dynamic>?;
-    final cpuLoadValue = cpuLoad != null ? _formatCpuLoad(cpuLoad) : 'N/A';
+    final cpuLoadValue = (cpuUsage != null && cpuUsage.isNotEmpty)
+        ? cpuUsage
+        : (cpuLoad != null ? _formatCpuLoad(cpuLoad) : 'N/A');
+    final cpuDetail =
+        (cpuUsageDetail != null && cpuUsageDetail.isNotEmpty)
+        ? cpuUsageDetail
+        : null;
 
-    final totalMem = sysInfo?['memory']?['total'] as int? ?? 0;
-    final freeMem = sysInfo?['memory']?['free'] as int? ?? 0;
-    final bufferedMem = sysInfo?['memory']?['buffered'] as int? ?? 0;
-    final usedMem = totalMem - freeMem - bufferedMem;
+    final totalMem = _asInt(sysInfo?['memory']?['total']) ?? 0;
+    final freeMem = _asInt(sysInfo?['memory']?['free']) ?? 0;
+    final bufferedMem = _asInt(sysInfo?['memory']?['buffered']) ?? 0;
+    final sharedMem = _asInt(sysInfo?['memory']?['shared']);
+    final cachedMem = _asInt(sysInfo?['memory']?['cached']);
+    final availableMem = _asInt(sysInfo?['memory']?['available']);
+    // Prefer MemAvailable-style usage when present; else legacy free/buffered.
+    final usedMem = totalMem > 0 && availableMem != null
+        ? (totalMem - availableMem).clamp(0, totalMem)
+        : (totalMem - freeMem - bufferedMem).clamp(0, totalMem);
     final memoryValue = totalMem > 0
         ? '${(usedMem / totalMem * 100).toStringAsFixed(0)}%'
         : 'N/A';
+    final memoryDetail = totalMem > 0
+        ? _formatMemoryDetail(
+            l10n: l10n,
+            used: usedMem,
+            total: totalMem,
+            free: freeMem,
+            buffered: bufferedMem,
+            shared: sharedMem,
+            cached: cachedMem,
+            available: availableMem,
+          )
+        : null;
 
-    final onlineClients = appState.dashboardData?['onlineClients'];
-    final onlineValue = onlineClients is int ? '$onlineClients' : 'N/A';
+    final onlineClients = _asInt(appState.dashboardData?['onlineClients']);
+    final onlineValue = onlineClients != null ? '$onlineClients' : 'N/A';
 
-    final connCount = appState.dashboardData?['conntrackCount'] as int?;
-    final connMax = appState.dashboardData?['conntrackMax'] as int?;
+    final connCount = _asInt(appState.dashboardData?['conntrackCount']);
+    final connMax = _asInt(appState.dashboardData?['conntrackMax']);
     final connectionsValue = _formatConnections(connCount, connMax);
     final connectionsDetail = _formatConnectionsDetail(connCount, connMax);
 
@@ -696,19 +722,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: _buildVitalsColumn(
-                    context,
-                    label: l10n.cpuLoad,
-                    value: cpuLoadValue,
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.cpuLoad,
+                  value: cpuLoadValue,
+                  onTap: cpuDetail == null
+                      ? null
+                      : () => _showVitalDetailDialog(l10n.cpuLoad, cpuDetail),
                 ),
-                Expanded(
-                  child: _buildVitalsColumn(
-                    context,
-                    label: l10n.memory,
-                    value: memoryValue,
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.memory,
+                  value: memoryValue,
+                  onTap: memoryDetail == null
+                      ? null
+                      : () => _showVitalDetailDialog(l10n.memory, memoryDetail),
                 ),
                 Expanded(
                   child: _buildVitalsColumn(
@@ -729,89 +755,76 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () async {
-                      await appState.setClientsAggregateAllRouters(false);
-                      appState.requestTab(1);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child: _buildVitalsColumn(
-                        context,
-                        label: l10n.onlineClients,
-                        value: onlineValue,
-                      ),
-                    ),
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.onlineClients,
+                  value: onlineValue,
+                  onTap: () async {
+                    await appState.setClientsAggregateAllRouters(false);
+                    appState.requestTab(1);
+                  },
                 ),
-                Expanded(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: connCount == null
-                        ? null
-                        : () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text(l10n.activeConnections),
-                                content: Text(connectionsDetail),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: Text(l10n.close),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child: _buildVitalsColumn(
-                        context,
-                        label: l10n.activeConnections,
-                        value: connectionsValue,
-                      ),
-                    ),
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.activeConnections,
+                  value: connectionsValue,
+                  onTap: connCount == null
+                      ? null
+                      : () => _showVitalDetailDialog(
+                          l10n.activeConnections,
+                          connectionsDetail,
+                        ),
                 ),
-                Expanded(
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: temperatureDetail == null
-                        ? null
-                        : () {
-                            showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text(l10n.temperature),
-                                content: Text(temperatureDetail),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: Text(l10n.close),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2.0),
-                      child: _buildVitalsColumn(
-                        context,
-                        label: l10n.temperature,
-                        value: temperatureValue,
-                      ),
-                    ),
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.temperature,
+                  value: temperatureValue,
+                  onTap: temperatureDetail == null
+                      ? null
+                      : () => _showVitalDetailDialog(
+                          l10n.temperature,
+                          temperatureDetail,
+                        ),
                 ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTappableVitalsColumn({
+    required String label,
+    required String value,
+    VoidCallback? onTap,
+  }) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2.0),
+          child: _buildVitalsColumn(
+            context,
+            label: label,
+            value: value,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showVitalDetailDialog(String title, String detail) {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(detail),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(l10n.close),
+          ),
+        ],
       ),
     );
   }
@@ -828,6 +841,54 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     if (max == null || max <= 0) return '$count';
     final percent = ((count / max) * 100).clamp(0, 100);
     return '$count / $max (${percent.toStringAsFixed(1)}%)';
+  }
+
+  String _formatMemoryBytes(int bytes) {
+    if (bytes <= 0) return '0 B';
+    const suffixes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    var value = bytes.toDouble();
+    var i = 0;
+    while (value >= 1024 && i < suffixes.length - 1) {
+      value /= 1024;
+      i++;
+    }
+    final digits = value >= 10 || i == 0 ? 0 : 1;
+    return '${value.toStringAsFixed(digits)} ${suffixes[i]}';
+  }
+
+  int? _asInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.round();
+    return int.tryParse(value.toString());
+  }
+
+  String _formatMemoryDetail({
+    required AppLocalizations l10n,
+    required int used,
+    required int total,
+    required int free,
+    required int buffered,
+    int? shared,
+    int? cached,
+    int? available,
+  }) {
+    final percent = ((used / total) * 100).clamp(0, 100);
+    final lines = <String>[
+      '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(total)} (${percent.toStringAsFixed(0)}%)',
+      '${l10n.memoryFree}: ${_formatMemoryBytes(free)}',
+      '${l10n.memoryBuffered}: ${_formatMemoryBytes(buffered)}',
+    ];
+    if (available != null) {
+      lines.add('${l10n.memoryAvailable}: ${_formatMemoryBytes(available)}');
+    }
+    if (cached != null) {
+      lines.add('${l10n.memoryCached}: ${_formatMemoryBytes(cached)}');
+    }
+    if (shared != null) {
+      lines.add('${l10n.memoryShared}: ${_formatMemoryBytes(shared)}');
+    }
+    return lines.join('\n');
   }
 
   Widget _buildWirelessInfoCardContent(

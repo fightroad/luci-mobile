@@ -161,6 +161,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get temperature => '温度';
 
   @override
+  String get memoryFree => '空闲';
+
+  @override
+  String get memoryBuffered => '缓冲';
+
+  @override
+  String get memoryAvailable => '可用';
+
+  @override
+  String get memoryCached => '缓存';
+
+  @override
+  String get memoryShared => '共享';
+
+  @override
   String get failedToLoadClients => '加载客户端失败';
 
   @override

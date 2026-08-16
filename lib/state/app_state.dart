@@ -483,6 +483,9 @@ class AppState extends ChangeNotifier {
           'onlineClients': 12,
           'conntrackCount': 842,
           'conntrackMax': 16384,
+          'cpuUsage': '2%',
+          'cpuUsageDetail':
+              'CPU: 2% HWE: 6% ECM: tcp 44 udp 72 other 0 total 116',
           'temperature': 'CPU: 48.0°C, WiFi: 52.0°C 50.0°C',
           'temperatureShort': '48.0°C',
           '_lastUpdated':
@@ -582,6 +585,11 @@ class AppState extends ChangeNotifier {
         params: {'config': 'wireless'},
       );
 
+      final cpuUsageFuture = callOptionalRpc(
+        object: 'luci',
+        method: 'getCPUUsage',
+        params: {},
+      );
       final onlineUsersFuture = callOptionalRpc(
         object: 'luci',
         method: 'getOnlineUsers',
@@ -682,6 +690,7 @@ class AppState extends ChangeNotifier {
       final optionalResults = await Future.wait([
         wirelessFuture,
         uciWirelessFuture,
+        cpuUsageFuture,
         onlineUsersFuture,
         tempInfoFuture,
         conntrackCountFuture,
@@ -689,10 +698,11 @@ class AppState extends ChangeNotifier {
       ]);
       final wirelessRaw = optionalResults[0];
       final uciWirelessRaw = optionalResults[1];
-      final onlineUsersRaw = optionalResults[2];
-      final tempInfoRaw = optionalResults[3];
-      final conntrackCountRaw = optionalResults[4];
-      final conntrackMaxRaw = optionalResults[5];
+      final cpuUsageRaw = optionalResults[2];
+      final onlineUsersRaw = optionalResults[3];
+      final tempInfoRaw = optionalResults[4];
+      final conntrackCountRaw = optionalResults[5];
+      final conntrackMaxRaw = optionalResults[6];
 
       Map<String, dynamic>? wirelessData;
       if (wirelessRaw != null) {
@@ -709,6 +719,9 @@ class AppState extends ChangeNotifier {
             getOptionalData(uciWirelessRaw, 'uci.get wireless');
       }
 
+      final cpuUsageData = cpuUsageRaw != null
+          ? getOptionalData(cpuUsageRaw, 'luci.getCPUUsage')
+          : null;
       final onlineUsersData = onlineUsersRaw != null
           ? getOptionalData(onlineUsersRaw, 'luci.getOnlineUsers')
           : null;
@@ -725,6 +738,7 @@ class AppState extends ChangeNotifier {
       final conntrackCount = _parseProcInt(conntrackCountData);
       final conntrackMax = _parseProcInt(conntrackMaxData);
       final temperature = _parseTemperature(tempInfoData);
+      final cpuUsageParsed = _parseCpuUsage(cpuUsageData);
       final onlineClients = _parseOnlineClients(
         onlineUsersData,
         wirelessData,
@@ -825,6 +839,8 @@ class AppState extends ChangeNotifier {
         'onlineClients': onlineClients,
         'conntrackCount': conntrackCount,
         'conntrackMax': conntrackMax,
+        'cpuUsage': cpuUsageParsed?.percent,
+        'cpuUsageDetail': cpuUsageParsed?.detail,
         'temperature': temperature,
         'temperatureShort': _formatTemperatureShort(temperature),
         '_lastUpdated':
@@ -910,6 +926,32 @@ class AppState extends ChangeNotifier {
         return raw;
       }
     }
+    return null;
+  }
+
+  /// Prefer vendor realtime CPU% (luci.getCPUUsage); null → UI falls back to loadavg.
+  ({String percent, String? detail})? _parseCpuUsage(dynamic data) {
+    if (data == null) return null;
+
+    String? raw;
+    if (data is Map) {
+      raw = data['cpuusage']?.toString().trim();
+    } else {
+      raw = data.toString().trim();
+    }
+    if (raw == null || raw.isEmpty) return null;
+
+    final cpuMatch = RegExp(r'CPU:\s*(\d+(?:\.\d+)?)\s*%', caseSensitive: false)
+        .firstMatch(raw);
+    if (cpuMatch != null) {
+      return (percent: '${cpuMatch.group(1)}%', detail: raw);
+    }
+
+    final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
+    if (percentMatch != null) {
+      return (percent: '${percentMatch.group(1)}%', detail: raw);
+    }
+
     return null;
   }
 
