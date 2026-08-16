@@ -548,7 +548,8 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               iwinfo['encryption'],
               config['encryption'] ?? uciIface?['encryption'],
             );
-            final associations = iwinfo['associations'];
+            final ifname = iface['ifname']?.toString();
+            final assocHint = _associationCountHint(iwinfo, iface);
             final rawPassword = _wifiPasswordFromConfig(config, uciIface);
             final wifiPassword = _shouldShowWifiPassword(
                   iwinfo['encryption'],
@@ -567,6 +568,8 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               'radioName': radioName,
               'ssid': ssid,
               'interfaceName': name,
+              'ifname': ifname,
+              'assocHint': assocHint,
               'wifiPassword': wifiPassword,
               'details': {
                 'Device': _uciString(config['device'], radioName),
@@ -578,7 +581,6 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                     _uciString(config['channel'], 'N/A'),
                 'Encryption': encryption,
                 'Signal': '${iwinfo['signal']?.toString() ?? '--'} dBm',
-                'AssociatedClients': associations?.toString() ?? '—',
                 'Network': (config['network'] is List)
                     ? (config['network'] as List).join(', ')
                     : _uciString(config['network'], 'N/A'),
@@ -619,7 +621,6 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               null,
               config['encryption'],
             ),
-            'AssociatedClients': '—',
             'Network': (config['network'] is List)
                 ? (config['network'] as List).join(', ')
                 : _uciString(config['network'], 'N/A'),
@@ -674,6 +675,8 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               context,
               Map<String, dynamic>.from(iface['details'] as Map),
               wifiPassword: iface['wifiPassword'] as String?,
+              associatedIfname: iface['ifname'] as String?,
+              associatedHint: iface['assocHint'] as String?,
             ),
             initiallyExpanded: shouldExpand,
           ),
@@ -945,12 +948,29 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     BuildContext context,
     Map<String, dynamic> details, {
     String? wifiPassword,
+    String? associatedIfname,
+    String? associatedHint,
   }) {
     final l10n = AppLocalizations.of(context)!;
     final rows = <Widget>[];
     var passwordAdded = false;
+    var assocAdded = false;
+
+    void addAssociatedClientsRow() {
+      if (assocAdded) return;
+      rows.add(
+        _AssociatedClientsDetailRow(
+          ifname: associatedIfname,
+          hint: associatedHint,
+        ),
+      );
+      assocAdded = true;
+    }
 
     for (final entry in details.entries) {
+      if (entry.key == 'Network') {
+        addAssociatedClientsRow();
+      }
       rows.add(
         _buildDetailRow(
           context,
@@ -983,8 +1003,27 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         ),
       );
     }
+    addAssociatedClientsRow();
 
     return Column(children: rows);
+  }
+
+  /// Prefer iwinfo.associations / stations[]; else UI loads assoclist by ifname.
+  static String? _associationCountHint(dynamic iwinfo, dynamic iface) {
+    if (iwinfo is Map) {
+      final associations = iwinfo['associations'];
+      if (associations is num) return associations.round().toString();
+      if (associations is String && associations.trim().isNotEmpty) {
+        return associations.trim();
+      }
+    }
+    if (iface is Map) {
+      final stations = iface['stations'];
+      if (stations is List && stations.isNotEmpty) {
+        return '${stations.length}';
+      }
+    }
+    return null;
   }
 
   /// Prefer iwinfo description; fall back to common UCI encryption codes.
@@ -1216,6 +1255,92 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     } else {
       return '${iface.protocol} • $shown';
     }
+  }
+}
+
+class _AssociatedClientsDetailRow extends ConsumerStatefulWidget {
+  final String? ifname;
+  final String? hint;
+
+  const _AssociatedClientsDetailRow({
+    this.ifname,
+    this.hint,
+  });
+
+  @override
+  ConsumerState<_AssociatedClientsDetailRow> createState() =>
+      _AssociatedClientsDetailRowState();
+}
+
+class _AssociatedClientsDetailRowState
+    extends ConsumerState<_AssociatedClientsDetailRow> {
+  String? _value;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final hint = widget.hint;
+    if (hint != null && hint.isNotEmpty) {
+      _value = hint;
+    } else if (widget.ifname != null && widget.ifname!.isNotEmpty) {
+      _loading = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+    } else {
+      _value = '—';
+    }
+  }
+
+  Future<void> _load() async {
+    final ifname = widget.ifname;
+    if (ifname == null || ifname.isEmpty) {
+      if (mounted) setState(() {
+        _loading = false;
+        _value = '—';
+      });
+      return;
+    }
+    final count =
+        await ref.read(appStateProvider).fetchAssociatedStationCount(ifname);
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+      _value = count?.toString() ?? '—';
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context)!;
+    final display = _loading ? '…' : (_value ?? '—');
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.associatedClients,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              display,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

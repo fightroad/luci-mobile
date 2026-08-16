@@ -1711,6 +1711,31 @@ class AppState extends ChangeNotifier {
     );
   }
 
+  /// Station count for one wireless ifname via `iwinfo.assoclist`.
+  Future<int?> fetchAssociatedStationCount(String ifname) async {
+    if (ifname.isEmpty || _apiService == null) return null;
+    if (_reviewerModeEnabled) {
+      final stations = await _apiService!.fetchAssociatedStationsWithContext(
+        ipAddress: 'mock',
+        sysauth: 'mock',
+        useHttps: false,
+        interface: ifname,
+      );
+      return stations.length;
+    }
+    if (_routerService?.selectedRouter == null ||
+        _authService?.sysauth == null) {
+      return null;
+    }
+    final stations = await _apiService!.fetchAssociatedStationsWithContext(
+      ipAddress: _routerService!.selectedRouter!.ipAddress,
+      sysauth: _authService!.sysauth!,
+      useHttps: _routerService!.selectedRouter!.useHttps,
+      interface: ifname,
+    );
+    return stations.length;
+  }
+
   String _normalizeClientMac(String mac) =>
       mac.toUpperCase().replaceAll('-', ':');
 

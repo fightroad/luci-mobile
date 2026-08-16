@@ -336,7 +336,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get encryption => 'Encryption';
 
   @override
-  String get associatedClients => 'Associated clients';
+  String get associatedClients => 'Associations';
 
   @override
   String get network => 'Network';

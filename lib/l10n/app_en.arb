@@ -431,9 +431,9 @@
   "@encryption": {
     "description": "Wi-Fi encryption label"
   },
-  "associatedClients": "Associated clients",
+  "associatedClients": "Associations",
   "@associatedClients": {
-    "description": "Wi-Fi associated client count label"
+    "description": "Wi-Fi associated station count label"
   },
   "network": "Network",
   "@network": {

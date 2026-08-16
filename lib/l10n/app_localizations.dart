@@ -722,10 +722,10 @@ abstract class AppLocalizations {
   /// **'Encryption'**
   String get encryption;
 
-  /// Wi-Fi associated client count label
+  /// Wi-Fi associated station count label
   ///
   /// In en, this message translates to:
-  /// **'Associated clients'**
+  /// **'Associations'**
   String get associatedClients;
 
   /// Network label
