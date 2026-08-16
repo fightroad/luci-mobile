@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/api_service.dart';
+import 'package:luci_mobile/services/local_network_permission.dart';
 import 'package:luci_mobile/services/secure_storage_service.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/utils/logger.dart';
@@ -43,6 +44,8 @@ class RealAuthService implements IAuthService {
     BuildContext? context,
   }) async {
     try {
+      await LocalNetworkPermission.ensureRequested();
+
       // Check if the API service is RealApiService to use protocol detection
       if (_apiService is RealApiService) {
         final realApiService = _apiService;

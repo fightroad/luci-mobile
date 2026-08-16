@@ -65,6 +65,7 @@ jobs:
             -c "Add :application-identifier string ${APP_ID}" \
             -c "Add :com.apple.developer.team-identifier string ${TEAM_ID}" \
             -c "Add :get-task-allow bool false" \
+            -c "Add :com.apple.developer.networking.multicast bool true" \
             -c "Add :keychain-access-groups array" \
             -c "Add :keychain-access-groups:0 string ${APP_ID}" \
             "$ENTITLEMENTS"
