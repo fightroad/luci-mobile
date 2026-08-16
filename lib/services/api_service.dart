@@ -112,6 +112,41 @@ class RealApiService implements IApiService {
     return LoginResult(token: null, actualUseHttps: initialUseHttps);
   }
 
+  /// Extract LuCI session id from Set-Cookie headers.
+  /// Modern LuCI uses `sysauth_http` / `sysauth_https`; older builds use `sysauth`.
+  String? _extractSysauthFromHeaders(Headers headers) {
+    final setCookies = headers.map['set-cookie'];
+    if (setCookies == null || setCookies.isEmpty) return null;
+
+    // Prefer protocol-specific cookies, then legacy `sysauth`.
+    const names = ['sysauth_https', 'sysauth_http', 'sysauth'];
+    for (final name in names) {
+      for (final raw in setCookies) {
+        // Each list entry is one Set-Cookie value; do NOT join/split on commas
+        // (Expires= attributes contain commas and would break parsing).
+        for (final part in raw.split(';')) {
+          final kv = part.trim();
+          final eq = kv.indexOf('=');
+          if (eq <= 0) continue;
+          final key = kv.substring(0, eq).trim();
+          final value = kv.substring(eq + 1).trim();
+          if (key == name && value.isNotEmpty) {
+            return value;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  bool _isHttpsRedirect(Response response) {
+    final location = response.headers.value('location');
+    if (location != null && location.toLowerCase().startsWith('https://')) {
+      return true;
+    }
+    return response.realUri.scheme.toLowerCase() == 'https';
+  }
+
   Future<String?> _login(
     String ipAddress,
     String username,
@@ -125,65 +160,56 @@ class RealApiService implements IApiService {
     final params =
         'luci_username=${Uri.encodeComponent(username)}&luci_password=${Uri.encodeComponent(password)}';
 
-    try {
-      // Normal POST request - Dio will follow redirects by default
-      final response = await client.post(
+    Future<Response<dynamic>> postLogin(Dio dioClient) {
+      // LuCI returns 302 + Set-Cookie on success. Do NOT follow redirects:
+      // Dart/Dio often drops intermediate Set-Cookie on POST→302, which makes
+      // login look like "wrong password" even when credentials are correct.
+      return dioClient.post(
         uri.toString(),
         data: params,
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
-          followRedirects: true,
-          validateStatus: (code) => code != null && code >= 200 && code < 400 || code == 302,
+          followRedirects: false,
+          maxRedirects: 0,
+          validateStatus: (code) =>
+              code != null && (code == 200 || code == 302 || code == 303),
         ),
       );
+    }
 
-      // Check if we were redirected to HTTPS (only relevant for initial HTTP attempts)
-      if (checkRedirect && !useHttps) {
-        final finalUrl = response.realUri;
-        if (finalUrl.scheme == 'https') {
-          Logger.info('Detected HTTP to HTTPS redirect: $uri -> $finalUrl');
-          // If we got a successful login after redirect, extract the token
-          if (response.statusCode == 302 || response.statusCode == 200) {
-            final setCookies = response.headers.map['set-cookie'];
-            if (setCookies != null && setCookies.isNotEmpty) {
-              final cookies = setCookies.join(',').split(',');
-              for (final cookie in cookies) {
-                if (cookie.contains('sysauth')) {
-                  final cookieValue = cookie.split(';')[0].split('=')[1];
-                  // Signal that HTTPS should be used by returning a special marker
-                  // We'll handle this in loginWithProtocolDetection
-                  return 'HTTPS_REDIRECT:$cookieValue';
-                }
-              }
-            }
-          }
-          // No token found, trigger HTTPS retry
-          return null;
+    try {
+      final response = await postLogin(client);
+      final token = _extractSysauthFromHeaders(response.headers);
+
+      if (checkRedirect && !useHttps && _isHttpsRedirect(response)) {
+        Logger.info('Detected HTTP to HTTPS redirect from login response');
+        if (token != null) {
+          return 'HTTPS_REDIRECT:$token';
         }
+        // No cookie on the HTTP response — caller will retry with HTTPS.
+        return null;
       }
 
-      if (response.statusCode == 302 || response.statusCode == 200) {
-        // Parse Set-Cookie headers to find sysauth cookie
-        final setCookies = response.headers.map['set-cookie'];
-        if (setCookies != null && setCookies.isNotEmpty) {
-          final cookies = setCookies.join(',').split(',');
-          for (final cookie in cookies) {
-            if (cookie.contains('sysauth')) {
-              final cookieValue = cookie.split(';')[0].split('=')[1];
-              return cookieValue;
-            }
-          }
-        }
+      if (token != null) {
+        return token;
       }
+
+      Logger.warning(
+        'Login response ${response.statusCode} without sysauth cookie '
+        '(set-cookie=${response.headers.map['set-cookie']})',
+      );
       return null;
     } on DioException catch (e, stack) {
       Logger.exception('Login failed', e, stack);
 
       final isCertError =
-          e.error is HandshakeException || e.message?.contains('CERTIFICATE_VERIFY_FAILED') == true;
+          e.error is HandshakeException ||
+          e.message?.contains('CERTIFICATE_VERIFY_FAILED') == true;
 
       if (!useHttps && checkRedirect && isCertError) {
-        Logger.info('Detected HTTPS certificate issue during redirect; retrying with HTTPS');
+        Logger.info(
+          'Detected HTTPS certificate issue during redirect; retrying with HTTPS',
+        );
         final retryContext = context != null && context.mounted ? context : null;
         try {
           return await _login(
@@ -195,12 +221,15 @@ class RealApiService implements IApiService {
             checkRedirect: false,
           );
         } on DioException catch (httpsError, httpsStack) {
-          Logger.exception('HTTPS retry after redirect failed', httpsError, httpsStack);
+          Logger.exception(
+            'HTTPS retry after redirect failed',
+            httpsError,
+            httpsStack,
+          );
         }
       }
 
       if (useHttps && context != null && context.mounted && isCertError) {
-        // Try to prompt for certificate acceptance
         final accepted = await _httpClientManager.promptForCertificateAcceptance(
           context: context,
           hostWithPort: ipAddress,
@@ -208,31 +237,14 @@ class RealApiService implements IApiService {
         );
 
         if (accepted && context.mounted) {
-          // Create a new client and retry the login
-          final retryClient = _createHttpClient(useHttps, ipAddress, context: context);
+          final retryClient = _createHttpClient(
+            useHttps,
+            ipAddress,
+            context: context,
+          );
           try {
-            final retryResponse = await retryClient.post(
-              uri.toString(),
-              data: params,
-              options: Options(
-                contentType: Headers.formUrlEncodedContentType,
-                followRedirects: true,
-                validateStatus: (code) => code != null && code >= 200 && code < 400 || code == 302,
-              ),
-            );
-
-            if (retryResponse.statusCode == 302 || retryResponse.statusCode == 200) {
-              final setCookies = retryResponse.headers.map['set-cookie'];
-              if (setCookies != null && setCookies.isNotEmpty) {
-                final cookies = setCookies.join(',').split(',');
-                for (final cookie in cookies) {
-                  if (cookie.contains('sysauth')) {
-                    final cookieValue = cookie.split(';')[0].split('=')[1];
-                    return cookieValue;
-                  }
-                }
-              }
-            }
+            final retryResponse = await postLogin(retryClient);
+            return _extractSysauthFromHeaders(retryResponse.headers);
           } on DioException catch (retryError, retryStack) {
             Logger.exception('Login retry failed', retryError, retryStack);
           }
