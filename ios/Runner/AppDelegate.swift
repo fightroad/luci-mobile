@@ -33,12 +33,11 @@ import UIKit
   private func triggerLocalNetworkPermission() {
     localNetworkBrowser?.cancel()
 
-    let browser = NWBrowser(
-      for: .bonjour(type: "_http._tcp", domain: nil),
-      using: NWParameters()
-    )
-    browser.stateUpdateHandler = { _, _ in }
-    browser.browseResultsChangedHandler = { _, _ in }
+    let parameters = NWParameters()
+    let descriptor = NWBrowser.Descriptor.bonjour(type: "_http._tcp", domain: nil)
+    let browser = NWBrowser(for: descriptor, using: parameters)
+    browser.stateUpdateHandler = { (_: NWBrowser.State) in }
+    browser.browseResultsChangedHandler = { (_: Set<NWBrowser.Result>, _: Set<NWBrowser.Result.Change>) in }
     browser.start(queue: .main)
     localNetworkBrowser = browser
 
