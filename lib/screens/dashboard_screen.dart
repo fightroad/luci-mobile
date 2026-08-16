@@ -759,18 +759,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final totalMem = _asInt(sysInfo?['memory']?['total']) ?? 0;
     final freeMem = _asInt(sysInfo?['memory']?['free']) ?? 0;
     final bufferedMem = _asInt(sysInfo?['memory']?['buffered']) ?? 0;
-    final sharedMem = _asInt(sysInfo?['memory']?['shared']);
     final cachedMem = _asInt(sysInfo?['memory']?['cached']);
-    final availableMem = _asInt(sysInfo?['memory']?['available']);
-    // Modern LuCI "已使用" is total - available (Used + Available = 100%).
-    // Fallback when MemAvailable is missing: total - free.
-    final usedMem = totalMem > 0
-        ? (availableMem != null
-                  ? totalMem - availableMem
-                  : totalMem - freeMem)
-              .clamp(0, totalMem)
-        : 0;
-    // LuCI: Math.floor((100 / total) * used)
+    // LuCI Total Available / 「可用数」: prefer MemAvailable, else free+buffered.
+    final availableMem = _asInt(sysInfo?['memory']?['available']) ??
+        (totalMem > 0 ? freeMem + bufferedMem : null);
+    // LuCI Used / 「已使用」 (20_memory.js): total - free.
+    final usedMem =
+        totalMem > 0 ? (totalMem - freeMem).clamp(0, totalMem) : 0;
+    // LuCI progressbar: Math.floor((100 / total) * value)
     final memoryValue = totalMem > 0
         ? '${((100 * usedMem) / totalMem).floor()}%'
         : 'N/A';
@@ -779,9 +775,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             l10n: l10n,
             used: usedMem,
             total: totalMem,
-            free: freeMem,
             buffered: bufferedMem,
-            shared: sharedMem,
             cached: cachedMem,
             available: availableMem,
           )
@@ -1243,28 +1237,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required AppLocalizations l10n,
     required int used,
     required int total,
-    required int free,
     required int buffered,
-    int? shared,
     int? cached,
     int? available,
   }) {
-    final percent = ((100 * used) / total).floor().clamp(0, 100);
-    final lines = <String>[
-      '${_formatMemoryBytes(used)} / ${_formatMemoryBytes(total)} ($percent%)',
-      '${l10n.memoryFree}: ${_formatMemoryBytes(free)}',
-      '${l10n.memoryBuffered}: ${_formatMemoryBytes(buffered)}',
-    ];
-    if (available != null) {
-      lines.add('${l10n.memoryAvailable}: ${_formatMemoryBytes(available)}');
+    String bar(int value) {
+      final pct = ((100 * value) / total).floor().clamp(0, 100);
+      return '${_formatMemoryBytes(value)} / ${_formatMemoryBytes(total)} ($pct%)';
     }
-    if (cached != null) {
-      lines.add('${l10n.memoryCached}: ${_formatMemoryBytes(cached)}');
-    }
-    if (shared != null) {
-      lines.add('${l10n.memoryShared}: ${_formatMemoryBytes(shared)}');
-    }
-    return lines.join('\n');
+
+    // Match LuCI 20_memory.js rows: Available, Used, Buffered?, Cached?
+    return [
+      if (available != null) '${l10n.memoryAvailable}: ${bar(available)}',
+      '${l10n.memory}: ${bar(used)}',
+      if (buffered > 0) '${l10n.memoryBuffered}: ${bar(buffered)}',
+      if (cached != null && cached > 0) '${l10n.memoryCached}: ${bar(cached)}',
+    ].join('\n');
   }
 
   Widget _buildWirelessInfoCardContent(
