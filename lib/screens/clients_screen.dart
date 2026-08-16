@@ -595,37 +595,42 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
             vertical: LuciSpacing.sm,
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: LuciTextStyles.detailLabel(context),
                 semanticsLabel: title,
               ),
-              Row(
-                children: [
-                  Text(
-                    value,
-                    style: valueColor != null
-                        ? LuciTextStyles.detailValue(
-                            context,
-                          ).copyWith(color: valueColor)
-                        : LuciTextStyles.detailValue(context),
-                    semanticsLabel: semanticsLabel ?? value,
-                  ),
-                  if (onTap != null)
-                    GestureDetector(
-                      onTap: onTap,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        value,
+                        style: valueColor != null
+                            ? LuciTextStyles.detailValue(
+                                context,
+                              ).copyWith(color: valueColor)
+                            : LuciTextStyles.detailValue(context),
+                        textAlign: TextAlign.end,
+                        softWrap: true,
+                        semanticsLabel: semanticsLabel ?? value,
+                      ),
+                    ),
+                    if (onTap != null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8.0, top: 2.0),
                         child: Icon(
                           Icons.copy_all_outlined,
                           size: 16,
                           semanticLabel: AppLocalizations.of(context)!.copy,
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),

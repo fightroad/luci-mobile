@@ -1063,7 +1063,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               title,
@@ -1071,34 +1071,33 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                 color: colorScheme.onSurface,
               ),
             ),
-            Row(
-              children: [
-                Text(
-                  value,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: colorScheme.onSurface,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      value,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurface,
+                      ),
+                      textAlign: TextAlign.end,
+                      softWrap: true,
+                    ),
                   ),
-                  textAlign: TextAlign.end,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (onTap != null)
-                  GestureDetector(
-                    onTap: onTap,
-                        child: Builder(
-                          builder: (context) {
-                            return Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: Icon(
-                                Icons.copy_all_outlined,
-                                size: 16,
-                                semanticLabel: AppLocalizations.of(context)!.copy,
-                              ),
-                            );
-                          },
-                        ),
-                  ),
-              ],
+                  if (onTap != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8.0, top: 2.0),
+                      child: Icon(
+                        Icons.copy_all_outlined,
+                        size: 16,
+                        semanticLabel: AppLocalizations.of(context)!.copy,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),
