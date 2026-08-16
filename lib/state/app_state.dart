@@ -184,12 +184,20 @@ class AppState extends ChangeNotifier {
       }
       if (json != null && json.isNotEmpty) {
         _dashboardPreferences = DashboardPreferences.fromJson(jsonDecode(json));
-        notifyListeners();
+      } else {
+        // Do not keep another router's in-memory prefs.
+        _dashboardPreferences = DashboardPreferences();
       }
+      notifyListeners();
     } catch (e, stack) {
       Logger.exception('Failed to load dashboard preferences', e, stack);
       _dashboardPreferences = DashboardPreferences();
+      notifyListeners();
     }
+  }
+
+  Future<void> _deleteDashboardPreferencesForRouter(String routerId) async {
+    await _secureStorageService.deleteValue('dashboard_preferences:$routerId');
   }
 
   Future<void> saveDashboardPreferences(DashboardPreferences prefs) async {
@@ -279,6 +287,7 @@ class AppState extends ChangeNotifier {
 
     // Clear certificates for this specific router
     await _httpClientManager.clearCertificatesForHost(router.ipAddress);
+    await _deleteDashboardPreferencesForRouter(id);
 
     final needsSwitch = await _routerService!.removeRouter(id);
     if (needsSwitch && _routerService!.routers.isNotEmpty) {
@@ -372,7 +381,14 @@ class AppState extends ChangeNotifier {
               actualUseHttps, // Use the detected protocol
             );
             if (replaceExistingRouters) {
+              final previousIds =
+                  _routerService!.routers.map((r) => r.id).toList();
               await _routerService!.replaceAllRouters(router);
+              for (final oldId in previousIds) {
+                if (oldId != router.id) {
+                  await _deleteDashboardPreferencesForRouter(oldId);
+                }
+              }
             } else {
               final idx = _routerService!.routers.indexWhere(
                 (r) => r.id == router.id,
