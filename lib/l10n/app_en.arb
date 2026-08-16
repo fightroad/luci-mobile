@@ -222,6 +222,14 @@
   "@uptime": {
     "description": "Uptime label"
   },
+  "localTime": "Local time",
+  "@localTime": {
+    "description": "Router local time label in uptime detail dialog"
+  },
+  "bootTime": "Boot time",
+  "@bootTime": {
+    "description": "Router boot time label in uptime detail dialog"
+  },
   "onlineClients": "Online",
   "@onlineClients": {
     "description": "Online clients count label on dashboard"

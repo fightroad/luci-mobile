@@ -416,6 +416,18 @@ abstract class AppLocalizations {
   /// **'Uptime'**
   String get uptime;
 
+  /// Router local time label in uptime detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Local time'**
+  String get localTime;
+
+  /// Router boot time label in uptime detail dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Boot time'**
+  String get bootTime;
+
   /// Online clients count label on dashboard
   ///
   /// In en, this message translates to:

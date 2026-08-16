@@ -176,6 +176,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get uptime => 'Uptime';
 
   @override
+  String get localTime => 'Local time';
+
+  @override
+  String get bootTime => 'Boot time';
+
+  @override
   String get onlineClients => 'Online';
 
   @override

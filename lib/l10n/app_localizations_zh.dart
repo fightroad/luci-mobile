@@ -173,6 +173,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get uptime => '运行时间';
 
   @override
+  String get localTime => '本地时间';
+
+  @override
+  String get bootTime => '开机时间';
+
+  @override
   String get onlineClients => '在线';
 
   @override

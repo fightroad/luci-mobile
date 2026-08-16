@@ -100,6 +100,31 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return parts.join(' ');
   }
 
+  String _formatUptimeDetail(
+    int seconds, {
+    required AppLocalizations l10n,
+    int? localtime,
+  }) {
+    String formatEpoch(int epochSeconds) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
+      return '${dt.year.toString().padLeft(4, '0')}-'
+          '${dt.month.toString().padLeft(2, '0')}-'
+          '${dt.day.toString().padLeft(2, '0')} '
+          '${dt.hour.toString().padLeft(2, '0')}:'
+          '${dt.minute.toString().padLeft(2, '0')}:'
+          '${dt.second.toString().padLeft(2, '0')}';
+    }
+
+    final hasLocaltime = localtime != null && localtime > 0;
+    final bootEpoch = hasLocaltime ? localtime - seconds : null;
+    final bootText =
+        (bootEpoch != null && bootEpoch > 0) ? formatEpoch(bootEpoch) : '—';
+    final localText = hasLocaltime ? formatEpoch(localtime) : '—';
+
+    return '${l10n.bootTime}: $bootText\n'
+        '${l10n.localTime}: $localText';
+  }
+
   String _formatCpuLoad(List<dynamic> load) {
     if (load.isEmpty) return 'N/A';
     // Use the first value as the main CPU load
@@ -761,7 +786,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final sysInfo = appState.dashboardData?['sysInfo'] as Map<String, dynamic>?;
 
     final uptime = _asInt(sysInfo?['uptime']);
+    final localtime = _asInt(sysInfo?['localtime']);
     final uptimeValue = uptime != null ? _formatUptime(uptime) : 'N/A';
+    final uptimeDetail = uptime != null
+        ? _formatUptimeDetail(uptime, l10n: l10n, localtime: localtime)
+        : null;
 
     final cpuUsage = appState.dashboardData?['cpuUsage']?.toString();
     final cpuUsageDetail = appState.dashboardData?['cpuUsageDetail']?.toString();
@@ -842,12 +871,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ? null
                       : () => _showVitalDetailDialog(l10n.memory, memoryDetail),
                 ),
-                Expanded(
-                  child: _buildVitalsColumn(
-                    context,
-                    label: l10n.uptime,
-                    value: uptimeValue,
-                  ),
+                _buildTappableVitalsColumn(
+                  label: l10n.uptime,
+                  value: uptimeValue,
+                  onTap: uptimeDetail == null
+                      ? null
+                      : () =>
+                            _showVitalDetailDialog(l10n.uptime, uptimeDetail),
                 ),
               ],
             ),
