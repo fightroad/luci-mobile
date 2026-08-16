@@ -56,20 +56,14 @@ class Client {
       return ConnectionType.wireless;
     }
 
-    // Check MAC address OUI for common wireless vendors
+    // Check MAC address OUI for common wireless / wired vendors.
+    // Lists must not overlap — wireless is checked first.
     final mac = (lease['macaddr'] ?? '').toString().toLowerCase();
     if (mac.isNotEmpty) {
-      // Common wireless MAC OUI prefixes
       const wirelessOuis = [
         '00:1e:2a',
         '00:23:69',
-        '00:26:5e',
-        '00:26:5f',
-        '00:26:ab',
-        '00:26:b8',
-        '00:26:f2',
         '00:1d:0f',
-        '00:1e:2a',
         '00:21:29',
         '00:22:3f',
         '00:22:5f',
@@ -80,10 +74,6 @@ class Client {
         '4c:57:ca', // TP-Link
         'a0:14:3d',
         '00:1a:11',
-        '00:1d:60',
-        '00:25:9e',
-        '00:26:5a',
-        '00:50:43', // Microsoft
         '34:ab:37', // Amazon
       ];
 
@@ -92,9 +82,8 @@ class Client {
         return ConnectionType.wireless;
       }
 
-      // If MAC starts with common wired OUI, mark as wired
       const wiredOuis = [
-        '00:1d:60', '00:25:9e', '00:26:5a', '00:50:43', // Dell
+        '00:1d:60', '00:25:9e', '00:26:5a', '00:50:43', // Dell / Microsoft
         '00:1a:4d', '00:1a:4e', '00:1a:4f', // ASUS
         '00:1b:21',
         '00:1b:fc',
@@ -166,13 +155,16 @@ class Client {
       }
     }
 
+    final rawHostname =
+        toStringValue(lease['hostname']) ?? toStringValue(lease['name']);
+    final hostname = (rawHostname == null || rawHostname.trim().isEmpty)
+        ? 'Unknown'
+        : rawHostname.trim();
+
     return Client(
       ipAddress: toStringValue(lease['ipaddr']) ?? 'N/A',
       macAddress: toStringValue(lease['macaddr']) ?? 'N/A',
-      hostname:
-          toStringValue(lease['hostname']) ??
-          toStringValue(lease['name']) ??
-          'Unknown',
+      hostname: hostname,
       hostId: toStringValue(lease['hostid']),
       leaseTime: remainingLeaseTime, // Use the 'expires' value directly
       vendor: toStringValue(lease['vendor']),
@@ -182,36 +174,6 @@ class Client {
       expiresAt: expiresAtTimestamp, // Store the calculated absolute timestamp
       connectionType: _determineConnectionType(lease),
       ipv6Addresses: ipv6Addresses,
-    );
-  }
-
-  /// Creates a Client from luci-rpc getHostHints entry (ARP / static / lease hints).
-  factory Client.fromHostHint(String macAddress, Map<dynamic, dynamic> hint) {
-    String? ipv4;
-    final ipaddrs = hint['ipaddrs'];
-    if (ipaddrs is List && ipaddrs.isNotEmpty) {
-      ipv4 = ipaddrs.first.toString();
-    } else if (hint['ipv4'] != null) {
-      ipv4 = hint['ipv4'].toString();
-    } else if (hint['ipaddr'] != null) {
-      ipv4 = hint['ipaddr'].toString();
-    }
-
-    List<String>? ipv6Addresses;
-    final ip6addrs = hint['ip6addrs'] ?? hint['ip6addr'];
-    if (ip6addrs is List && ip6addrs.isNotEmpty) {
-      ipv6Addresses = ip6addrs.map((e) => e.toString()).toList();
-    } else if (hint['ipv6'] != null) {
-      ipv6Addresses = [hint['ipv6'].toString()];
-    }
-
-    final name = hint['name']?.toString().trim();
-    return Client(
-      ipAddress: (ipv4 != null && ipv4.isNotEmpty) ? ipv4 : 'N/A',
-      macAddress: macAddress,
-      hostname: (name != null && name.isNotEmpty) ? name : 'Unknown',
-      ipv6Addresses: ipv6Addresses,
-      connectionType: ConnectionType.wired,
     );
   }
 

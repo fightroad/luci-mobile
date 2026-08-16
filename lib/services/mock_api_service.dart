@@ -258,7 +258,6 @@ class MockApiService implements IApiService {
       'luci-rpc.getNetworkDevices': 'network_devices.json',
       'luci-rpc.getWirelessDevices': 'wireless_devices.json',
       'luci-rpc.getDHCPLeases': 'dhcp_leases.json',
-      'luci-rpc.getHostHints': 'host_hints.json',
       'luci.getVersion': 'luci_version.json',
     };
 
@@ -372,28 +371,6 @@ class MockApiService implements IApiService {
         return [
           0,
           {'stdout': _getVariedDhcpLeases(), 'stderr': '', 'code': 0},
-        ];
-
-      case 'luci-rpc.getHostHints':
-        return [
-          0,
-          {
-            'dd:ee:ff:11:22:33': {
-              'name': 'NAS-Static',
-              'ipaddrs': ['192.168.1.50'],
-              'ip6addrs': [],
-            },
-            'dd:ee:ff:44:55:66': {
-              'name': 'Office-PC-Static',
-              'ipaddrs': ['192.168.1.51'],
-              'ip6addrs': ['fd12:3456:789a::51'],
-            },
-            'dd:ee:ff:77:88:99': {
-              'name': 'Phone-Static-WiFi',
-              'ipaddrs': ['192.168.1.52'],
-              'ip6addrs': [],
-            },
-          },
         ];
 
       case 'network.interface.dump':
