@@ -69,7 +69,8 @@ class RealApiService implements IApiService {
     bool initialUseHttps, {
     BuildContext? context,
   }) async {
-    // First try with the initial protocol
+    // Prefer cookie-free auth first (ubus session / JSON-RPC). Form+Set-Cookie
+    // is fragile on some clients that hide or drop Set-Cookie on 302 responses.
     var result = await _login(
       ipAddress,
       username,
@@ -115,15 +116,17 @@ class RealApiService implements IApiService {
   /// Extract LuCI session id from Set-Cookie headers.
   /// Modern LuCI uses `sysauth_http` / `sysauth_https`; older builds use `sysauth`.
   String? _extractSysauthFromHeaders(Headers headers) {
-    final setCookies = headers.map['set-cookie'];
-    if (setCookies == null || setCookies.isEmpty) return null;
+    // Try common casings / accessors Dio may expose
+    final setCookies = <String>[
+      ...?headers.map['set-cookie'],
+      ...?headers.map['Set-Cookie'],
+      ...(headers['set-cookie'] ?? const <String>[]),
+    ];
+    if (setCookies.isEmpty) return null;
 
-    // Prefer protocol-specific cookies, then legacy `sysauth`.
     const names = ['sysauth_https', 'sysauth_http', 'sysauth'];
     for (final name in names) {
       for (final raw in setCookies) {
-        // Each list entry is one Set-Cookie value; do NOT join/split on commas
-        // (Expires= attributes contain commas and would break parsing).
         for (final part in raw.split(';')) {
           final kv = part.trim();
           final eq = kv.indexOf('=');
@@ -147,6 +150,111 @@ class RealApiService implements IApiService {
     return response.realUri.scheme.toLowerCase() == 'https';
   }
 
+  /// Modern OpenWrt: authenticate via ubus `session.login` (token in JSON body).
+  Future<String?> _loginViaUbusSession(
+    Dio client,
+    String ipAddress,
+    String username,
+    String password,
+    bool useHttps,
+  ) async {
+    final uri = _buildUrl(ipAddress, useHttps, '/cgi-bin/luci/admin/ubus');
+    try {
+      final response = await client.post(
+        uri.toString(),
+        data: jsonEncode({
+          'jsonrpc': '2.0',
+          'id': 1,
+          'method': 'call',
+          // Unauthenticated session id (32 zero hex chars)
+          'params': [
+            '00000000000000000000000000000000',
+            'session',
+            'login',
+            {'username': username, 'password': password},
+          ],
+        }),
+        options: Options(
+          contentType: Headers.jsonContentType,
+          followRedirects: false,
+          validateStatus: (code) => code != null && code < 500,
+        ),
+      );
+
+      if (response.statusCode != 200) {
+        Logger.warning('ubus session.login HTTP ${response.statusCode}');
+        return null;
+      }
+
+      final data = response.data is String
+          ? jsonDecode(response.data as String)
+          : response.data;
+      if (data is! Map) return null;
+
+      // Expected: {"result":[0,{"ubus_rpc_session":"..."}], ...}
+      final result = data['result'];
+      if (result is List && result.length > 1 && result[0] == 0) {
+        final payload = result[1];
+        if (payload is Map && payload['ubus_rpc_session'] != null) {
+          final token = payload['ubus_rpc_session'].toString();
+          if (token.isNotEmpty) {
+            Logger.info('Login succeeded via ubus session.login');
+            return token;
+          }
+        }
+      }
+
+      Logger.warning('ubus session.login unexpected payload: $data');
+      return null;
+    } on DioException catch (e, stack) {
+      Logger.exception('ubus session.login failed', e, stack);
+      return null;
+    }
+  }
+
+  /// Legacy JSON-RPC auth endpoint used by luci-mod-rpc.
+  Future<String?> _loginViaRpcAuth(
+    Dio client,
+    String ipAddress,
+    String username,
+    String password,
+    bool useHttps,
+  ) async {
+    final uri = _buildUrl(ipAddress, useHttps, '/cgi-bin/luci/rpc/auth');
+    try {
+      final response = await client.post(
+        uri.toString(),
+        data: jsonEncode({
+          'id': 1,
+          'method': 'login',
+          'params': [username, password],
+        }),
+        options: Options(
+          contentType: Headers.jsonContentType,
+          followRedirects: false,
+          validateStatus: (code) => code != null && code < 500,
+        ),
+      );
+
+      if (response.statusCode != 200) return null;
+
+      final data = response.data is String
+          ? jsonDecode(response.data as String)
+          : response.data;
+      if (data is Map && data['result'] is String) {
+        final token = data['result'] as String;
+        if (token.isNotEmpty) {
+          Logger.info('Login succeeded via /cgi-bin/luci/rpc/auth');
+          return token;
+        }
+      }
+      return null;
+    } on DioException catch (e, stack) {
+      Logger.exception('rpc/auth login failed', e, stack);
+      return null;
+    }
+  }
+
   Future<String?> _login(
     String ipAddress,
     String username,
@@ -156,14 +264,32 @@ class RealApiService implements IApiService {
     bool checkRedirect = false,
   }) async {
     final client = _createHttpClient(useHttps, ipAddress, context: context);
+
+    // 1) Prefer cookie-free methods (reliable on iOS / with HttpOnly cookies)
+    final ubusToken = await _loginViaUbusSession(
+      client,
+      ipAddress,
+      username,
+      password,
+      useHttps,
+    );
+    if (ubusToken != null) return ubusToken;
+
+    final rpcToken = await _loginViaRpcAuth(
+      client,
+      ipAddress,
+      username,
+      password,
+      useHttps,
+    );
+    if (rpcToken != null) return rpcToken;
+
+    // 2) Fallback: classic LuCI form login + Set-Cookie
     final uri = _buildUrl(ipAddress, useHttps, '/cgi-bin/luci/');
     final params =
         'luci_username=${Uri.encodeComponent(username)}&luci_password=${Uri.encodeComponent(password)}';
 
     Future<Response<dynamic>> postLogin(Dio dioClient) {
-      // LuCI returns 302 + Set-Cookie on success. Do NOT follow redirects:
-      // Dart/Dio often drops intermediate Set-Cookie on POST→302, which makes
-      // login look like "wrong password" even when credentials are correct.
       return dioClient.post(
         uri.toString(),
         data: params,
@@ -186,21 +312,21 @@ class RealApiService implements IApiService {
         if (token != null) {
           return 'HTTPS_REDIRECT:$token';
         }
-        // No cookie on the HTTP response — caller will retry with HTTPS.
         return null;
       }
 
       if (token != null) {
+        Logger.info('Login succeeded via form POST Set-Cookie');
         return token;
       }
 
       Logger.warning(
-        'Login response ${response.statusCode} without sysauth cookie '
-        '(set-cookie=${response.headers.map['set-cookie']})',
+        'Form login HTTP ${response.statusCode} without sysauth cookie '
+        '(headers=${response.headers.map})',
       );
       return null;
     } on DioException catch (e, stack) {
-      Logger.exception('Login failed', e, stack);
+      Logger.exception('Form login failed', e, stack);
 
       final isCertError =
           e.error is HandshakeException ||
@@ -242,6 +368,15 @@ class RealApiService implements IApiService {
             ipAddress,
             context: context,
           );
+          final viaUbus = await _loginViaUbusSession(
+            retryClient,
+            ipAddress,
+            username,
+            password,
+            useHttps,
+          );
+          if (viaUbus != null) return viaUbus;
+
           try {
             final retryResponse = await postLogin(retryClient);
             return _extractSysauthFromHeaders(retryResponse.headers);
