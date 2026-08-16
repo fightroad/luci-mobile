@@ -294,7 +294,7 @@ class MockApiService implements IApiService {
             'uptime': _getVariedUptime(),
             'load': _getVariedLoadAverages(),
             'memory': memory,
-            'localtime': _getVariedTimestamp(),
+            'localtime': _getVariedLocaltime(),
           },
         ];
 
@@ -793,6 +793,12 @@ class MockApiService implements IApiService {
 
   static int _getVariedTimestamp() {
     return DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  }
+
+  /// Matches OpenWrt `system.info.localtime` (`time(NULL) + tm_gmtoff`).
+  static int _getVariedLocaltime() {
+    final now = DateTime.now();
+    return now.millisecondsSinceEpoch ~/ 1000 + now.timeZoneOffset.inSeconds;
   }
 
   static String _getVariedDhcpLeases() {

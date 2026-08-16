@@ -100,26 +100,38 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return parts.join(' ');
   }
 
+  /// OpenWrt `system.info.localtime` is not a UTC unix timestamp — it is
+  /// `time(NULL) + tm_gmtoff`, i.e. wall-clock seconds with the router TZ
+  /// already baked in. Format with [isUtc] so the phone timezone is not
+  /// applied a second time.
+  String _formatRouterLocaltime(int epochSeconds, {bool includeDate = true}) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(
+      epochSeconds * 1000,
+      isUtc: true,
+    );
+    final time =
+        '${dt.hour.toString().padLeft(2, '0')}:'
+        '${dt.minute.toString().padLeft(2, '0')}:'
+        '${dt.second.toString().padLeft(2, '0')}';
+    if (!includeDate) return time;
+    return '${dt.year.toString().padLeft(4, '0')}-'
+        '${dt.month.toString().padLeft(2, '0')}-'
+        '${dt.day.toString().padLeft(2, '0')} $time';
+  }
+
   List<({String label, String value})> _uptimeDetailRows(
     int seconds, {
     required AppLocalizations l10n,
     int? localtime,
   }) {
-    String formatEpoch(int epochSeconds) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(epochSeconds * 1000);
-      return '${dt.year.toString().padLeft(4, '0')}-'
-          '${dt.month.toString().padLeft(2, '0')}-'
-          '${dt.day.toString().padLeft(2, '0')} '
-          '${dt.hour.toString().padLeft(2, '0')}:'
-          '${dt.minute.toString().padLeft(2, '0')}:'
-          '${dt.second.toString().padLeft(2, '0')}';
-    }
-
     final hasLocaltime = localtime != null && localtime > 0;
     final bootEpoch = hasLocaltime ? localtime - seconds : null;
     final bootText =
-        (bootEpoch != null && bootEpoch > 0) ? formatEpoch(bootEpoch) : '—';
-    final localText = hasLocaltime ? formatEpoch(localtime) : '—';
+        (bootEpoch != null && bootEpoch > 0)
+        ? _formatRouterLocaltime(bootEpoch)
+        : '—';
+    final localText =
+        hasLocaltime ? _formatRouterLocaltime(localtime) : '—';
 
     return [
       (label: l10n.bootTime, value: bootText),
@@ -804,6 +816,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final uptimeRows = uptime != null
         ? _uptimeDetailRows(uptime, l10n: l10n, localtime: localtime)
         : null;
+    final hasLocaltime = localtime != null && localtime > 0;
+    final localTimeValue =
+        hasLocaltime
+        ? _formatRouterLocaltime(localtime, includeDate: false)
+        : '—';
+    final localTimeDetail =
+        hasLocaltime ? _formatRouterLocaltime(localtime) : null;
 
     final network = _networkAddressSummary(appState);
     final lanValue = network.lanIpv4 ?? '—';
@@ -912,6 +931,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ),
                 ),
                 _buildTappableVitalsColumn(
+                  label: l10n.localTime,
+                  value: localTimeValue,
+                  onTap: localTimeDetail == null
+                      ? null
+                      : () => _showVitalDetailDialog(
+                          l10n.localTime,
+                          localTimeDetail,
+                        ),
+                ),
+                _buildTappableVitalsColumn(
                   label: l10n.uptime,
                   value: uptimeValue,
                   onTap: uptimeRows == null
@@ -921,7 +950,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           uptimeRows,
                         ),
                 ),
-                const Expanded(child: SizedBox.shrink()),
               ],
             ),
           ],

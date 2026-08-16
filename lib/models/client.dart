@@ -1,5 +1,8 @@
 enum ConnectionType { wired, wireless, unknown }
 
+/// Best-effort device category from hostname / vendor (not authoritative).
+enum DeviceKind { phone, computer, tv, unknown }
+
 class Client {
   final String ipAddress;
   final String macAddress;
@@ -31,6 +34,189 @@ class Client {
     this.ipv6Addresses,
     this.accessPoint,
   });
+
+  DeviceKind get deviceKind => guessDeviceKind(hostname, vendor);
+
+  /// Hostname / vendor keyword heuristic for UI icons.
+  static DeviceKind guessDeviceKind(String hostname, String? vendor) {
+    final h = hostname.trim().toLowerCase();
+    final v = (vendor ?? '').toLowerCase();
+    if (h.isEmpty || h == 'unknown' || h == 'n/a' || h == '*') {
+      // Vendor alone is weak; only use clear PC NIC / OEM vendors.
+      if (_containsAny(v, const [
+        'intel',
+        'dell',
+        'lenovo',
+        'hewlett',
+        'asustek',
+        'micro-star',
+        'gigabyte',
+        'acer',
+        'asrock',
+        'supermicro',
+        'fujitsu',
+        'toshiba',
+      ])) {
+        return DeviceKind.computer;
+      }
+      return DeviceKind.unknown;
+    }
+
+    final text = '$h $v';
+
+    // 1) TV / set-top (most specific product strings first).
+    if (_containsAny(text, const [
+      'apple-tv',
+      'appletv',
+      'fire-tv',
+      'firetv',
+      'firestick',
+      'fire-stick',
+      'smart-tv',
+      'smarttv',
+      'chromecast',
+      'google-tv',
+      'googletv',
+      'android-tv',
+      'androidtv',
+      'roku',
+      'bravia',
+      'mi-box',
+      'mibox',
+      'mitv',
+      'mi-tv',
+      'xiaomi-tv',
+      'shield',
+      'skyworth',
+      'hisense',
+      'changhong',
+      'konka',
+      'coocaa',
+      'letv',
+      'vidaa',
+      'webos',
+      'tizen',
+      '电视',
+      '盒子',
+    ]) ||
+        h == 'tv' ||
+        h.startsWith('tv-') ||
+        h.endsWith('-tv') ||
+        h.contains('-tv-') ||
+        h.contains('_tv_') ||
+        h.contains(' tv') ||
+        h.startsWith('aft') || // Fire TV stick hostnames
+        _isWordToken(h, 'tcl')) {
+      return DeviceKind.tv;
+    }
+
+    // 2) Clear computer product names before phone brand keywords
+    // (e.g. HUAWEI-MateBook must not become phone via "huawei").
+    if (_containsAny(text, const [
+      'macbook',
+      'imac',
+      'mac-mini',
+      'macmini',
+      'mac-pro',
+      'macpro',
+      'matebook',
+      'honorbook',
+      'magicbook',
+      'thinkpad',
+      'thinkbook',
+      'ideapad',
+      'yoga ',
+      'yoga-',
+      'surface',
+      'chromebook',
+      'mbp-',
+      'desktop',
+      'laptop',
+      'notebook',
+      'workstation',
+      'windows',
+      'win11',
+      'win10',
+      'win7',
+      'hasee',
+      'thunderobot',
+      'mechrevo',
+      'xiaoxin',
+      '电脑',
+      '笔记本',
+    ]) ||
+        h == 'pc' ||
+        h.startsWith('pc-') ||
+        h.endsWith('-pc') ||
+        h.contains('-pc-')) {
+      return DeviceKind.computer;
+    }
+
+    // 3) Phones / tablets.
+    if (_containsAny(text, const [
+      'iphone',
+      'ipad',
+      'ipod',
+      'android',
+      'pixel',
+      'galaxy',
+      'xiaomi',
+      'redmi',
+      'poco',
+      'blackshark',
+      'huawei',
+      'honor',
+      'oppo',
+      'vivo',
+      'iqoo',
+      'oneplus',
+      'realme',
+      'meizu',
+      'nubia',
+      'zte',
+      'nothing',
+      'smartphone',
+      'harmonyos',
+      'miui',
+      '手机',
+      '平板',
+      '华为',
+      '小米',
+      '红米',
+      '荣耀',
+      '一加',
+      '真我',
+    ]) ||
+        _isWordToken(h, 'phone') ||
+        _isWordToken(h, 'mobile') ||
+        _isWordToken(h, 'mate') ||
+        _isWordToken(h, 'nova')) {
+      return DeviceKind.phone;
+    }
+
+    return DeviceKind.unknown;
+  }
+
+  static bool _containsAny(String text, List<String> keywords) {
+    for (final k in keywords) {
+      if (text.contains(k)) return true;
+    }
+    return false;
+  }
+
+  /// True when [token] appears as its own segment (e.g. phone, my-phone).
+  static bool _isWordToken(String hostname, String token) {
+    if (hostname == token) return true;
+    if (hostname.startsWith('$token-') || hostname.startsWith('${token}_')) {
+      return true;
+    }
+    if (hostname.endsWith('-$token') || hostname.endsWith('_$token')) {
+      return true;
+    }
+    return hostname.contains('-$token-') ||
+        hostname.contains('_${token}_') ||
+        hostname.contains(' $token');
+  }
 
   // Helper function to determine connection type from MAC address or other data
   static ConnectionType _determineConnectionType(Map<String, dynamic> lease) {

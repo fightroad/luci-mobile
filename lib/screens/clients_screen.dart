@@ -410,7 +410,7 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                             duration: const Duration(milliseconds: 500),
                             curve: Curves.elasticOut,
                             child: Icon(
-                              Icons.person_outline,
+                              _deviceKindIcon(widget.client.deviceKind),
                               color: colorScheme.primary,
                               size: 22,
                               semanticLabel: AppLocalizations.of(context)!.clientIcon,
@@ -521,6 +521,19 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
         ),
       ),
     );
+  }
+
+  IconData _deviceKindIcon(DeviceKind kind) {
+    switch (kind) {
+      case DeviceKind.phone:
+        return Icons.smartphone;
+      case DeviceKind.computer:
+        return Icons.laptop;
+      case DeviceKind.tv:
+        return Icons.tv;
+      case DeviceKind.unknown:
+        return Icons.person_outline;
+    }
   }
 
   Widget _buildConnectionTypeChip(BuildContext context, ConnectionType type) {

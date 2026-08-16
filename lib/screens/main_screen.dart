@@ -141,6 +141,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 builder: (context) {
                   final l10n = AppLocalizations.of(context)!;
                   return NavigationDestination(
+                    tooltip: '',
                     selectedIcon: Opacity(
                       opacity: getTabOpacity(0),
                       child: Icon(Icons.dashboard, color: getTabColor(0)),
@@ -157,6 +158,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 builder: (context) {
                   final l10n = AppLocalizations.of(context)!;
                   return NavigationDestination(
+                    tooltip: '',
                     selectedIcon: Opacity(
                       opacity: getTabOpacity(1),
                       child: Icon(Icons.people, color: getTabColor(1)),
@@ -173,6 +175,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 builder: (context) {
                   final l10n = AppLocalizations.of(context)!;
                   return NavigationDestination(
+                    tooltip: '',
                     selectedIcon: Opacity(
                       opacity: getTabOpacity(2),
                       child: Icon(Icons.lan, color: getTabColor(2)),
@@ -189,6 +192,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 builder: (context) {
                   final l10n = AppLocalizations.of(context)!;
                   return NavigationDestination(
+                    tooltip: '',
                     selectedIcon: Opacity(
                       opacity: getTabOpacity(3),
                       child: Icon(Icons.more_horiz),
