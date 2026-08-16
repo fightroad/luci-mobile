@@ -80,10 +80,6 @@
   "@invalidAddressFormat": {
     "description": "Invalid address format error"
   },
-  "needHelp": "Need help?",
-  "@needHelp": {
-    "description": "Need help link text"
-  },
   "version": "Version {version}",
   "@version": {
     "description": "Version display text",
@@ -120,10 +116,6 @@
   "holdToActivateReviewerMode": "Hold to activate reviewer mode...",
   "@holdToActivateReviewerMode": {
     "description": "Reviewer mode activation instruction"
-  },
-  "couldNotOpenGitHubIssues": "Could not open GitHub issues",
-  "@couldNotOpenGitHubIssues": {
-    "description": "Error message when GitHub issues cannot be opened"
   },
   "selectRouter": "Select Router",
   "@selectRouter": {
@@ -819,10 +811,6 @@
   "enterRouterPasswordTooltip": "Enter your router password",
   "@enterRouterPasswordTooltip": {
     "description": "Password input tooltip"
-  },
-  "openGitHubIssuesTooltip": "Open GitHub issues for support",
-  "@openGitHubIssuesTooltip": {
-    "description": "GitHub issues link tooltip"
   },
   "routerIcon": "Router icon",
   "@routerIcon": {

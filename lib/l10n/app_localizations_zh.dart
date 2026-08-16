@@ -70,9 +70,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get invalidAddressFormat => '地址格式无效';
 
   @override
-  String get needHelp => '需要帮助？';
-
-  @override
   String version(String version) {
     return '版本 $version';
   }
@@ -97,9 +94,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get holdToActivateReviewerMode => '长按以激活审核模式...';
-
-  @override
-  String get couldNotOpenGitHubIssues => '无法打开 GitHub Issues';
 
   @override
   String get selectRouter => '选择路由器';
@@ -609,9 +603,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get enterRouterPasswordTooltip => '输入您的路由器密码';
-
-  @override
-  String get openGitHubIssuesTooltip => '打开 GitHub Issues 获取支持';
 
   @override
   String get routerIcon => '路由器图标';

@@ -20,7 +20,6 @@
   "pleaseEnterRouterAddress": "请输入路由器地址",
   "pleaseEnterUsername": "请输入用户名",
   "invalidAddressFormat": "地址格式无效",
-  "needHelp": "需要帮助？",
   "version": "版本 {version}",
   "@version": {
     "placeholders": {
@@ -36,7 +35,6 @@
   "cancel": "取消",
   "activate": "激活",
   "holdToActivateReviewerMode": "长按以激活审核模式...",
-  "couldNotOpenGitHubIssues": "无法打开 GitHub Issues",
   "selectRouter": "选择路由器",
   "connectionFailed": "连接失败",
   "connectionFailedMessage": "无法连接到路由器。请检查您的网络连接和路由器设置。",
@@ -251,7 +249,6 @@
   "enterRouterAddressTooltip": "输入路由器的 IP 地址、主机名或完整 URL",
   "enterRouterUsernameTooltip": "输入您的路由器用户名",
   "enterRouterPasswordTooltip": "输入您的路由器密码",
-  "openGitHubIssuesTooltip": "打开 GitHub Issues 获取支持",
   "routerIcon": "路由器图标",
   "clientIcon": "客户端图标",
   "interfaceIcon": "接口图标",

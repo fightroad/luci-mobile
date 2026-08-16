@@ -218,12 +218,6 @@ abstract class AppLocalizations {
   /// **'Invalid address format'**
   String get invalidAddressFormat;
 
-  /// Need help link text
-  ///
-  /// In en, this message translates to:
-  /// **'Need help?'**
-  String get needHelp;
-
   /// Version display text
   ///
   /// In en, this message translates to:
@@ -271,12 +265,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hold to activate reviewer mode...'**
   String get holdToActivateReviewerMode;
-
-  /// Error message when GitHub issues cannot be opened
-  ///
-  /// In en, this message translates to:
-  /// **'Could not open GitHub issues'**
-  String get couldNotOpenGitHubIssues;
 
   /// Select router dialog title
   ///
@@ -1267,12 +1255,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your router password'**
   String get enterRouterPasswordTooltip;
-
-  /// GitHub issues link tooltip
-  ///
-  /// In en, this message translates to:
-  /// **'Open GitHub issues for support'**
-  String get openGitHubIssuesTooltip;
 
   /// Router icon semantic label
   ///

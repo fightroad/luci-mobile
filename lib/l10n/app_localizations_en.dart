@@ -70,9 +70,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidAddressFormat => 'Invalid address format';
 
   @override
-  String get needHelp => 'Need help?';
-
-  @override
   String version(String version) {
     return 'Version $version';
   }
@@ -98,9 +95,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get holdToActivateReviewerMode => 'Hold to activate reviewer mode...';
-
-  @override
-  String get couldNotOpenGitHubIssues => 'Could not open GitHub issues';
 
   @override
   String get selectRouter => 'Select Router';
@@ -627,9 +621,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterRouterPasswordTooltip => 'Enter your router password';
-
-  @override
-  String get openGitHubIssuesTooltip => 'Open GitHub issues for support';
 
   @override
   String get routerIcon => 'Router icon';

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:url_launcher/url_launcher_string.dart';
 import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/services/secure_storage_service.dart';
 import 'package:luci_mobile/utils/url_parser.dart';
@@ -229,23 +228,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       if (success && mounted) {
         unawaited(Navigator.of(context).pushReplacementNamed('/'));
       }
-    }
-  }
-
-  Future<void> _openGitHubIssues() async {
-    final url = AppConfig.githubIssuesUrl;
-    final success = await launchUrlString(
-      url,
-      mode: LaunchMode.externalApplication,
-    );
-    if (!success && mounted) {
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.couldNotOpenGitHubIssues),
-          backgroundColor: Theme.of(context).colorScheme.error,
-        ),
-      );
     }
   }
 
@@ -717,21 +699,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Builder(
-                          builder: (context) {
-                            final l10n = AppLocalizations.of(context)!;
-                            return Tooltip(
-                              message: l10n.openGitHubIssuesTooltip,
-                              child: TextButton(
-                                onPressed: _openGitHubIssues,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: colorScheme.primary,
-                                ),
-                                child: Text(l10n.needHelp),
-                              ),
-                            );
-                          },
-                        ),
                         FutureBuilder<PackageInfo>(
                           future: PackageInfo.fromPlatform(),
                           builder: (context, snapshot) {
