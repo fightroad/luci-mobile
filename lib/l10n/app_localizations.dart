@@ -494,12 +494,6 @@ abstract class AppLocalizations {
   /// **'Temp'**
   String get temperature;
 
-  /// Free memory label in memory detail dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Free'**
-  String get memoryFree;
-
   /// Buffered memory label in memory detail dialog
   ///
   /// In en, this message translates to:
@@ -517,12 +511,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cached'**
   String get memoryCached;
-
-  /// Shared memory label in memory detail dialog
-  ///
-  /// In en, this message translates to:
-  /// **'Shared'**
-  String get memoryShared;
 
   /// Failed to load clients error title
   ///
@@ -1279,18 +1267,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Refresh failed: {error}'**
   String refreshFailed(String error);
-
-  /// Pull down to refresh instruction
-  ///
-  /// In en, this message translates to:
-  /// **'Pull down to refresh'**
-  String get pullDownToRefresh;
-
-  /// No items to display message
-  ///
-  /// In en, this message translates to:
-  /// **'No items to display'**
-  String get noItemsToDisplay;
 
   /// Router address input tooltip
   ///

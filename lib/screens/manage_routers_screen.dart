@@ -4,6 +4,7 @@ import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
+import 'package:luci_mobile/widgets/luci_refresh_components.dart';
 import 'package:luci_mobile/utils/url_parser.dart';
 
 class ManageRoutersScreen extends ConsumerStatefulWidget {
@@ -30,7 +31,7 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
         children: [
           const SizedBox(height: 16),
           Expanded(
-            child: RefreshIndicator(
+            child: LuciPullToRefresh(
               onRefresh: () async => appState.loadRouters(),
               child: routers.isEmpty
                   ? ListView(

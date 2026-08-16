@@ -212,9 +212,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get temperature => '温度';
 
   @override
-  String get memoryFree => '空闲';
-
-  @override
   String get memoryBuffered => '缓冲';
 
   @override
@@ -222,9 +219,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get memoryCached => '缓存';
-
-  @override
-  String get memoryShared => '共享';
 
   @override
   String get failedToLoadClients => '加载客户端失败';
@@ -615,12 +609,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String refreshFailed(String error) {
     return '刷新失败：$error';
   }
-
-  @override
-  String get pullDownToRefresh => '下拉刷新';
-
-  @override
-  String get noItemsToDisplay => '无项目显示';
 
   @override
   String get enterRouterAddressTooltip => '输入路由器的 IP 地址、主机名或完整 URL';

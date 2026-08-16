@@ -215,9 +215,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get temperature => 'Temp';
 
   @override
-  String get memoryFree => 'Free';
-
-  @override
   String get memoryBuffered => 'Buffered';
 
   @override
@@ -225,9 +222,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get memoryCached => 'Cached';
-
-  @override
-  String get memoryShared => 'Shared';
 
   @override
   String get failedToLoadClients => 'Failed to Load Clients';
@@ -632,12 +626,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String refreshFailed(String error) {
     return 'Refresh failed: $error';
   }
-
-  @override
-  String get pullDownToRefresh => 'Pull down to refresh';
-
-  @override
-  String get noItemsToDisplay => 'No items to display';
 
   @override
   String get enterRouterAddressTooltip =>

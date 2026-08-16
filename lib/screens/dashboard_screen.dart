@@ -6,6 +6,7 @@ import 'package:luci_mobile/state/app_state.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/widgets/luci_animation_system.dart';
+import 'package:luci_mobile/widgets/luci_refresh_components.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -2148,7 +2149,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       );
     }
 
-    return RefreshIndicator(
+    return LuciPullToRefresh(
       onRefresh: () => appState.fetchDashboardData(),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -2190,32 +2191,29 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             // Portrait mode: Fill available height exactly without scrolling
             return LayoutBuilder(
               builder: (context, constraints) {
-                return RefreshIndicator(
-                  onRefresh: () => appState.fetchDashboardData(),
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: SizedBox(
-                      height: constraints.maxHeight,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 16),
-                            _buildDeviceInfoCard(appState),
-                            const SizedBox(height: 12),
-                            Expanded(
-                              child: _buildRealtimeThroughputCard(appState),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildSystemVitalsCard(appState),
-                            const SizedBox(height: 12),
-                            _buildWirelessNetworksCard(appState),
-                            const SizedBox(height: 12),
-                            _buildInterfaceStatusCards(appState),
-                            const SizedBox(height: 12),
-                          ],
-                        ),
+                return SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: SizedBox(
+                    height: constraints.maxHeight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          _buildDeviceInfoCard(appState),
+                          const SizedBox(height: 12),
+                          Expanded(
+                            child: _buildRealtimeThroughputCard(appState),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildSystemVitalsCard(appState),
+                          const SizedBox(height: 12),
+                          _buildWirelessNetworksCard(appState),
+                          const SizedBox(height: 12),
+                          _buildInterfaceStatusCards(appState),
+                          const SizedBox(height: 12),
+                        ],
                       ),
                     ),
                   ),
