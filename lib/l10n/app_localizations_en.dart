@@ -695,6 +695,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallApply => 'Apply';
 
   @override
+  String get passwallUpdateSubscribe => 'Update subscriptions';
+
+  @override
+  String get passwallUpdateSubscribeSubtitle =>
+      'Fetch latest nodes from all subscribe URLs';
+
+  @override
+  String get passwallUpdateSubscribeEmpty => 'No subscribe URLs configured';
+
+  @override
+  String get passwallUpdateSubscribeStarted => 'Subscription update started';
+
+  @override
+  String get passwallUpdateSubscribeFailed =>
+      'Failed to start subscription update';
+
+  @override
   String get passwallShuntRules => 'Shunt rules';
 
   @override

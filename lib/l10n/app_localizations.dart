@@ -1394,6 +1394,36 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get passwallApply;
 
+  /// No description provided for @passwallUpdateSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Update subscriptions'**
+  String get passwallUpdateSubscribe;
+
+  /// No description provided for @passwallUpdateSubscribeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch latest nodes from all subscribe URLs'**
+  String get passwallUpdateSubscribeSubtitle;
+
+  /// No description provided for @passwallUpdateSubscribeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscribe URLs configured'**
+  String get passwallUpdateSubscribeEmpty;
+
+  /// No description provided for @passwallUpdateSubscribeStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription update started'**
+  String get passwallUpdateSubscribeStarted;
+
+  /// No description provided for @passwallUpdateSubscribeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to start subscription update'**
+  String get passwallUpdateSubscribeFailed;
+
   /// No description provided for @passwallShuntRules.
   ///
   /// In en, this message translates to:

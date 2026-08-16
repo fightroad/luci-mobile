@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/models/passwall_config.dart';
 
 /// API service interface for LuCI RPC communication.
 ///
@@ -83,6 +84,16 @@ abstract class IApiService {
     String sysauth,
     bool useHttps, {
     required String command,
+    BuildContext? context,
+  });
+  /// Triggers Passwall "manual subscribe all" (background job on router).
+  /// Tries modern CGI JSON API first, then older CBI form submit.
+  Future<bool> triggerPasswallSubscribeAll(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    required List<PasswallSubscribe> subscriptions,
+    String? globalSubscribeSection,
     BuildContext? context,
   });
 }

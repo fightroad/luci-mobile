@@ -678,6 +678,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallApply => '应用';
 
   @override
+  String get passwallUpdateSubscribe => '更新订阅';
+
+  @override
+  String get passwallUpdateSubscribeSubtitle => '从全部订阅链接拉取最新节点';
+
+  @override
+  String get passwallUpdateSubscribeEmpty => '尚未配置订阅链接';
+
+  @override
+  String get passwallUpdateSubscribeStarted => '已开始更新订阅';
+
+  @override
+  String get passwallUpdateSubscribeFailed => '无法开始更新订阅';
+
+  @override
   String get passwallShuntRules => '分流规则';
 
   @override

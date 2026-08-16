@@ -1867,4 +1867,31 @@ class AppState extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Starts Passwall "manual subscribe all" in the background on the router.
+  Future<bool> updatePasswallSubscriptions({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+    final config = _passwallConfig;
+    if (config == null || !config.hasSubscriptions) {
+      return false;
+    }
+
+    try {
+      return await _apiService!.triggerPasswallSubscribeAll(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        subscriptions: config.subscriptions.where((s) => s.hasUrl).toList(),
+        globalSubscribeSection: config.globalSubscribeSection,
+        context: context,
+      );
+    } catch (e, stack) {
+      Logger.exception('Failed to update Passwall subscriptions', e, stack);
+      _passwallError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 }

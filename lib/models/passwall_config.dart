@@ -47,22 +47,44 @@ class PasswallShuntRule {
   bool get isDefault => option == 'default_node';
 }
 
+class PasswallSubscribe {
+  final String id;
+  final String remark;
+  final String url;
+
+  const PasswallSubscribe({
+    required this.id,
+    required this.remark,
+    required this.url,
+  });
+
+  bool get hasUrl => url.trim().isNotEmpty;
+}
+
 class PasswallConfig {
   final String globalSection;
+  /// UCI section id for `global_subscribe` (used by older CBI subscribe-all).
+  final String? globalSubscribeSection;
   final bool enabled;
   final String tcpNode;
   final String udpNode;
   final List<PasswallNode> nodes;
   final List<PasswallShuntRule> allShuntRules;
+  final List<PasswallSubscribe> subscriptions;
 
   const PasswallConfig({
     required this.globalSection,
+    this.globalSubscribeSection,
     required this.enabled,
     required this.tcpNode,
     required this.udpNode,
     required this.nodes,
     required this.allShuntRules,
+    this.subscriptions = const [],
   });
+
+  bool get hasSubscriptions =>
+      subscriptions.any((s) => s.hasUrl);
 
   PasswallNode? nodeById(String id) {
     if (id.isEmpty) return null;
@@ -147,9 +169,11 @@ class PasswallConfig {
   /// Parses LuCI `uci.get` payload for config `passwall`.
   factory PasswallConfig.fromUciValues(Map values) {
     String? globalId;
+    String? globalSubscribeId;
     Map<String, dynamic>? global;
     final nodes = <PasswallNode>[];
     final allShuntRules = <PasswallShuntRule>[];
+    final subscriptions = <PasswallSubscribe>[];
 
     values.forEach((key, raw) {
       if (raw is! Map) return;
@@ -159,6 +183,8 @@ class PasswallConfig {
       if (type == 'global' && global == null) {
         globalId = id;
         global = section;
+      } else if (type == 'global_subscribe' && globalSubscribeId == null) {
+        globalSubscribeId = id;
       } else if (type == 'nodes') {
         final protocol = _str(section['protocol']);
         final options = <String, String>{};
@@ -187,19 +213,32 @@ class PasswallConfig {
             option: id,
           ),
         );
+      } else if (type == 'subscribe_list') {
+        subscriptions.add(
+          PasswallSubscribe(
+            id: id,
+            remark: _str(section['remark'], id),
+            url: _str(section['url']),
+          ),
+        );
       }
     });
 
     nodes.sort((a, b) => a.remarks.toLowerCase().compareTo(b.remarks.toLowerCase()));
+    subscriptions.sort(
+      (a, b) => a.remark.toLowerCase().compareTo(b.remark.toLowerCase()),
+    );
 
     final g = global ?? <String, dynamic>{};
     return PasswallConfig(
       globalSection: globalId ?? '@global[0]',
+      globalSubscribeSection: globalSubscribeId,
       enabled: _flag(g['enabled']),
       tcpNode: _str(g['tcp_node']),
       udpNode: _str(g['udp_node']),
       nodes: nodes,
       allShuntRules: allShuntRules,
+      subscriptions: subscriptions,
     );
   }
 
@@ -211,11 +250,13 @@ class PasswallConfig {
   }) {
     return PasswallConfig(
       globalSection: globalSection,
+      globalSubscribeSection: globalSubscribeSection,
       enabled: enabled ?? this.enabled,
       tcpNode: tcpNode ?? this.tcpNode,
       udpNode: udpNode ?? this.udpNode,
       nodes: nodes ?? this.nodes,
       allShuntRules: allShuntRules,
+      subscriptions: subscriptions,
     );
   }
 

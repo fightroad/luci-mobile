@@ -140,6 +140,25 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     );
   }
 
+  Future<void> _updateSubscriptions() async {
+    final draft = _draft;
+    if (_busy || draft == null || !draft.hasSubscriptions) return;
+
+    setState(() => _busy = true);
+    final l10n = AppLocalizations.of(context)!;
+    final ok = await ref
+        .read(appStateProvider)
+        .updatePasswallSubscriptions(context: context);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    _showToast(
+      ok
+          ? l10n.passwallUpdateSubscribeStarted
+          : l10n.passwallUpdateSubscribeFailed,
+      success: ok,
+    );
+  }
+
   Map<String, String> _shuntValueLabels(AppLocalizations l10n) {
     return {
       '': l10n.passwallNodeClose,
@@ -399,6 +418,20 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                                   (c) => c.copyWith(udpNode: id),
                                 ),
                               ),
+                            ),
+                            const Divider(height: 1),
+                            ListTile(
+                              title: Text(l10n.passwallUpdateSubscribe),
+                              subtitle: Text(
+                                draft.hasSubscriptions
+                                    ? l10n.passwallUpdateSubscribeSubtitle
+                                    : l10n.passwallUpdateSubscribeEmpty,
+                              ),
+                              trailing: const Icon(Icons.sync),
+                              enabled: !_busy && draft.hasSubscriptions,
+                              onTap: (!_busy && draft.hasSubscriptions)
+                                  ? _updateSubscriptions
+                                  : null,
                             ),
                           ],
                         ),

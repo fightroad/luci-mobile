@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:luci_mobile/models/passwall_config.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import '../utils/http_client_manager.dart';
 import '../utils/logger.dart';
@@ -664,5 +665,165 @@ class RealApiService implements IApiService {
       params: {'command': command},
       context: context,
     );
+  }
+
+  String _luciSessionCookie(String sysauth) {
+    // LuCI may emit sysauth, sysauth_http, or sysauth_https depending on scheme.
+    return 'sysauth=$sysauth; sysauth_http=$sysauth; sysauth_https=$sysauth';
+  }
+
+  String? _extractLuciToken(String html) {
+    final fromJson = RegExp(r'"token"\s*:\s*"([^"]+)"').firstMatch(html);
+    if (fromJson != null) return fromJson.group(1);
+    final fromInput = RegExp(
+      r'name="token"\s+value="([^"]+)"',
+      caseSensitive: false,
+    ).firstMatch(html);
+    return fromInput?.group(1);
+  }
+
+  bool _isJsonSubscribeSuccess(dynamic data) {
+    if (data is Map) return data['success'] == true;
+    final raw = data is String ? data : data?.toString();
+    if (raw == null) return false;
+    final trimmed = raw.trimLeft();
+    if (!trimmed.startsWith('{')) return false;
+    try {
+      final decoded = jsonDecode(trimmed);
+      return decoded is Map && decoded['success'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _tryPasswallSubscribeManualAllApi(
+    Dio client,
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    required List<PasswallSubscribe> subscriptions,
+  }) async {
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/subscribe_manual_all',
+    );
+    final response = await client.post(
+      uri.toString(),
+      data: {
+        'sections': subscriptions.map((s) => s.id).join(','),
+        'urls': subscriptions.map((s) => s.url).join(','),
+      },
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        followRedirects: false,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    return _isJsonSubscribeSuccess(response.data);
+  }
+
+  Future<bool> _tryPasswallSubscribeCbiForm(
+    Dio client,
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    String? globalSubscribeSection,
+  }) async {
+    final pageUri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/node_subscribe',
+    );
+    final page = await client.get(
+      pageUri.toString(),
+      options: Options(
+        headers: {'Cookie': _luciSessionCookie(sysauth)},
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    final html = page.data?.toString() ?? '';
+    if (html.isEmpty) return false;
+
+    final token = _extractLuciToken(html);
+    var section = globalSubscribeSection;
+    if (section == null || section.isEmpty) {
+      final allBtn = RegExp(
+        r'name="cbid\.passwall\.([^.]+)\._update"[^>]*value="[^"]*All[^"]*"',
+        caseSensitive: false,
+      ).firstMatch(html);
+      section = allBtn?.group(1);
+    }
+    if (token == null || section == null || section.isEmpty) {
+      return false;
+    }
+
+    final response = await client.post(
+      pageUri.toString(),
+      data: {
+        'token': token,
+        'cbi.submit': '1',
+        'cbid.passwall.$section._update': 'Manual subscription All',
+      },
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        headers: {'Cookie': _luciSessionCookie(sysauth)},
+        followRedirects: true,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+
+    final path = response.realUri.path.toLowerCase();
+    if (path.contains('/log')) return true;
+    if (path.contains('node_subscribe')) return false;
+    return response.statusCode == 200 || response.statusCode == 302;
+  }
+
+  @override
+  Future<bool> triggerPasswallSubscribeAll(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    required List<PasswallSubscribe> subscriptions,
+    String? globalSubscribeSection,
+    BuildContext? context,
+  }) async {
+    final usable =
+        subscriptions.where((s) => s.id.isNotEmpty && s.hasUrl).toList();
+    if (usable.isEmpty) return false;
+
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+
+    try {
+      if (await _tryPasswallSubscribeManualAllApi(
+        client,
+        ipAddress,
+        sysauth,
+        useHttps,
+        subscriptions: usable,
+      )) {
+        return true;
+      }
+    } catch (e, stack) {
+      Logger.warning('Passwall subscribe_manual_all unavailable: $e');
+      Logger.debug('Passwall subscribe_manual_all stack: $stack');
+    }
+
+    try {
+      return await _tryPasswallSubscribeCbiForm(
+        client,
+        ipAddress,
+        sysauth,
+        useHttps,
+        globalSubscribeSection: globalSubscribeSection,
+      );
+    } catch (e, stack) {
+      Logger.exception('Passwall CBI subscribe-all failed', e, stack);
+      return false;
+    }
   }
 }
