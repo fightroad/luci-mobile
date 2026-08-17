@@ -824,4 +824,67 @@ class RealApiService implements IApiService {
       return false;
     }
   }
+
+  @override
+  Future<String> fetchPasswallLog(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/get_log',
+    );
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'text/plain,*/*',
+        },
+        responseType: ResponseType.plain,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      throw Exception('Failed to fetch Passwall log (${response.statusCode})');
+    }
+    final raw = response.data?.toString() ?? '';
+    // LuCI login / missing page often returns HTML.
+    final trimmed = raw.trimLeft();
+    if (trimmed.toLowerCase().startsWith('<!DOCTYPE') ||
+        trimmed.toLowerCase().startsWith('<html')) {
+      throw Exception('Failed to fetch Passwall log');
+    }
+    return raw;
+  }
+
+  @override
+  Future<bool> clearPasswallLog(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/clear_log',
+    );
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {'Cookie': _luciSessionCookie(sysauth)},
+        responseType: ResponseType.plain,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    // LuCI call() returns empty 200 on success; also accept 204.
+    final code = response.statusCode;
+    return code != null && code >= 200 && code < 400;
+  }
 }

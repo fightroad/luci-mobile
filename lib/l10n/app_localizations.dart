@@ -1424,6 +1424,60 @@ abstract class AppLocalizations {
   /// **'Failed to start subscription update'**
   String get passwallUpdateSubscribeFailed;
 
+  /// No description provided for @passwallLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get passwallLog;
+
+  /// No description provided for @passwallLogSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View Passwall runtime logs'**
+  String get passwallLogSubtitle;
+
+  /// No description provided for @passwallLogEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No log output'**
+  String get passwallLogEmpty;
+
+  /// No description provided for @passwallLogFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load logs'**
+  String get passwallLogFailed;
+
+  /// No description provided for @passwallClearLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear'**
+  String get passwallClearLog;
+
+  /// No description provided for @passwallClearLogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear logs?'**
+  String get passwallClearLogTitle;
+
+  /// No description provided for @passwallClearLogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the Passwall runtime log?'**
+  String get passwallClearLogMessage;
+
+  /// No description provided for @passwallClearLogFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clear logs'**
+  String get passwallClearLogFailed;
+
+  /// No description provided for @passwallRefreshLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get passwallRefreshLog;
+
   /// No description provided for @passwallShuntRules.
   ///
   /// In en, this message translates to:

@@ -1894,4 +1894,35 @@ class AppState extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Fetches Passwall runtime log text from the router.
+  Future<String> fetchPasswallLog({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      throw Exception('Not authenticated');
+    }
+    return await _apiService!.fetchPasswallLog(
+      _authService!.ipAddress!,
+      _authService!.sysauth!,
+      _authService!.useHttps,
+      context: context,
+    );
+  }
+
+  /// Clears Passwall runtime log on the router.
+  Future<bool> clearPasswallLog({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+    try {
+      return await _apiService!.clearPasswallLog(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+    } catch (e, stack) {
+      Logger.exception('Failed to clear Passwall log', e, stack);
+      return false;
+    }
+  }
 }

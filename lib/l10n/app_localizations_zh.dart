@@ -693,6 +693,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallUpdateSubscribeFailed => '无法开始更新订阅';
 
   @override
+  String get passwallLog => '日志';
+
+  @override
+  String get passwallLogSubtitle => '查看 Passwall 运行日志';
+
+  @override
+  String get passwallLogEmpty => '暂无日志';
+
+  @override
+  String get passwallLogFailed => '无法加载日志';
+
+  @override
+  String get passwallClearLog => '清空';
+
+  @override
+  String get passwallClearLogTitle => '清空日志？';
+
+  @override
+  String get passwallClearLogMessage => '确定清空 Passwall 运行日志吗？';
+
+  @override
+  String get passwallClearLogFailed => '清空日志失败';
+
+  @override
+  String get passwallRefreshLog => '刷新';
+
+  @override
   String get passwallShuntRules => '分流规则';
 
   @override

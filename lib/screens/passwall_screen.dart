@@ -4,6 +4,7 @@ import 'package:luci_mobile/design/luci_design_system.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/screens/passwall_log_screen.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 
 class PasswallScreen extends ConsumerStatefulWidget {
@@ -442,6 +443,23 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                               onTap: (!_busy && draft.hasSubscriptions)
                                   ? _updateSubscriptions
                                   : null,
+                            ),
+                            const Divider(height: 1),
+                            ListTile(
+                              title: Text(l10n.passwallLog),
+                              subtitle: Text(l10n.passwallLogSubtitle),
+                              trailing: const Icon(Icons.article_outlined),
+                              enabled: !_busy,
+                              onTap: _busy
+                                  ? null
+                                  : () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) =>
+                                              const PasswallLogScreen(),
+                                        ),
+                                      );
+                                    },
                             ),
                           ],
                         ),

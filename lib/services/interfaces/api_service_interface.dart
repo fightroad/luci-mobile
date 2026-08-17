@@ -96,4 +96,20 @@ abstract class IApiService {
     String? globalSubscribeSection,
     BuildContext? context,
   });
+
+  /// Reads Passwall runtime log (`/tmp/log/passwall.log`) via LuCI CGI.
+  Future<String> fetchPasswallLog(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  });
+
+  /// Clears Passwall runtime log via LuCI CGI.
+  Future<bool> clearPasswallLog(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  });
 }

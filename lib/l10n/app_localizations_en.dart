@@ -712,6 +712,33 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to start subscription update';
 
   @override
+  String get passwallLog => 'Logs';
+
+  @override
+  String get passwallLogSubtitle => 'View Passwall runtime logs';
+
+  @override
+  String get passwallLogEmpty => 'No log output';
+
+  @override
+  String get passwallLogFailed => 'Failed to load logs';
+
+  @override
+  String get passwallClearLog => 'Clear';
+
+  @override
+  String get passwallClearLogTitle => 'Clear logs?';
+
+  @override
+  String get passwallClearLogMessage => 'Clear the Passwall runtime log?';
+
+  @override
+  String get passwallClearLogFailed => 'Failed to clear logs';
+
+  @override
+  String get passwallRefreshLog => 'Refresh';
+
+  @override
   String get passwallShuntRules => 'Shunt rules';
 
   @override
