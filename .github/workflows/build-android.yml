@@ -1,0 +1,78 @@
+name: Build Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set Up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Set Up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.10'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Create Keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/luci_mobile_keystore.jks
+          echo "${{ secrets.ANDROID_KEY_PROPERTIES_BASE64 }}" | base64 --decode > key.properties
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_PROPERTIES_BASE64: ${{ secrets.ANDROID_KEY_PROPERTIES_BASE64 }}
+        working-directory: android
+
+      # Split per ABI so each APK stays under store size limits.
+      # Outputs (under build/app/outputs/flutter-apk/):
+      #   app-armeabi-v7a-release.apk
+      #   app-arm64-v8a-release.apk
+      #   app-x86_64-release.apk
+      - name: Build APK (split per ABI)
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+
+      - name: Name Artifacts
+        id: package
+        run: |
+          set -euo pipefail
+          VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          BUILD=$(grep '^version:' pubspec.yaml | sed 's/version: //' | cut -d'+' -f2)
+          OUT_DIR="${RUNNER_TEMP}/android-artifacts"
+          mkdir -p "$OUT_DIR"
+
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk \
+            "$OUT_DIR/LuCI-Mobile-${VERSION}-${BUILD}-armeabi-v7a.apk"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk \
+            "$OUT_DIR/LuCI-Mobile-${VERSION}-${BUILD}-arm64-v8a.apk"
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk \
+            "$OUT_DIR/LuCI-Mobile-${VERSION}-${BUILD}-x86_64.apk"
+          cp build/app/outputs/bundle/release/app-release.aab \
+            "$OUT_DIR/LuCI-Mobile-${VERSION}-${BUILD}.aab"
+
+          ls -lh "$OUT_DIR"
+          echo "out_dir=$OUT_DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: LuCI-Mobile-Android
+          path: ${{ steps.package.outputs.out_dir }}
+          if-no-files-found: error
+          retention-days: 30
