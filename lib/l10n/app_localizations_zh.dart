@@ -693,6 +693,18 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallUpdateSubscribeFailed => '无法开始更新订阅';
 
   @override
+  String get passwallTestConnect => '测试连通';
+
+  @override
+  String get passwallTestConnectSubtitle => '调用官方谷歌连接测试';
+
+  @override
+  String passwallTestConnectOk(String ms) => '连接成功：$ms ms';
+
+  @override
+  String get passwallTestConnectFailed => '连接失败';
+
+  @override
   String get passwallLog => '日志';
 
   @override

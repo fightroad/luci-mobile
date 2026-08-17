@@ -112,4 +112,15 @@ abstract class IApiService {
     bool useHttps, {
     BuildContext? context,
   });
+
+  /// Runs Passwall homepage connectivity check (same CGI as LuCI status).
+  /// Returns latency in milliseconds when successful.
+  Future<double?> testPasswallConnect(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    String url = 'https://www.google.com/generate_204',
+    String type = 'google',
+    BuildContext? context,
+  });
 }

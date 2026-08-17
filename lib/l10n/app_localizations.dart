@@ -1424,6 +1424,30 @@ abstract class AppLocalizations {
   /// **'Failed to start subscription update'**
   String get passwallUpdateSubscribeFailed;
 
+  /// No description provided for @passwallTestConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Test connectivity'**
+  String get passwallTestConnect;
+
+  /// No description provided for @passwallTestConnectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Run official Google connection check'**
+  String get passwallTestConnectSubtitle;
+
+  /// No description provided for @passwallTestConnectOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected: {ms} ms'**
+  String passwallTestConnectOk(String ms);
+
+  /// No description provided for @passwallTestConnectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get passwallTestConnectFailed;
+
   /// No description provided for @passwallLog.
   ///
   /// In en, this message translates to:

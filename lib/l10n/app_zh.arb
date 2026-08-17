@@ -294,6 +294,15 @@
   "passwallUpdateSubscribeEmpty": "尚未配置订阅链接",
   "passwallUpdateSubscribeStarted": "已开始更新订阅",
   "passwallUpdateSubscribeFailed": "无法开始更新订阅",
+  "passwallTestConnect": "测试连通",
+  "passwallTestConnectSubtitle": "调用官方谷歌连接测试",
+  "passwallTestConnectOk": "连接成功：{ms} ms",
+  "@passwallTestConnectOk": {
+    "placeholders": {
+      "ms": {"type": "String"}
+    }
+  },
+  "passwallTestConnectFailed": "连接失败",
   "passwallLog": "日志",
   "passwallLogSubtitle": "查看 Passwall 运行日志",
   "passwallLogEmpty": "暂无日志",

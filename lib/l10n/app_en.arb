@@ -886,6 +886,17 @@
   "passwallUpdateSubscribeEmpty": "No subscribe URLs configured",
   "passwallUpdateSubscribeStarted": "Subscription update started",
   "passwallUpdateSubscribeFailed": "Failed to start subscription update",
+  "passwallTestConnect": "Test connectivity",
+  "passwallTestConnectSubtitle": "Run official Google connection check",
+  "passwallTestConnectOk": "Connected: {ms} ms",
+  "@passwallTestConnectOk": {
+    "placeholders": {
+      "ms": {
+        "type": "String"
+      }
+    }
+  },
+  "passwallTestConnectFailed": "Connection failed",
   "passwallLog": "Logs",
   "passwallLogSubtitle": "View Passwall runtime logs",
   "passwallLogEmpty": "No log output",

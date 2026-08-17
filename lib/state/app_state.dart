@@ -1925,4 +1925,23 @@ class AppState extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Runs LuCI Passwall "Google Conn." connectivity check.
+  /// Returns latency ms on success, otherwise null.
+  Future<double?> testPasswallGoogleConnect({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+    try {
+      return await _apiService!.testPasswallConnect(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+    } catch (e, stack) {
+      Logger.exception('Passwall Google connect test failed', e, stack);
+      return null;
+    }
+  }
 }

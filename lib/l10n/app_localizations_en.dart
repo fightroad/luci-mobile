@@ -712,6 +712,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to start subscription update';
 
   @override
+  String get passwallTestConnect => 'Test connectivity';
+
+  @override
+  String get passwallTestConnectSubtitle =>
+      'Run official Google connection check';
+
+  @override
+  String passwallTestConnectOk(String ms) => 'Connected: $ms ms';
+
+  @override
+  String get passwallTestConnectFailed => 'Connection failed';
+
+  @override
   String get passwallLog => 'Logs';
 
   @override

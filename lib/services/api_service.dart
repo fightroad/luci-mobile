@@ -887,4 +887,56 @@ class RealApiService implements IApiService {
     final code = response.statusCode;
     return code != null && code >= 200 && code < 400;
   }
+
+  @override
+  Future<double?> testPasswallConnect(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    String url = 'https://www.google.com/generate_204',
+    String type = 'google',
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/connect_status',
+    ).replace(
+      queryParameters: {'type': type, 'url': url},
+    );
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        responseType: ResponseType.json,
+        // Curl on router may take a few seconds.
+        receiveTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 10),
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      return null;
+    }
+
+    dynamic data = response.data;
+    if (data is String) {
+      final trimmed = data.trimLeft();
+      if (!trimmed.startsWith('{')) return null;
+      try {
+        data = jsonDecode(trimmed);
+      } catch (_) {
+        return null;
+      }
+    }
+    if (data is! Map) return null;
+    if (data['ping_type']?.toString() != 'curl') return null;
+    final useTime = double.tryParse(data['use_time']?.toString() ?? '');
+    if (useTime == null || useTime <= 0) return null;
+    return useTime;
+  }
 }

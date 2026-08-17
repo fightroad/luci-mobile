@@ -160,6 +160,25 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     );
   }
 
+  Future<void> _testGoogleConnect() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    final l10n = AppLocalizations.of(context)!;
+    final ms = await ref
+        .read(appStateProvider)
+        .testPasswallGoogleConnect(context: context);
+    if (!mounted) return;
+    setState(() => _busy = false);
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    if (ms == null) {
+      _showToast(l10n.passwallTestConnectFailed, success: false);
+    } else {
+      final formatted =
+          ms >= 100 ? ms.toStringAsFixed(0) : ms.toStringAsFixed(2);
+      _showToast(l10n.passwallTestConnectOk(formatted), success: true);
+    }
+  }
+
   Map<String, String> _shuntValueLabels(AppLocalizations l10n) {
     return {
       '': l10n.passwallNodeClose,
@@ -429,6 +448,14 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                                   (c) => c.copyWith(udpNode: id),
                                 ),
                               ),
+                            ),
+                            const Divider(height: 1),
+                            ListTile(
+                              title: Text(l10n.passwallTestConnect),
+                              subtitle: Text(l10n.passwallTestConnectSubtitle),
+                              trailing: const Icon(Icons.network_check),
+                              enabled: !_busy,
+                              onTap: _busy ? null : _testGoogleConnect,
                             ),
                             const Divider(height: 1),
                             ListTile(
