@@ -325,6 +325,7 @@ class AppState extends ChangeNotifier {
     _passwallInstalled = null;
     _passwallConfig = null;
     _passwallError = null;
+    _isPasswallLoading = false;
 
     // Determine a safe context before any awaits
     final safeContext = context?.mounted == true ? context : null; // ignore: use_build_context_synchronously
@@ -467,6 +468,7 @@ class AppState extends ChangeNotifier {
     _passwallInstalled = null;
     _passwallConfig = null;
     _passwallError = null;
+    _isPasswallLoading = false;
     _cancelThroughputTimer();
     // Re-sync routers from storage (loadRouters notifies listeners).
     await loadRouters();
@@ -1729,9 +1731,10 @@ class AppState extends ChangeNotifier {
       return false;
     }
 
+    final detectIp = _authService!.ipAddress!;
     try {
       final result = await _apiService!.call(
-        _authService!.ipAddress!,
+        detectIp,
         _authService!.sysauth!,
         _authService!.useHttps,
         object: 'uci',
@@ -1739,6 +1742,10 @@ class AppState extends ChangeNotifier {
         params: {'config': 'passwall'},
         context: context,
       );
+      // Drop stale responses after router / session switch.
+      if (_authService?.ipAddress != detectIp) {
+        return false;
+      }
       final data = _unwrapLuciRpc(result);
       final values = data is Map ? data['values'] : null;
       final installed = values is Map && values.isNotEmpty;
@@ -1749,11 +1756,9 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return installed;
     } catch (e, stack) {
-      Logger.debug('Passwall not detected: $e');
+      // Keep null (unknown) so the next visit / router switch can try again.
+      Logger.debug('Passwall detect failed: $e');
       Logger.debug('Passwall detect stack: $stack');
-      _passwallInstalled = false;
-      _passwallConfig = null;
-      notifyListeners();
       return false;
     }
   }
@@ -1791,10 +1796,9 @@ class AppState extends ChangeNotifier {
       _passwallConfig = config;
       return config;
     } catch (e, stack) {
+      // Keep prior installed flag so a blip does not remove the More entry.
       Logger.exception('Failed to fetch Passwall config', e, stack);
       _passwallError = e.toString();
-      _passwallInstalled = false;
-      _passwallConfig = null;
       return null;
     } finally {
       _isPasswallLoading = false;

@@ -906,7 +906,8 @@
   "passwallClearLogMessage": "Clear the Passwall runtime log?",
   "passwallClearLogFailed": "Failed to clear logs",
   "passwallRefreshLog": "Refresh",
-  "passwallShuntRules": "Shunt rules",  "passwallShunt": "Shunt",
+  "passwallShuntRules": "Shunt rules",
+  "passwallShunt": "Shunt",
   "passwallShuntDefault": "Default",
   "passwallShuntDirect": "Direct",
   "passwallShuntBlackhole": "Blackhole"

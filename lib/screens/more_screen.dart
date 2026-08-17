@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
@@ -47,23 +45,44 @@ class MoreScreen extends ConsumerStatefulWidget {
 
 class _MoreScreenState extends ConsumerState<MoreScreen> {
   AppState? _appState;
-  bool _passwallDetectScheduled = false;
+  bool _passwallDetecting = false;
+  bool _passwallTried = false;
+  String? _passwallTriedRouterId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _appState = ref.read(appStateProvider);
     _appState!.onRouterBackOnline = _showRouterBackOnlineMessage;
-    final appState = _appState!;
-    if (appState.isAuthenticated &&
-        appState.passwallInstalled == null &&
-        !_passwallDetectScheduled) {
-      _passwallDetectScheduled = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (!mounted) return;
-        await appState.detectPasswall(context: context);
-        if (mounted) _passwallDetectScheduled = false;
-      });
+    _ensurePasswallDetected();
+  }
+
+  Future<void> _ensurePasswallDetected() async {
+    final appState = ref.read(appStateProvider);
+    if (!appState.isAuthenticated) {
+      _passwallTried = false;
+      _passwallTriedRouterId = null;
+      return;
+    }
+
+    final routerId = appState.selectedRouter?.id;
+    if (routerId != _passwallTriedRouterId) {
+      _passwallTriedRouterId = routerId;
+      _passwallTried = false;
+    }
+
+    if (appState.passwallInstalled != null ||
+        _passwallDetecting ||
+        _passwallTried) {
+      return;
+    }
+
+    _passwallDetecting = true;
+    _passwallTried = true;
+    try {
+      await appState.detectPasswall(context: mounted ? context : null);
+    } finally {
+      _passwallDetecting = false;
     }
   }
 
@@ -308,6 +327,15 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 final passwallInstalled = ref.watch(
                   appStateProvider.select((state) => state.passwallInstalled),
                 );
+                // Re-run when router changes (installed is cleared to null).
+                ref.watch(
+                  appStateProvider.select((state) => state.selectedRouter?.id),
+                );
+                if (passwallInstalled == null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (mounted) _ensurePasswallDetected();
+                  });
+                }
                 if (passwallInstalled != true) {
                   return const SizedBox.shrink();
                 }
