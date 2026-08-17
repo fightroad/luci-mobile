@@ -893,7 +893,11 @@ class RealApiService implements IApiService {
     String ipAddress,
     String sysauth,
     bool useHttps, {
-    String url = 'https://www.google.com/generate_204',
+    // Match Passwall status page: host/path only, no scheme.
+    // New firmware often prepends http(s)://; a full URL becomes
+    // https://https://... and returns empty use_time. Bare host also
+    // works on older builds that pass the url straight to curl.
+    String url = 'www.google.com/generate_204',
     String type = 'google',
     BuildContext? context,
   }) async {
