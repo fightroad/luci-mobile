@@ -213,76 +213,84 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(2),
+              // Opaque header so overscrolling selection paint cannot show through.
+              Material(
+                color: colorScheme.surface,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(8, 12, 8, 0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 4,
+                        ),
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const Divider(height: 16),
-                  ],
+                      const Divider(height: 16),
+                    ],
+                  ),
                 ),
               ),
               ConstrainedBox(
                 constraints: BoxConstraints(maxHeight: maxHeight),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                  itemCount: options.length,
-                  itemBuilder: (context, index) {
-                    final option = options[index];
-                    final isSelected = option.value == currentValue;
-                    return ListTile(
-                      title: Text(
-                        option.label,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              color: isSelected ? colorScheme.primary : null,
-                              fontWeight: isSelected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                      trailing: isSelected
-                          ? Icon(
-                              Icons.check_circle,
-                              color: colorScheme.primary,
-                            )
-                          : null,
-                      selected: isSelected,
-                      selectedTileColor: colorScheme.primary.withValues(
-                        alpha: 0.12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onTap: () => Navigator.of(context).pop(option.value),
-                    );
-                  },
+                child: Material(
+                  color: colorScheme.surface,
+                  clipBehavior: Clip.hardEdge,
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
+                    itemCount: options.length,
+                    itemBuilder: (context, index) {
+                      final option = options[index];
+                      final isSelected = option.value == currentValue;
+                      return ListTile(
+                        title: Text(
+                          option.label,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: isSelected ? colorScheme.primary : null,
+                                fontWeight: isSelected
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                        ),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle,
+                                color: colorScheme.primary,
+                              )
+                            : null,
+                        selected: isSelected,
+                        selectedTileColor: colorScheme.primary.withValues(
+                          alpha: 0.12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        onTap: () => Navigator.of(context).pop(option.value),
+                      );
+                    },
+                  ),
                 ),
               ),
             ],
