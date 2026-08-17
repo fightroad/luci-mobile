@@ -207,7 +207,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
       ),
       clipBehavior: Clip.antiAlias,
       builder: (context) {
-        final maxHeight = MediaQuery.of(context).size.height * 0.7;
+        final maxHeight = MediaQuery.of(context).size.height * 0.5;
         final colorScheme = Theme.of(context).colorScheme;
         return SafeArea(
           child: Column(
@@ -259,8 +259,9 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                         option.label,
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
+                              color: isSelected ? colorScheme.primary : null,
                               fontWeight: isSelected
-                                  ? FontWeight.bold
+                                  ? FontWeight.w700
                                   : FontWeight.w500,
                             ),
                         overflow: TextOverflow.ellipsis,
@@ -273,6 +274,12 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                             )
                           : null,
                       selected: isSelected,
+                      selectedTileColor: colorScheme.primary.withValues(
+                        alpha: 0.12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       onTap: () => Navigator.of(context).pop(option.value),
                     );
                   },
@@ -308,7 +315,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                   onPressed: _busy ? null : _apply,
                   child: Text(
                     l10n.passwallApply,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: _busy
                           ? colorScheme.onSurface.withValues(alpha: 0.38)

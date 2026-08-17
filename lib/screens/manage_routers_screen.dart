@@ -215,70 +215,92 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                   builder: (context) {
                                     return StatefulBuilder(
                                       builder: (context, setState) {
-                                        return AlertDialog(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              20,
-                                            ),
-                                          ),
-                                          backgroundColor: Theme.of(
-                                            context,
-                                          ).colorScheme.surface,
-                                          elevation: 6,
-                                          shadowColor: Theme.of(context)
-                                              .colorScheme
-                                              .shadow
-                                              .withValues(alpha: 0.25),
-                                          insetPadding:
-                                              const EdgeInsets.symmetric(
-                                                horizontal: 16,
-                                                vertical: 60,
-                                              ),
-                                          titlePadding:
-                                              const EdgeInsets.fromLTRB(
-                                                24,
-                                                16,
-                                                8,
-                                                0,
-                                              ),
-                                          title: Row(
+                                        return Material(
+                                          type: MaterialType.transparency,
+                                          child: Stack(
                                             children: [
-                                              Expanded(
-                                                child: Text(
-                                                  l10n.addRouter,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge
-                                                      ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
+                                              // Tap dimmed area / empty space to dismiss keyboard only.
+                                              Positioned.fill(
+                                                child: GestureDetector(
+                                                  behavior:
+                                                      HitTestBehavior.opaque,
+                                                  onTap: () => FocusManager
+                                                      .instance
+                                                      .primaryFocus
+                                                      ?.unfocus(),
                                                 ),
                                               ),
-                                              IconButton(
-                                                tooltip: l10n.cancel,
-                                                onPressed: isConnecting
-                                                    ? null
-                                                    : () => Navigator.pop(
-                                                          context,
+                                              Center(
+                                                child: AlertDialog(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          20,
                                                         ),
-                                                icon: const Icon(Icons.close),
-                                              ),
-                                            ],
-                                          ),
-                                          content: ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                              maxWidth: 400,
-                                              minWidth: 320,
-                                              minHeight: 340,
-                                            ),
-                                            child: Form(
-                                              key: formKey,
-                                              child: SingleChildScrollView(
-                                                child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
+                                                  ),
+                                                  backgroundColor: Theme.of(
+                                                    context,
+                                                  ).colorScheme.surface,
+                                                  elevation: 6,
+                                                  shadowColor: Theme.of(context)
+                                                      .colorScheme
+                                                      .shadow
+                                                      .withValues(alpha: 0.25),
+                                                  insetPadding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 16,
+                                                        vertical: 60,
+                                                      ),
+                                                  titlePadding:
+                                                      const EdgeInsets.fromLTRB(
+                                                        24,
+                                                        16,
+                                                        8,
+                                                        0,
+                                                      ),
+                                                  title: Row(
                                                     children: [
+                                                      Expanded(
+                                                        child: Text(
+                                                          l10n.addRouter,
+                                                          style: Theme.of(
+                                                            context,
+                                                          ).textTheme.titleLarge
+                                                              ?.copyWith(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      IconButton(
+                                                        tooltip: l10n.cancel,
+                                                        onPressed: isConnecting
+                                                            ? null
+                                                            : () =>
+                                                                Navigator.pop(
+                                                                  context,
+                                                                ),
+                                                        icon: const Icon(
+                                                          Icons.close,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  content: ConstrainedBox(
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                          maxWidth: 400,
+                                                          minWidth: 320,
+                                                          minHeight: 340,
+                                                        ),
+                                                    child: Form(
+                                                      key: formKey,
+                                                      child: SingleChildScrollView(
+                                                        child: Column(
+                                                          mainAxisSize:
+                                                              MainAxisSize.min,
+                                                          children: [
                                                       Builder(
                                                         builder: (context) {
                                                           final l10n = AppLocalizations.of(context)!;
@@ -656,15 +678,21 @@ class _ManageRoutersScreenState extends ConsumerState<ManageRoutersScreen> {
                                                                 ),
                                                         ),
                                                       ),
-                                                      const SizedBox(height: 8),
-                                                    ],
+                                                          const SizedBox(
+                                                            height: 8,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
                                                   ),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    );
+                                          ],
+                                        ),
+                                      );
+                                        },
+                                      );
                                   },
                                 );
                                 if (!context.mounted) return;

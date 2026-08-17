@@ -108,8 +108,7 @@ class PasswallConfig {
     final group = tcp.shuntGroup.toLowerCase();
     final rules = allShuntRules
         .where((r) => r.group.toLowerCase() == group)
-        .toList()
-      ..sort((a, b) => a.remarks.toLowerCase().compareTo(b.remarks.toLowerCase()));
+        .toList();
     return [
       ...rules,
       const PasswallShuntRule(
@@ -223,11 +222,6 @@ class PasswallConfig {
         );
       }
     });
-
-    nodes.sort((a, b) => a.remarks.toLowerCase().compareTo(b.remarks.toLowerCase()));
-    subscriptions.sort(
-      (a, b) => a.remark.toLowerCase().compareTo(b.remark.toLowerCase()),
-    );
 
     final g = global ?? <String, dynamic>{};
     return PasswallConfig(
