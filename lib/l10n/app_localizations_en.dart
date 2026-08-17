@@ -695,6 +695,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallApply => 'Apply';
 
   @override
+  String get passwallRefresh => 'Refresh';
+
+  @override
   String get passwallUpdateSubscribe => 'Update subscriptions';
 
   @override

@@ -678,6 +678,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallApply => '应用';
 
   @override
+  String get passwallRefresh => '刷新';
+
+  @override
   String get passwallUpdateSubscribe => '更新订阅';
 
   @override

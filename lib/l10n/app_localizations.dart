@@ -1394,6 +1394,12 @@ abstract class AppLocalizations {
   /// **'Apply'**
   String get passwallApply;
 
+  /// No description provided for @passwallRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get passwallRefresh;
+
   /// No description provided for @passwallUpdateSubscribe.
   ///
   /// In en, this message translates to:

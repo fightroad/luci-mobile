@@ -289,6 +289,7 @@
   "passwallUnavailable": "无法使用 Passwall",
   "passwallUnavailableMessage": "无法从路由器读取 Passwall 配置。",
   "passwallApply": "应用",
+  "passwallRefresh": "刷新",
   "passwallUpdateSubscribe": "更新订阅",
   "passwallUpdateSubscribeSubtitle": "从全部订阅链接拉取最新节点",
   "passwallUpdateSubscribeEmpty": "尚未配置订阅链接",

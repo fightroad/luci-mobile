@@ -881,6 +881,7 @@
   "passwallUnavailable": "Passwall unavailable",
   "passwallUnavailableMessage": "Could not read Passwall configuration from the router.",
   "passwallApply": "Apply",
+  "passwallRefresh": "Refresh",
   "passwallUpdateSubscribe": "Update subscriptions",
   "passwallUpdateSubscribeSubtitle": "Fetch latest nodes from all subscribe URLs",
   "passwallUpdateSubscribeEmpty": "No subscribe URLs configured",

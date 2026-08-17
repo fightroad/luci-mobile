@@ -26,6 +26,8 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
   }
 
   Future<void> _reload() async {
+    if (_busy) return;
+    setState(() => _busy = true);
     final config = await ref
         .read(appStateProvider)
         .fetchPasswallConfig(context: context);
@@ -33,6 +35,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     setState(() {
       _baseline = config;
       _draft = config;
+      _busy = false;
     });
   }
 
@@ -337,22 +340,20 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
       appBar: LuciAppBar(
         title: l10n.passwall,
         showBack: true,
-        actions: dirty
-            ? [
-                TextButton(
-                  onPressed: _busy ? null : _apply,
-                  child: Text(
-                    l10n.passwallApply,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: _busy
-                          ? colorScheme.onSurface.withValues(alpha: 0.38)
-                          : colorScheme.primary,
-                    ),
-                  ),
-                ),
-              ]
-            : null,
+        actions: [
+          TextButton(
+            onPressed: _busy ? null : (dirty ? _apply : _reload),
+            child: Text(
+              dirty ? l10n.passwallApply : l10n.passwallRefresh,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: _busy
+                    ? colorScheme.onSurface.withValues(alpha: 0.38)
+                    : colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
