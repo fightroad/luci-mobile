@@ -748,4 +748,118 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passwallShuntBlackhole => '黑洞';
+
+  @override
+  String get easytier => 'EasyTier';
+
+  @override
+  String get easytierSubtitle => '开关、重启与状态查看';
+
+  @override
+  String get easytierQuickActions => '快捷操作';
+
+  @override
+  String get easytierCore => 'EasyTier Core';
+
+  @override
+  String get easytierCoreSubtitle => '启用或关闭 EasyTier 核心服务';
+
+  @override
+  String get easytierRestart => '重启';
+
+  @override
+  String get easytierRestartTitle => '重启 EasyTier？';
+
+  @override
+  String get easytierRestartMessage => '确定在路由器上重启 EasyTier 服务吗？';
+
+  @override
+  String get easytierRestartOk => 'EasyTier 已重启';
+
+  @override
+  String get easytierRestartFailed => '重启 EasyTier 失败';
+
+  @override
+  String get easytierEnableTitle => '启用 EasyTier？';
+
+  @override
+  String get easytierEnableMessage => '确定在路由器上启动 EasyTier 核心服务吗？';
+
+  @override
+  String get easytierEnableConfirm => '启用';
+
+  @override
+  String get easytierDisableTitle => '关闭 EasyTier？';
+
+  @override
+  String get easytierDisableMessage => '确定在路由器上关闭 EasyTier 核心服务吗？';
+
+  @override
+  String get easytierDisableConfirm => '关闭';
+
+  @override
+  String get easytierRefresh => '刷新';
+
+  @override
+  String get easytierStatus => '状态信息';
+
+  @override
+  String get easytierRunning => '运行中';
+
+  @override
+  String get easytierStopped => '已停止';
+
+  @override
+  String get easytierCpu => 'CPU';
+
+  @override
+  String get easytierMemory => '内存';
+
+  @override
+  String get easytierUptime => '运行时长';
+
+  @override
+  String get easytierVersion => '版本';
+
+  @override
+  String get easytierEnabledOk => 'EasyTier 已启用';
+
+  @override
+  String get easytierDisabledOk => 'EasyTier 已关闭';
+
+  @override
+  String get easytierToggleFailed => '切换 EasyTier 状态失败';
+
+  @override
+  String get easytierUnavailableMessage => '无法从路由器读取 EasyTier 状态。';
+
+  @override
+  String get easytierNodeList => '节点列表';
+
+  @override
+  String get easytierNodeListEmpty => '暂无网络节点';
+
+  @override
+  String get easytierNodeListStopped => '请先启动 EasyTier Core 查看节点';
+
+  @override
+  String get easytierLocalNode => '本机';
+
+  @override
+  String get easytierPeerLatency => '延迟';
+
+  @override
+  String get easytierPeerPacketLoss => '丢包率';
+
+  @override
+  String get easytierPeerDownload => '下载';
+
+  @override
+  String get easytierPeerUpload => '上传';
+
+  @override
+  String get easytierPeerProtocol => '协议';
+
+  @override
+  String get easytierPeerNatType => 'NAT 类型';
 }

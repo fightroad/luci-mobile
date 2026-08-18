@@ -1537,6 +1537,234 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blackhole'**
   String get passwallShuntBlackhole;
+
+  /// EasyTier plugin title
+  ///
+  /// In en, this message translates to:
+  /// **'EasyTier'**
+  String get easytier;
+
+  /// EasyTier entry subtitle on More screen
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle, restart, and view status'**
+  String get easytierSubtitle;
+
+  /// No description provided for @easytierQuickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick actions'**
+  String get easytierQuickActions;
+
+  /// No description provided for @easytierCore.
+  ///
+  /// In en, this message translates to:
+  /// **'EasyTier Core'**
+  String get easytierCore;
+
+  /// No description provided for @easytierCoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable or disable the EasyTier core service'**
+  String get easytierCoreSubtitle;
+
+  /// No description provided for @easytierRestart.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get easytierRestart;
+
+  /// No description provided for @easytierRestartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart EasyTier?'**
+  String get easytierRestartTitle;
+
+  /// No description provided for @easytierRestartMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Restart the EasyTier service on the router?'**
+  String get easytierRestartMessage;
+
+  /// No description provided for @easytierRestartOk.
+  ///
+  /// In en, this message translates to:
+  /// **'EasyTier restarted'**
+  String get easytierRestartOk;
+
+  /// No description provided for @easytierRestartFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to restart EasyTier'**
+  String get easytierRestartFailed;
+
+  /// No description provided for @easytierEnableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable EasyTier?'**
+  String get easytierEnableTitle;
+
+  /// No description provided for @easytierEnableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Start the EasyTier core service on the router?'**
+  String get easytierEnableMessage;
+
+  /// No description provided for @easytierEnableConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get easytierEnableConfirm;
+
+  /// No description provided for @easytierDisableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable EasyTier?'**
+  String get easytierDisableTitle;
+
+  /// No description provided for @easytierDisableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop the EasyTier core service on the router?'**
+  String get easytierDisableMessage;
+
+  /// No description provided for @easytierDisableConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get easytierDisableConfirm;
+
+  /// No description provided for @easytierRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get easytierRefresh;
+
+  /// No description provided for @easytierStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get easytierStatus;
+
+  /// No description provided for @easytierRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get easytierRunning;
+
+  /// No description provided for @easytierStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped'**
+  String get easytierStopped;
+
+  /// No description provided for @easytierCpu.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU'**
+  String get easytierCpu;
+
+  /// No description provided for @easytierMemory.
+  ///
+  /// In en, this message translates to:
+  /// **'Memory'**
+  String get easytierMemory;
+
+  /// No description provided for @easytierUptime.
+  ///
+  /// In en, this message translates to:
+  /// **'Uptime'**
+  String get easytierUptime;
+
+  /// No description provided for @easytierVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get easytierVersion;
+
+  /// No description provided for @easytierEnabledOk.
+  ///
+  /// In en, this message translates to:
+  /// **'EasyTier enabled'**
+  String get easytierEnabledOk;
+
+  /// No description provided for @easytierDisabledOk.
+  ///
+  /// In en, this message translates to:
+  /// **'EasyTier disabled'**
+  String get easytierDisabledOk;
+
+  /// No description provided for @easytierToggleFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to toggle EasyTier'**
+  String get easytierToggleFailed;
+
+  /// No description provided for @easytierUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read EasyTier status from the router.'**
+  String get easytierUnavailableMessage;
+
+  /// No description provided for @easytierNodeList.
+  ///
+  /// In en, this message translates to:
+  /// **'Node list'**
+  String get easytierNodeList;
+
+  /// No description provided for @easytierNodeListEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No nodes in the network'**
+  String get easytierNodeListEmpty;
+
+  /// No description provided for @easytierNodeListStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Start EasyTier core to view nodes'**
+  String get easytierNodeListStopped;
+
+  /// No description provided for @easytierLocalNode.
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get easytierLocalNode;
+
+  /// No description provided for @easytierPeerLatency.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency'**
+  String get easytierPeerLatency;
+
+  /// No description provided for @easytierPeerPacketLoss.
+  ///
+  /// In en, this message translates to:
+  /// **'Packet loss'**
+  String get easytierPeerPacketLoss;
+
+  /// No description provided for @easytierPeerDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get easytierPeerDownload;
+
+  /// No description provided for @easytierPeerUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get easytierPeerUpload;
+
+  /// No description provided for @easytierPeerProtocol.
+  ///
+  /// In en, this message translates to:
+  /// **'Protocol'**
+  String get easytierPeerProtocol;
+
+  /// No description provided for @easytierPeerNatType.
+  ///
+  /// In en, this message translates to:
+  /// **'NAT type'**
+  String get easytierPeerNatType;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
+import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import '../utils/http_client_manager.dart';
@@ -942,5 +943,164 @@ class RealApiService implements IApiService {
     final useTime = double.tryParse(data['use_time']?.toString() ?? '');
     if (useTime == null || useTime <= 0) return null;
     return useTime;
+  }
+
+  Map<String, dynamic>? _decodeLuciJsonResponse(dynamic data) {
+    dynamic decoded = data;
+    if (decoded is String) {
+      final trimmed = decoded.trimLeft();
+      if (trimmed.toLowerCase().startsWith('<!DOCTYPE') ||
+          trimmed.toLowerCase().startsWith('<html')) {
+        return null;
+      }
+      if (!trimmed.startsWith('{')) return null;
+      try {
+        decoded = jsonDecode(trimmed);
+      } catch (_) {
+        return null;
+      }
+    }
+    return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
+  }
+
+  @override
+  Future<EasyTierStatus> fetchEasyTierStatus(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/vpn/easytier/api_status',
+    );
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        responseType: ResponseType.json,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      throw Exception(
+        'Failed to fetch EasyTier status (${response.statusCode})',
+      );
+    }
+    final json = _decodeLuciJsonResponse(response.data);
+    if (json == null) {
+      throw Exception('Failed to fetch EasyTier status');
+    }
+    return EasyTierStatus.fromJson(json);
+  }
+
+  @override
+  Future<bool> setEasyTierCoreEnabled(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    required bool enabled,
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/vpn/easytier/toggle_core',
+    );
+    final response = await client.post(
+      uri.toString(),
+      data: {'enabled': enabled ? '1' : '0'},
+      options: Options(
+        contentType: Headers.formUrlEncodedContentType,
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      return false;
+    }
+    final json = _decodeLuciJsonResponse(response.data);
+    return json?['success'] == true;
+  }
+
+  @override
+  Future<bool> restartEasyTier(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/vpn/easytier/restart_service',
+    );
+    final response = await client.post(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      return false;
+    }
+    final json = _decodeLuciJsonResponse(response.data);
+    return json?['success'] == true;
+  }
+
+  static const _peerListSectionKey = 'peer';
+
+  @override
+  Future<String> fetchEasyTierPeerList(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/vpn/easytier/api_conninfo',
+    ).replace(queryParameters: {'section': _peerListSectionKey});
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        responseType: ResponseType.json,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      throw Exception(
+        'Failed to fetch EasyTier peer list (${response.statusCode})',
+      );
+    }
+    final json = _decodeLuciJsonResponse(response.data);
+    if (json == null) {
+      throw Exception('Failed to fetch EasyTier peer list');
+    }
+    final value = json[_peerListSectionKey];
+    if (value == null) {
+      throw Exception('EasyTier peer list missing in response');
+    }
+    return value.toString();
   }
 }

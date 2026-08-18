@@ -11,6 +11,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/screens/manage_routers_screen.dart';
+import 'package:luci_mobile/screens/easytier_screen.dart';
 import 'package:luci_mobile/screens/passwall_screen.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
 import 'package:luci_mobile/state/app_state.dart';
@@ -50,13 +51,55 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   bool _passwallDetecting = false;
   bool _passwallTried = false;
   String? _passwallTriedRouterId;
+  bool _easytierDetecting = false;
+  bool _easytierTried = false;
+  String? _easytierTriedRouterId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _appState = ref.read(appStateProvider);
     _appState!.onRouterBackOnline = _showRouterBackOnlineMessage;
-    _ensurePasswallDetected();
+    _ensurePluginsDetected();
+  }
+
+  Future<void> _ensurePluginsDetected() async {
+    await Future.wait([
+      _ensurePasswallDetected(),
+      _ensureEasyTierDetected(),
+    ]);
+  }
+
+  Future<void> _ensureEasyTierDetected() async {
+    final appState = ref.read(appStateProvider);
+    if (!appState.isAuthenticated) {
+      _easytierTried = false;
+      _easytierTriedRouterId = null;
+      return;
+    }
+
+    final routerId = appState.selectedRouter?.id;
+    if (routerId != _easytierTriedRouterId) {
+      _easytierTriedRouterId = routerId;
+      _easytierTried = false;
+    }
+
+    if (appState.easytierInstalled != null ||
+        _easytierDetecting ||
+        _easytierTried) {
+      return;
+    }
+
+    _easytierDetecting = true;
+    _easytierTried = true;
+    try {
+      await appState.detectEasyTier(context: mounted ? context : null);
+    } finally {
+      _easytierDetecting = false;
+      if (ref.read(appStateProvider).easytierInstalled == null) {
+        _easytierTried = false;
+      }
+    }
   }
 
   Future<void> _ensurePasswallDetected() async {
@@ -329,40 +372,65 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 final passwallInstalled = ref.watch(
                   appStateProvider.select((state) => state.passwallInstalled),
                 );
+                final easytierInstalled = ref.watch(
+                  appStateProvider.select((state) => state.easytierInstalled),
+                );
                 // Re-run when router changes (installed is cleared to null).
                 ref.watch(
                   appStateProvider.select((state) => state.selectedRouter?.id),
                 );
-                if (passwallInstalled == null) {
+                if (passwallInstalled == null || easytierInstalled == null) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted) _ensurePasswallDetected();
+                    if (mounted) _ensurePluginsDetected();
                   });
                 }
-                if (passwallInstalled != true) {
+                final showPlugins =
+                    passwallInstalled == true || easytierInstalled == true;
+                if (!showPlugins) {
                   return const SizedBox.shrink();
+                }
+                final tiles = <Widget>[];
+                if (passwallInstalled == true) {
+                  tiles.add(
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.shield_outlined,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      title: l10n.passwall,
+                      subtitle: l10n.passwallSubtitle,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const PasswallScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+                if (easytierInstalled == true) {
+                  tiles.add(
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.hub_outlined,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      title: l10n.easytier,
+                      subtitle: l10n.easytierSubtitle,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const EasyTierScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
                 }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     LuciSectionHeader(l10n.plugins),
-                    _MoreScreenSection(
-                      tiles: [
-                        _buildMoreTile(
-                          context,
-                          icon: Icons.shield_outlined,
-                          iconColor: Theme.of(context).colorScheme.primary,
-                          title: l10n.passwall,
-                          subtitle: l10n.passwallSubtitle,
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const PasswallScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                    _MoreScreenSection(tiles: tiles),
                   ],
                 );
               },

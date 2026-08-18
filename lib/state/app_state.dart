@@ -11,6 +11,8 @@ import 'package:luci_mobile/services/throughput_service.dart';
 import 'package:luci_mobile/models/client.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/models/dashboard_preferences.dart';
+import 'package:luci_mobile/models/easytier_peer.dart';
+import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
@@ -56,6 +58,20 @@ class AppState extends ChangeNotifier {
   bool get isPasswallLoading => _isPasswallLoading;
   String? _passwallError;
   String? get passwallError => _passwallError;
+
+  /// null = not checked yet; true when `/etc/config/easytier` is readable via UCI.
+  bool? _easytierInstalled;
+  bool? get easytierInstalled => _easytierInstalled;
+  EasyTierStatus? _easytierStatus;
+  EasyTierStatus? get easytierStatus => _easytierStatus;
+  bool _isEasytierLoading = false;
+  bool get isEasytierLoading => _isEasytierLoading;
+  String? _easytierError;
+  String? get easytierError => _easytierError;
+  List<EasyTierPeer> _easytierPeers = const [];
+  List<EasyTierPeer> get easytierPeers => _easytierPeers;
+  String? _easytierPeersError;
+  String? get easytierPeersError => _easytierPeersError;
 
   // Theme mode state
   ThemeMode _themeMode = ThemeMode.system;
@@ -327,6 +343,12 @@ class AppState extends ChangeNotifier {
     _passwallConfig = null;
     _passwallError = null;
     _isPasswallLoading = false;
+    _easytierInstalled = null;
+    _easytierStatus = null;
+    _easytierError = null;
+    _isEasytierLoading = false;
+    _easytierPeers = const [];
+    _easytierPeersError = null;
 
     // Determine a safe context before any awaits
     final safeContext = context?.mounted == true ? context : null; // ignore: use_build_context_synchronously
@@ -470,6 +492,12 @@ class AppState extends ChangeNotifier {
     _passwallConfig = null;
     _passwallError = null;
     _isPasswallLoading = false;
+    _easytierInstalled = null;
+    _easytierStatus = null;
+    _easytierError = null;
+    _isEasytierLoading = false;
+    _easytierPeers = const [];
+    _easytierPeersError = null;
     _cancelThroughputTimer();
     // Re-sync routers from storage (loadRouters notifies listeners).
     await loadRouters();
@@ -2028,4 +2056,170 @@ class AppState extends ChangeNotifier {
       return null;
     }
   }
+
+  /// Detects luci-app-easytier by reading UCI config `easytier`.
+  Future<bool> detectEasyTier({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      _easytierInstalled = false;
+      _easytierStatus = null;
+      notifyListeners();
+      return false;
+    }
+
+    final detectIp = _authService!.ipAddress!;
+    try {
+      final result = await _apiService!.call(
+        detectIp,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'uci',
+        method: 'get',
+        params: {'config': 'easytier'},
+        context: context,
+      );
+      if (_authService?.ipAddress != detectIp) {
+        return false;
+      }
+      final data = _unwrapLuciRpc(result);
+      final values = data is Map ? data['values'] : null;
+      final installed = values is Map && values.isNotEmpty;
+      _easytierInstalled = installed;
+      if (!installed) {
+        _easytierStatus = null;
+      }
+      notifyListeners();
+      return installed;
+    } catch (e, stack) {
+      Logger.debug('EasyTier detect failed: $e');
+      Logger.debug('EasyTier detect stack: $stack');
+      return false;
+    }
+  }
+
+  Future<EasyTierStatus?> fetchEasyTierStatus({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+
+    _isEasytierLoading = true;
+    _easytierError = null;
+    notifyListeners();
+
+    try {
+      final status = await _apiService!.fetchEasyTierStatus(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+      _easytierInstalled = true;
+      _easytierStatus = status;
+      return status;
+    } catch (e, stack) {
+      Logger.exception('Failed to fetch EasyTier status', e, stack);
+      _easytierError = e.toString();
+      return null;
+    } finally {
+      _isEasytierLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> setEasyTierCoreEnabled(
+    bool enabled, {
+    BuildContext? context,
+  }) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+
+    try {
+      final ok = await _apiService!.setEasyTierCoreEnabled(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        enabled: enabled,
+        context: context,
+      );
+      if (ok) {
+        await Future<void>.delayed(_easytierServiceSettleDelay);
+        await refreshEasyTier(context: context);
+      }
+      return ok;
+    } catch (e, stack) {
+      Logger.exception('Failed to toggle EasyTier core', e, stack);
+      _easytierError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> restartEasyTier({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+
+    try {
+      final ok = await _apiService!.restartEasyTier(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+      if (ok) {
+        await Future<void>.delayed(_easytierServiceSettleDelay);
+        await refreshEasyTier(context: context);
+      }
+      return ok;
+    } catch (e, stack) {
+      Logger.exception('Failed to restart EasyTier', e, stack);
+      _easytierError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<List<EasyTierPeer>> fetchEasyTierPeers({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return const [];
+    }
+
+    try {
+      final raw = await _apiService!.fetchEasyTierPeerList(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+      final parsed = EasyTierPeerParser.parsePeerList(raw);
+      if (parsed.error != null) {
+        _easytierPeers = const [];
+        _easytierPeersError = parsed.error;
+      } else {
+        _easytierPeers = parsed.peers;
+        _easytierPeersError = null;
+      }
+      notifyListeners();
+      return _easytierPeers;
+    } catch (e, stack) {
+      Logger.exception('Failed to fetch EasyTier peer list', e, stack);
+      _easytierPeers = const [];
+      _easytierPeersError = e.toString();
+      notifyListeners();
+      return const [];
+    }
+  }
+
+  Future<void> refreshEasyTier({BuildContext? context}) async {
+    await fetchEasyTierStatus(context: context);
+    if (_easytierStatus?.coreRunning == true) {
+      await fetchEasyTierPeers(context: context);
+    } else {
+      _easytierPeers = const [];
+      _easytierPeersError = null;
+      notifyListeners();
+    }
+  }
+
+  static const _easytierServiceSettleDelay = Duration(seconds: 2);
 }

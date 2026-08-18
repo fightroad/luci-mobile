@@ -768,4 +768,123 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwallShuntBlackhole => 'Blackhole';
+
+  @override
+  String get easytier => 'EasyTier';
+
+  @override
+  String get easytierSubtitle => 'Toggle, restart, and view status';
+
+  @override
+  String get easytierQuickActions => 'Quick actions';
+
+  @override
+  String get easytierCore => 'EasyTier Core';
+
+  @override
+  String get easytierCoreSubtitle =>
+      'Enable or disable the EasyTier core service';
+
+  @override
+  String get easytierRestart => 'Restart';
+
+  @override
+  String get easytierRestartTitle => 'Restart EasyTier?';
+
+  @override
+  String get easytierRestartMessage =>
+      'Restart the EasyTier service on the router?';
+
+  @override
+  String get easytierRestartOk => 'EasyTier restarted';
+
+  @override
+  String get easytierRestartFailed => 'Failed to restart EasyTier';
+
+  @override
+  String get easytierEnableTitle => 'Enable EasyTier?';
+
+  @override
+  String get easytierEnableMessage =>
+      'Start the EasyTier core service on the router?';
+
+  @override
+  String get easytierEnableConfirm => 'Enable';
+
+  @override
+  String get easytierDisableTitle => 'Disable EasyTier?';
+
+  @override
+  String get easytierDisableMessage =>
+      'Stop the EasyTier core service on the router?';
+
+  @override
+  String get easytierDisableConfirm => 'Disable';
+
+  @override
+  String get easytierRefresh => 'Refresh';
+
+  @override
+  String get easytierStatus => 'Status';
+
+  @override
+  String get easytierRunning => 'Running';
+
+  @override
+  String get easytierStopped => 'Stopped';
+
+  @override
+  String get easytierCpu => 'CPU';
+
+  @override
+  String get easytierMemory => 'Memory';
+
+  @override
+  String get easytierUptime => 'Uptime';
+
+  @override
+  String get easytierVersion => 'Version';
+
+  @override
+  String get easytierEnabledOk => 'EasyTier enabled';
+
+  @override
+  String get easytierDisabledOk => 'EasyTier disabled';
+
+  @override
+  String get easytierToggleFailed => 'Failed to toggle EasyTier';
+
+  @override
+  String get easytierUnavailableMessage =>
+      'Could not read EasyTier status from the router.';
+
+  @override
+  String get easytierNodeList => 'Node list';
+
+  @override
+  String get easytierNodeListEmpty => 'No nodes in the network';
+
+  @override
+  String get easytierNodeListStopped => 'Start EasyTier core to view nodes';
+
+  @override
+  String get easytierLocalNode => 'Local';
+
+  @override
+  String get easytierPeerLatency => 'Latency';
+
+  @override
+  String get easytierPeerPacketLoss => 'Packet loss';
+
+  @override
+  String get easytierPeerDownload => 'Download';
+
+  @override
+  String get easytierPeerUpload => 'Upload';
+
+  @override
+  String get easytierPeerProtocol => 'Protocol';
+
+  @override
+  String get easytierPeerNatType => 'NAT type';
 }

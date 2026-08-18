@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
 
 /// API service interface for LuCI RPC communication.
@@ -121,6 +122,39 @@ abstract class IApiService {
     bool useHttps, {
     String url = 'www.google.com/generate_204',
     String type = 'google',
+    BuildContext? context,
+  });
+
+  /// Reads EasyTier runtime status via LuCI CGI (`api_status`).
+  Future<EasyTierStatus> fetchEasyTierStatus(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  });
+
+  /// Enables or disables EasyTier core via LuCI CGI (`toggle_core`).
+  Future<bool> setEasyTierCoreEnabled(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    required bool enabled,
+    BuildContext? context,
+  });
+
+  /// Restarts EasyTier service via LuCI CGI (`restart_service`).
+  Future<bool> restartEasyTier(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  });
+
+  /// Reads EasyTier peer list via LuCI CGI (`api_conninfo?section=peer`).
+  Future<String> fetchEasyTierPeerList(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
     BuildContext? context,
   });
 }
