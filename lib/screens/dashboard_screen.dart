@@ -2133,7 +2133,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         title: l10n.connectionFailed,
         message: l10n.connectionFailedMessage,
         actionLabel: l10n.retryConnection,
-        onAction: () => appState.fetchDashboardData(),
+        onAction: () => appState.reconnectSelectedRouter(),
         icon: Icons.wifi_off_rounded,
       );
     }

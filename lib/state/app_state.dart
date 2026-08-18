@@ -45,6 +45,7 @@ class AppState extends ChangeNotifier {
   // Add rebooting state
   bool _isRebooting = false;
   bool get isRebooting => _isRebooting;
+  bool _reconnectBusy = false;
 
   /// null = not checked yet; true when `/etc/config/passwall` is readable via UCI.
   bool? _passwallInstalled;
@@ -1538,6 +1539,37 @@ class AppState extends ChangeNotifier {
         ) ??
         false;
   }
+
+  /// Drops stale HTTP sockets, logs in again, then refreshes dashboard data.
+  Future<void> reconnectSelectedRouter() async {
+    if (_reconnectBusy || _isRebooting) return;
+    final router = selectedRouter;
+    if (router == null || !isAuthenticated) return;
+
+    _reconnectBusy = true;
+    try {
+      _httpClientManager.disposeClient(router.ipAddress, router.useHttps);
+      final ok = await _authService!.login(
+        router.ipAddress,
+        router.username,
+        router.password,
+        router.useHttps,
+      );
+      if (!ok) {
+        _dashboardError = 'Failed to fetch dashboard data';
+        notifyListeners();
+        return;
+      }
+      await fetchDashboardData();
+      _startThroughputTimer();
+    } catch (e, stack) {
+      Logger.exception('Failed to reconnect session', e, stack);
+    } finally {
+      _reconnectBusy = false;
+    }
+  }
+
+  Future<void> onAppResumed() => reconnectSelectedRouter();
 
   /// Fetch all associated wireless MAC addresses from all wireless interfaces
   Future<Set<String>> fetchAllAssociatedWirelessMacs() async {

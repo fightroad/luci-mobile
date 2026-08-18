@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
@@ -18,11 +20,42 @@ final appStateProvider = ChangeNotifierProvider<AppState>(
   (ref) => AppState.instance,
 );
 
-class LuCIApp extends ConsumerWidget {
+class LuCIApp extends ConsumerStatefulWidget {
   const LuCIApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LuCIApp> createState() => _LuCIAppState();
+}
+
+class _LuCIAppState extends ConsumerState<LuCIApp> with WidgetsBindingObserver {
+  bool _wasInBackground = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      _wasInBackground = true;
+    }
+    if (state == AppLifecycleState.resumed && _wasInBackground) {
+      _wasInBackground = false;
+      unawaited(ref.read(appStateProvider).onAppResumed());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appStateProvider);
     // Note: title is used for system app name, using English default
     // The actual app title is displayed in screens using AppLocalizations

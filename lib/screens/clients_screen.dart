@@ -139,7 +139,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                         message: l10n.failedToLoadClientsMessage,
                         actionLabel: l10n.retry,
                         onAction: () =>
-                            ref.read(appStateProvider).fetchDashboardData(),
+                            ref.read(appStateProvider).reconnectSelectedRouter(),
                         icon: Icons.wifi_off_rounded,
                       );
                     }

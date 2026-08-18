@@ -390,7 +390,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                       title: l10n.failedToLoadInterfaces,
                       message: l10n.failedToLoadInterfacesMessage,
                       actionLabel: l10n.retry,
-                      onAction: () => appState.fetchDashboardData(),
+                      onAction: () => appState.reconnectSelectedRouter(),
                       icon: Icons.wifi_off_rounded,
                     );
                   }
