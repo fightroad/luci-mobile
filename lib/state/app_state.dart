@@ -611,14 +611,6 @@ class AppState extends ChangeNotifier {
           method: 'dump',
           params: {},
         ),
-        _apiService!.call(
-          ip,
-          _authService!.sysauth!,
-          useHttps,
-          object: 'luci-rpc',
-          method: 'getDHCPLeases',
-          params: {},
-        ),
       ]);
 
       // Helper to safely extract data and handle errors from LuCI's [status, data] responses
@@ -651,7 +643,6 @@ class AppState extends ChangeNotifier {
       final sysInfoData = getData(results[1]);
       final networkData = getData(results[2]) as Map<String, dynamic>?;
       final interfaceDump = getData(results[3]) as Map<String, dynamic>?;
-      final dhcpLeases = getData(results[4]) as Map<String, dynamic>?;
 
       // Await optional wireless futures in parallel (won't throw — wired-only routers are fine)
       final optionalResults = await Future.wait([
@@ -729,11 +720,8 @@ class AppState extends ChangeNotifier {
         boardJsonData,
         networkData,
       );
-      // Same membership as Clients tab: DHCP ∪ Wi-Fi.
-      final onlineClients = _buildClientsFromSources(
-        leases: _extractDhcpLeaseMaps(dhcpLeases),
-        macToAccessPoint: macToAccessPoint,
-      ).length;
+      // Wi-Fi assoclist count only (same membership as Clients tab).
+      final onlineClients = _countWifiAssociatedClients(macToAccessPoint);
 
       // Fetch WireGuard peer information for WireGuard interfaces
       final wireguardData = <String, dynamic>{};
@@ -822,7 +810,6 @@ class AppState extends ChangeNotifier {
         'networkDevices': networkData,
         'interfaceDump': interfaceDump,
         'wireless': wirelessData ?? <String, dynamic>{},
-        'dhcpLeases': dhcpLeases,
         'wan': _extractWanData(interfaceDump),
         'uciWirelessConfig': uciWirelessConfig,
         'wireguard': wireguardData,
@@ -1619,6 +1606,16 @@ class AppState extends ChangeNotifier {
     return RegExp(r'^([0-9A-F]{2}:){5}[0-9A-F]{2}$').hasMatch(mac);
   }
 
+  int _countWifiAssociatedClients(Map<String, String> macToAccessPoint) {
+    var count = 0;
+    for (final macKey in macToAccessPoint.keys) {
+      if (_isValidClientMac(_normalizeClientMac(macKey))) {
+        count++;
+      }
+    }
+    return count;
+  }
+
   List<Map<String, dynamic>> _extractDhcpLeaseMaps(dynamic data) {
     if (data is! Map) return const [];
     final leases = data['dhcp_leases'];
@@ -1641,11 +1638,48 @@ class AppState extends ChangeNotifier {
     return const [];
   }
 
+  Map<String, Map<String, dynamic>> _extractHostHintMaps(dynamic data) {
+    if (data is! Map) return const {};
+    final hints = <String, Map<String, dynamic>>{};
+    data.forEach((macKey, value) {
+      if (value is! Map) return;
+      final mac = _normalizeClientMac(macKey.toString());
+      if (!_isValidClientMac(mac)) return;
+      hints[mac] = Map<String, dynamic>.from(value);
+    });
+    return hints;
+  }
+
+  Client _clientFromHostHint(
+    Client base,
+    Map<String, dynamic> hint,
+  ) {
+    final ipAddrs = _stringList(hint['ipaddrs']);
+    final ip = ipAddrs.isEmpty ? null : ipAddrs.first;
+    final name = hint['name']?.toString().trim();
+    final ipv6 = _stringList(hint['ip6addrs']);
+
+    return base.copyWith(
+      ipAddress: ip ?? base.ipAddress,
+      hostname: (name != null && name.isNotEmpty) ? name : base.hostname,
+      ipv6Addresses: ipv6.isNotEmpty ? ipv6 : base.ipv6Addresses,
+    );
+  }
+
+  List<String> _stringList(dynamic value) {
+    if (value is! List) return const [];
+    return value
+        .map((e) => e?.toString().trim() ?? '')
+        .where((e) => e.isNotEmpty)
+        .toList();
+  }
+
   List<Client> _buildClientsFromSources({
     required List<Map<String, dynamic>> leases,
     required Map<String, String> macToAccessPoint,
+    Map<String, Map<String, dynamic>> hostHintsByMac = const {},
   }) {
-    // Official-style: DHCP ∪ Wi-Fi associations.
+    // Wi-Fi assoclist is the online membership; DHCP and host hints enrich only.
     final wifiByMac = <String, String>{};
     macToAccessPoint.forEach((macKey, accessPoint) {
       final mac = _normalizeClientMac(macKey);
@@ -1654,49 +1688,45 @@ class AppState extends ChangeNotifier {
       }
     });
 
-    final clients = <String, Client>{};
-
+    final leaseByMac = <String, Map<String, dynamic>>{};
     for (final lease in leases) {
-      final client = Client.fromLease(lease);
-      final mac = _normalizeClientMac(client.macAddress);
+      final macRaw = lease['macaddr']?.toString();
+      if (macRaw == null) continue;
+      final mac = _normalizeClientMac(macRaw);
       if (!_isValidClientMac(mac)) continue;
-      final onWifi = wifiByMac.containsKey(mac);
-      // Assoc confirms wireless; otherwise keep fromLease heuristic (official).
-      clients[mac] = onWifi
-          ? client.copyWith(
-              connectionType: ConnectionType.wireless,
-              accessPoint: wifiByMac[mac],
-            )
-          : client;
+      leaseByMac[mac] = lease;
     }
 
-    wifiByMac.forEach((mac, accessPoint) {
-      if (clients.containsKey(mac)) return;
-      clients[mac] = Client.fromWirelessStation(
-        mac,
-        accessPoint: accessPoint,
-      );
-    });
+    final clients = <Client>[];
+    for (final entry in wifiByMac.entries) {
+      final mac = entry.key;
+      final accessPoint = entry.value;
+      final lease = leaseByMac[mac];
+      final hint = hostHintsByMac[mac];
 
-    final list = clients.values.toList();
-    list.sort((a, b) {
-      int typeOrder(ConnectionType t) {
-        switch (t) {
-          case ConnectionType.wireless:
-            return 0;
-          case ConnectionType.wired:
-            return 1;
-          default:
-            return 2;
+      Client client;
+      if (lease != null) {
+        client = Client.fromLease(lease).copyWith(
+          connectionType: ConnectionType.wireless,
+          accessPoint: accessPoint,
+        );
+      } else {
+        client = Client.fromWirelessStation(
+          mac,
+          accessPoint: accessPoint,
+        );
+        if (hint != null) {
+          client = _clientFromHostHint(client, hint);
         }
       }
 
-      final cmpType =
-          typeOrder(a.connectionType).compareTo(typeOrder(b.connectionType));
-      if (cmpType != 0) return cmpType;
-      return a.hostname.toLowerCase().compareTo(b.hostname.toLowerCase());
-    });
-    return list;
+      clients.add(client);
+    }
+
+    clients.sort(
+      (a, b) => a.hostname.toLowerCase().compareTo(b.hostname.toLowerCase()),
+    );
+    return clients;
   }
 
   /// Returns clients for the currently selected router only
@@ -1726,22 +1756,40 @@ class AppState extends ChangeNotifier {
               params: {},
             )
             .catchError((Object _, StackTrace __) => null),
+        _apiService!
+            .call(
+              router.ipAddress,
+              _authService!.sysauth!,
+              router.useHttps,
+              object: 'luci-rpc',
+              method: 'getHostHints',
+              params: {},
+            )
+            .catchError((Object _, StackTrace __) => null),
       ]);
 
       final macToAccessPoint = results[0] as Map<String, String>;
       final leaseResult = results[1];
+      final hostHintsResult = results[2];
       var leases = <Map<String, dynamic>>[];
       if (leaseResult is List && leaseResult.length > 1 && leaseResult[0] == 0) {
         leases = _extractDhcpLeaseMaps(leaseResult[1]);
+      }
+      Map<String, Map<String, dynamic>> hostHintsByMac = const {};
+      if (hostHintsResult is List &&
+          hostHintsResult.length > 1 &&
+          hostHintsResult[0] == 0) {
+        hostHintsByMac = _extractHostHintMaps(hostHintsResult[1]);
       }
 
       return _buildClientsFromSources(
         leases: leases,
         macToAccessPoint: macToAccessPoint,
+        hostHintsByMac: hostHintsByMac,
       );
     } catch (e, stack) {
       Logger.exception('Failed to fetch clients for selected router', e, stack);
-      return [];
+      rethrow;
     }
   }
 

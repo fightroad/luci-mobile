@@ -230,9 +230,9 @@
   "@wanIpv6": {
     "description": "WAN IPv6 address label in IP detail dialog"
   },
-  "onlineClients": "Online",
+  "onlineClients": "Wi-Fi Online",
   "@onlineClients": {
-    "description": "Online clients count label on dashboard"
+    "description": "Wi-Fi associated clients count label on dashboard"
   },
   "activeConnections": "Connections",
   "@activeConnections": {
@@ -274,13 +274,13 @@
   "@clearSearch": {
     "description": "Clear search button tooltip"
   },
-  "noActiveClientsFound": "No Active Clients Found",
+  "noActiveClientsFound": "No Wi-Fi Clients",
   "@noActiveClientsFound": {
-    "description": "No active clients found title"
+    "description": "Empty clients list title when no Wi-Fi stations are associated"
   },
-  "noActiveClientsMessage": "No clients are currently connected to the router. Pull down to refresh the list.",
+  "noActiveClientsMessage": "No devices are currently connected to Wi-Fi. Pull down to refresh the list.",
   "@noActiveClientsMessage": {
-    "description": "No active clients message"
+    "description": "Empty clients list message when no Wi-Fi stations are associated"
   },
   "noMatchingClients": "No Matching Clients",
   "@noMatchingClients": {

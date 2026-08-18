@@ -181,7 +181,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wanIpv6 => 'WAN IPv6';
 
   @override
-  String get onlineClients => 'Online';
+  String get onlineClients => 'Wi-Fi Online';
 
   @override
   String get activeConnections => 'Connections';
@@ -215,11 +215,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearSearch => 'Clear search';
 
   @override
-  String get noActiveClientsFound => 'No Active Clients Found';
+  String get noActiveClientsFound => 'No Wi-Fi Clients';
 
   @override
   String get noActiveClientsMessage =>
-      'No clients are currently connected to the router. Pull down to refresh the list.';
+      'No devices are currently connected to Wi-Fi. Pull down to refresh the list.';
 
   @override
   String get noMatchingClients => 'No Matching Clients';

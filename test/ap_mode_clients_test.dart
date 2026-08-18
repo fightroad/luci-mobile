@@ -1,15 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:luci_mobile/models/client.dart';
 
-/// Tests for AP-mode client detection (GitHub issues #21, #52, #45, #32).
-///
-/// Root cause: The app relies exclusively on DHCP leases to populate clients.
-/// On AP-mode routers where DHCP is disabled, the lease list is empty, so
-/// "No Active Clients Found" is shown — even though wireless clients ARE
-/// connected and visible via iwinfo.assoclist.
-///
-/// Fix: Use wireless association data as a fallback client source when
-/// a wireless MAC is not present in the DHCP lease list.
+/// Wi-Fi online clients: assoclist membership, enriched by DHCP then host hints.
 
 void main() {
   group('Client.fromWirelessStation', () {
@@ -38,13 +30,15 @@ void main() {
     });
   });
 
-  group('AP-mode client merging logic', () {
+  group('Wi-Fi online client list', () {
     test('wireless MACs not in DHCP produce fallback clients', () {
-      // Simulate: DHCP leases are empty (AP mode), but wireless has stations
       final dhcpLeases = <Map<String, dynamic>>[];
       final wirelessMacs = {'AA:BB:CC:11:22:33', 'AA:BB:CC:44:55:66'};
 
-      final clients = _buildMergedClientList(dhcpLeases, wirelessMacs);
+      final clients = _buildWifiOnlineClientList(
+        dhcpLeases: dhcpLeases,
+        wirelessMacs: wirelessMacs,
+      );
 
       expect(clients, hasLength(2));
       expect(clients.every((c) => c.connectionType == ConnectionType.wireless), isTrue);
@@ -54,17 +48,21 @@ void main() {
       );
     });
 
-    test('wireless MACs already in DHCP are not duplicated', () {
+    test('wireless MACs with DHCP lease use lease details', () {
       final dhcpLeases = <Map<String, dynamic>>[
         {
           'macaddr': 'aa:bb:cc:11:22:33',
           'ipaddr': '192.168.1.100',
           'hostname': 'iPhone-John',
+          'expires': 3600,
         },
       ];
       final wirelessMacs = {'AA:BB:CC:11:22:33'};
 
-      final clients = _buildMergedClientList(dhcpLeases, wirelessMacs);
+      final clients = _buildWifiOnlineClientList(
+        dhcpLeases: dhcpLeases,
+        wirelessMacs: wirelessMacs,
+      );
 
       expect(clients, hasLength(1));
       expect(clients.first.hostname, 'iPhone-John');
@@ -72,7 +70,7 @@ void main() {
       expect(clients.first.connectionType, ConnectionType.wireless);
     });
 
-    test('mix of DHCP and wireless-only clients', () {
+    test('DHCP-only wired clients are excluded', () {
       final dhcpLeases = <Map<String, dynamic>>[
         {
           'macaddr': 'aa:bb:cc:11:22:33',
@@ -85,76 +83,113 @@ void main() {
           'hostname': 'Desktop-PC',
         },
       ];
-      // One MAC overlaps with DHCP, one is wireless-only
-      final wirelessMacs = {'AA:BB:CC:11:22:33', 'AA:BB:CC:99:88:77'};
+      final wirelessMacs = {'AA:BB:CC:11:22:33'};
 
-      final clients = _buildMergedClientList(dhcpLeases, wirelessMacs);
+      final clients = _buildWifiOnlineClientList(
+        dhcpLeases: dhcpLeases,
+        wirelessMacs: wirelessMacs,
+      );
 
-      // 2 from DHCP + 1 wireless-only = 3
-      expect(clients, hasLength(3));
-
-      final wirelessClients =
-          clients.where((c) => c.connectionType == ConnectionType.wireless).toList();
-      expect(wirelessClients, hasLength(2));
-
-      final wiredClients =
-          clients.where((c) => c.connectionType == ConnectionType.wired).toList();
-      expect(wiredClients, hasLength(1));
-      expect(wiredClients.first.hostname, 'Desktop-PC');
+      expect(clients, hasLength(1));
+      expect(clients.first.hostname, 'iPhone-John');
     });
 
-    test('empty DHCP and empty wireless returns no clients', () {
-      final clients = _buildMergedClientList([], {});
+    test('static IP wireless clients use host hints when no DHCP lease', () {
+      final wirelessMacs = {'AA:BB:CC:99:88:77'};
+      final hostHints = {
+        'AA:BB:CC:99:88:77': {
+          'name': 'Static-Phone',
+          'ipaddrs': ['192.168.1.50'],
+          'ip6addrs': ['fe80::1'],
+        },
+      };
+
+      final clients = _buildWifiOnlineClientList(
+        dhcpLeases: const [],
+        wirelessMacs: wirelessMacs,
+        hostHintsByMac: hostHints,
+      );
+
+      expect(clients, hasLength(1));
+      expect(clients.first.hostname, 'Static-Phone');
+      expect(clients.first.ipAddress, '192.168.1.50');
+      expect(clients.first.ipv6Addresses, ['fe80::1']);
+    });
+
+    test('empty wireless returns no clients even if DHCP has leases', () {
+      final dhcpLeases = <Map<String, dynamic>>[
+        {
+          'macaddr': 'dd:ee:ff:11:22:33',
+          'ipaddr': '192.168.1.200',
+          'hostname': 'Desktop-PC',
+        },
+      ];
+
+      final clients = _buildWifiOnlineClientList(
+        dhcpLeases: dhcpLeases,
+        wirelessMacs: {},
+      );
+
       expect(clients, isEmpty);
     });
   });
 }
 
-/// Simulates the merged client list logic that will be in app_state.dart.
-/// This is the pattern we're implementing: DHCP leases + wireless fallback.
-List<Client> _buildMergedClientList(
-  List<Map<String, dynamic>> dhcpLeases,
-  Set<String> wirelessMacs,
-) {
-  final normalizedWireless =
-      wirelessMacs.map((m) => m.toUpperCase().replaceAll('-', ':')).toSet();
-
-  // Build clients from DHCP leases (existing behavior)
-  final clients = <String, Client>{};
-  for (final lease in dhcpLeases) {
-    final client = Client.fromLease(lease);
-    final macNorm = client.macAddress.toUpperCase().replaceAll('-', ':');
-    final isWireless = normalizedWireless.contains(macNorm);
-    clients[macNorm] = client.copyWith(
-      connectionType: isWireless ? ConnectionType.wireless : ConnectionType.wired,
-    );
+List<Client> _buildWifiOnlineClientList({
+  required List<Map<String, dynamic>> dhcpLeases,
+  required Set<String> wirelessMacs,
+  Map<String, Map<String, dynamic>> hostHintsByMac = const {},
+}) {
+  final wifiByMac = <String, String>{};
+  for (final mac in wirelessMacs) {
+    final normalized = mac.toUpperCase().replaceAll('-', ':');
+    wifiByMac[normalized] = 'TestSSID';
   }
 
-  // Add wireless-only clients not in DHCP (the fix for AP mode)
-  for (final mac in normalizedWireless) {
-    if (!clients.containsKey(mac)) {
-      clients[mac] = Client.fromWirelessStation(mac);
+  final leaseByMac = <String, Map<String, dynamic>>{};
+  for (final lease in dhcpLeases) {
+    final mac = (lease['macaddr']?.toString() ?? '').toUpperCase().replaceAll('-', ':');
+    if (mac.isNotEmpty) {
+      leaseByMac[mac] = lease;
     }
   }
 
-  // Sort: wireless > wired > unknown, then by hostname
-  final list = clients.values.toList();
-  list.sort((a, b) {
-    int typeOrder(ConnectionType t) {
-      switch (t) {
-        case ConnectionType.wireless:
-          return 0;
-        case ConnectionType.wired:
-          return 1;
-        default:
-          return 2;
+  final clients = <Client>[];
+  for (final entry in wifiByMac.entries) {
+    final mac = entry.key;
+    final accessPoint = entry.value;
+    final lease = leaseByMac[mac];
+    final hint = hostHintsByMac[mac];
+
+    Client client;
+    if (lease != null) {
+      client = Client.fromLease(lease).copyWith(
+        connectionType: ConnectionType.wireless,
+        accessPoint: accessPoint,
+      );
+    } else {
+      client = Client.fromWirelessStation(mac, accessPoint: accessPoint);
+      if (hint != null) {
+        final ip = (hint['ipaddrs'] is List && (hint['ipaddrs'] as List).isNotEmpty)
+            ? hint['ipaddrs'][0].toString()
+            : null;
+        final name = hint['name']?.toString().trim();
+        final ipv6 = hint['ip6addrs'] is List
+            ? (hint['ip6addrs'] as List).map((e) => e.toString()).toList()
+            : null;
+        client = client.copyWith(
+          ipAddress: ip ?? client.ipAddress,
+          hostname: (name != null && name.isNotEmpty) ? name : client.hostname,
+          ipv6Addresses: ipv6 ?? client.ipv6Addresses,
+        );
       }
     }
 
-    final cmpType =
-        typeOrder(a.connectionType).compareTo(typeOrder(b.connectionType));
-    if (cmpType != 0) return cmpType;
-    return a.hostname.toLowerCase().compareTo(b.hostname.toLowerCase());
-  });
-  return list;
+    clients.add(client);
+  }
+
+  clients.sort(
+    (a, b) => a.hostname.toLowerCase().compareTo(b.hostname.toLowerCase()),
+  );
+  return clients;
 }

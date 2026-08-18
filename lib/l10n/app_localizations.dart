@@ -428,10 +428,10 @@ abstract class AppLocalizations {
   /// **'WAN IPv6'**
   String get wanIpv6;
 
-  /// Online clients count label on dashboard
+  /// Wi-Fi associated clients count label on dashboard
   ///
   /// In en, this message translates to:
-  /// **'Online'**
+  /// **'Wi-Fi Online'**
   String get onlineClients;
 
   /// Active conntrack connections label on dashboard
@@ -494,16 +494,16 @@ abstract class AppLocalizations {
   /// **'Clear search'**
   String get clearSearch;
 
-  /// No active clients found title
+  /// Empty clients list title when no Wi-Fi stations are associated
   ///
   /// In en, this message translates to:
-  /// **'No Active Clients Found'**
+  /// **'No Wi-Fi Clients'**
   String get noActiveClientsFound;
 
-  /// No active clients message
+  /// Empty clients list message when no Wi-Fi stations are associated
   ///
   /// In en, this message translates to:
-  /// **'No clients are currently connected to the router. Pull down to refresh the list.'**
+  /// **'No devices are currently connected to Wi-Fi. Pull down to refresh the list.'**
   String get noActiveClientsMessage;
 
   /// No matching clients title

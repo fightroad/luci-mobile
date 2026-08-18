@@ -84,18 +84,18 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
             children: [
               LuciPullToRefresh(
                 onRefresh: () async {
-                  await ref.read(appStateProvider).fetchDashboardData();
+                  final future =
+                      ref.read(appStateProvider).fetchClientsForSelectedRouter();
                   setState(() {
-                    _computeClientsFuture();
+                    _clientsFuture = future;
                   });
+                  await future;
                 },
                 child: Builder(
                   builder: (context) {
-                    final appState = ref.watch(appStateProvider);
                     final isLoading =
                         snapshot.connectionState == ConnectionState.waiting &&
                         clients.isEmpty;
-                    final dashboardError = appState.dashboardError;
 
                     if (isLoading) {
                       return Padding(
@@ -132,14 +132,24 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen>
                       );
                     }
 
-                    if (dashboardError != null && clients.isEmpty) {
-                      final l10n = AppLocalizations.of(context)!;
+                    if (snapshot.hasError && clients.isEmpty) {
                       return LuciErrorDisplay(
                         title: l10n.failedToLoadClients,
                         message: l10n.failedToLoadClientsMessage,
                         actionLabel: l10n.retry,
-                        onAction: () =>
-                            ref.read(appStateProvider).reconnectSelectedRouter(),
+                        onAction: () async {
+                          await ref
+                              .read(appStateProvider)
+                              .reconnectSelectedRouter();
+                          if (!context.mounted) return;
+                          final future = ref
+                              .read(appStateProvider)
+                              .fetchClientsForSelectedRouter();
+                          setState(() {
+                            _clientsFuture = future;
+                          });
+                          await future;
+                        },
                         icon: Icons.wifi_off_rounded,
                       );
                     }
@@ -374,22 +384,12 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                           right: 0,
                           top: 0,
                           child: Tooltip(
-                            message:
-                                widget.client.connectionType ==
-                                    ConnectionType.unknown
-                                ? AppLocalizations.of(context)!.unknownConnectionType
-                                : AppLocalizations.of(context)!.clientIsOnline,
+                            message: AppLocalizations.of(context)!.clientIsOnline,
                             child: Container(
                               width: 10,
                               height: 10,
                               decoration: BoxDecoration(
-                                color:
-                                    widget.client.connectionType ==
-                                            ConnectionType.wireless ||
-                                        widget.client.connectionType ==
-                                            ConnectionType.wired
-                                    ? Colors.green
-                                    : Colors.amber,
+                                color: Colors.green,
                                 shape: BoxShape.circle,
                                 border: Border.all(
                                   color: colorScheme.surface,
@@ -446,10 +446,7 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                         ],
                       ),
                     ),
-                    _buildConnectionTypeChip(
-                      context,
-                      widget.client.connectionType,
-                    ),
+                    _buildWifiChip(context, widget.client),
                     const SizedBox(width: 8),
                     Icon(
                       widget.isExpanded ? Icons.expand_less : Icons.expand_more,
@@ -489,40 +486,22 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
     }
   }
 
-  Widget _buildConnectionTypeChip(BuildContext context, ConnectionType type) {
+  Widget _buildWifiChip(BuildContext context, Client client) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    String label;
-    IconData icon;
-    Color bgColor;
-    Color fgColor;
-
     final l10n = AppLocalizations.of(context)!;
-    switch (type) {
-      case ConnectionType.wireless:
-        label = l10n.wiFi;
-        icon = Icons.wifi;
-        bgColor = colorScheme.primaryContainer;
-        fgColor = colorScheme.onPrimaryContainer;
-        break;
-      case ConnectionType.wired:
-        label = l10n.wired;
-        icon = Icons.settings_ethernet;
-        bgColor = colorScheme.secondaryContainer;
-        fgColor = colorScheme.onSecondaryContainer;
-        break;
-      default:
-        label = l10n.unknown;
-        icon = Icons.devices_other_outlined;
-        bgColor = colorScheme.surfaceContainerHighest;
-        fgColor = colorScheme.onSurfaceVariant;
-        break;
-    }
+    final ssid = client.accessPoint?.trim();
+    final label = (ssid != null && ssid.isNotEmpty) ? ssid : l10n.wiFi;
+    final fgColor = colorScheme.onPrimaryContainer;
 
     return Chip(
-      label: Text(label),
-      avatar: Icon(icon, size: 16, color: fgColor),
-      backgroundColor: bgColor,
+      label: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      avatar: Icon(Icons.wifi, size: 16, color: fgColor),
+      backgroundColor: colorScheme.primaryContainer,
       labelStyle: theme.textTheme.labelSmall?.copyWith(color: fgColor),
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

@@ -179,7 +179,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wanIpv6 => 'WAN IPv6';
 
   @override
-  String get onlineClients => '在线';
+  String get onlineClients => 'Wi-Fi 在线';
 
   @override
   String get activeConnections => '连接数';
@@ -212,10 +212,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get clearSearch => '清除搜索';
 
   @override
-  String get noActiveClientsFound => '未找到活动客户端';
+  String get noActiveClientsFound => '无 Wi-Fi 客户端';
 
   @override
-  String get noActiveClientsMessage => '当前没有客户端连接到路由器。下拉刷新列表。';
+  String get noActiveClientsMessage => '当前没有设备连接 Wi-Fi。下拉刷新列表。';
 
   @override
   String get noMatchingClients => '未找到匹配的客户端';
