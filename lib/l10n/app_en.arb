@@ -28,7 +28,7 @@
   "@more": {
     "description": "More tab label"
   },
-  "settings": "Settings",
+  "settings": "Preferences",
   "@settings": {
     "description": "Settings screen title"
   },
@@ -519,7 +519,7 @@
   "@rebootCommandFailed": {
     "description": "Reboot command failed message"
   },
-  "application": "Application",
+  "application": "App Management",
   "@application": {
     "description": "Application section header"
   },
@@ -535,7 +535,7 @@
   "@settingsSubtitle": {
     "description": "Settings subtitle"
   },
-  "about": "About",
+  "about": "About App",
   "@about": {
     "description": "About option"
   },
@@ -950,7 +950,6 @@
   "easytierNodeListEmpty": "No nodes in the network",
   "easytierNodeListStopped": "Start EasyTier core to view nodes",
   "easytierLocalNode": "Local",
-  "easytierPeerLatency": "Latency",
   "easytierPeerPacketLoss": "Packet loss",
   "easytierPeerDownload": "Download",
   "easytierPeerUpload": "Upload",

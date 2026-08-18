@@ -418,7 +418,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
           }
         }
         return NetworkInterface.fromJson(detailedInterfaceMap);
-      }).toList();
+      }).where((iface) => !iface.isLoopback).toList();
     }
 
     final interfaces = interfacesList;
@@ -1556,19 +1556,6 @@ class _UnifiedNetworkCardState extends State<_UnifiedNetworkCard>
                         ],
                       ),
                     ),
-                    if (!widget.isUp)
-                      Padding(
-                        padding: const EdgeInsets.only(right: LuciSpacing.xs),
-                        child: Builder(
-                          builder: (context) {
-                            return LuciStatusIndicators.statusChip(
-                              context,
-                              AppLocalizations.of(context)!.off,
-                              false,
-                            );
-                          },
-                        ),
-                      ),
                     const SizedBox(width: LuciSpacing.sm),
                     Builder(
                       builder: (context) {

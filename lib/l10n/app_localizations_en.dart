@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get more => 'More';
 
   @override
-  String get settings => 'Settings';
+  String get settings => 'Preferences';
 
   @override
   String get loginConnect => 'Connect';
@@ -403,7 +403,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rebootCommandFailed => 'Failed to send reboot command.';
 
   @override
-  String get application => 'Application';
+  String get application => 'App Management';
 
   @override
   String get manageRouters => 'Manage Routers';
@@ -415,7 +415,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSubtitle => 'Configure app preferences';
 
   @override
-  String get about => 'About';
+  String get about => 'About App';
 
   @override
   String get aboutSubtitle => 'App version and information';
@@ -869,9 +869,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get easytierLocalNode => 'Local';
-
-  @override
-  String get easytierPeerLatency => 'Latency';
 
   @override
   String get easytierPeerPacketLoss => 'Packet loss';

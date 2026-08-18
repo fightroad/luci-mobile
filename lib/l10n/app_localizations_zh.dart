@@ -30,7 +30,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get more => '更多';
 
   @override
-  String get settings => '设置';
+  String get settings => '偏好设置';
 
   @override
   String get loginConnect => '连接';
@@ -394,7 +394,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get rebootCommandFailed => '发送重启命令失败。';
 
   @override
-  String get application => '应用';
+  String get application => '应用管理';
 
   @override
   String get manageRouters => '管理路由器';
@@ -406,7 +406,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsSubtitle => '配置应用偏好设置';
 
   @override
-  String get about => '关于';
+  String get about => '关于应用';
 
   @override
   String get aboutSubtitle => '应用版本和信息';
@@ -844,9 +844,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get easytierLocalNode => '本机';
-
-  @override
-  String get easytierPeerLatency => '延迟';
 
   @override
   String get easytierPeerPacketLoss => '丢包率';

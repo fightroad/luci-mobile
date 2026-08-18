@@ -104,4 +104,10 @@ class NetworkInterface {
 
     return parts.join(' ');
   }
+
+  bool get isLoopback {
+    final n = name.toLowerCase();
+    final d = device.toLowerCase();
+    return n == 'loopback' || n == 'lo' || d == 'lo';
+  }
 }

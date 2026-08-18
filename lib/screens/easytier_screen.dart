@@ -487,6 +487,16 @@ class _PeerCardState extends State<_PeerCard> {
     return trimmed;
   }
 
+  String _displayLatency(String value) {
+    final displayed = _display(value);
+    if (displayed == '-') return displayed;
+    final lower = displayed.toLowerCase();
+    if (lower.contains('ms') || displayed.contains('毫秒')) {
+      return displayed;
+    }
+    return '$displayed ms';
+  }
+
   String _displayRoute(String route) {
     if (route.trim().toLowerCase() == 'p2p') return 'P2P';
     return route.trim();
@@ -521,7 +531,7 @@ class _PeerCardState extends State<_PeerCard> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final title = peer.hostname.isNotEmpty ? peer.hostname : peer.ipv4;
-    final latency = _display(peer.latency);
+    final latency = _displayLatency(peer.latency);
     final subtitleParts = <String>[
       if (peer.ipv4.isNotEmpty) peer.ipv4,
       if (!peer.isLocal && peer.route.isNotEmpty) _displayRoute(peer.route),
@@ -607,10 +617,6 @@ class _PeerCardState extends State<_PeerCard> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
               child: Column(
                 children: [
-                  _PeerDetailRow(
-                    label: l10n.easytierPeerLatency,
-                    value: latency,
-                  ),
                   _PeerDetailRow(
                     label: l10n.easytierPeerPacketLoss,
                     value: _display(peer.packetLoss),

@@ -143,7 +143,7 @@ abstract class AppLocalizations {
   /// Settings screen title
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
+  /// **'Preferences'**
   String get settings;
 
   /// Login button text
@@ -857,7 +857,7 @@ abstract class AppLocalizations {
   /// Application section header
   ///
   /// In en, this message translates to:
-  /// **'Application'**
+  /// **'App Management'**
   String get application;
 
   /// Manage routers option
@@ -881,7 +881,7 @@ abstract class AppLocalizations {
   /// About option
   ///
   /// In en, this message translates to:
-  /// **'About'**
+  /// **'About App'**
   String get about;
 
   /// About subtitle
@@ -1729,12 +1729,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local'**
   String get easytierLocalNode;
-
-  /// No description provided for @easytierPeerLatency.
-  ///
-  /// In en, this message translates to:
-  /// **'Latency'**
-  String get easytierPeerLatency;
 
   /// No description provided for @easytierPeerPacketLoss.
   ///
