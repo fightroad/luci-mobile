@@ -4,7 +4,6 @@ import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:flutter/services.dart';
 import 'package:luci_mobile/models/interface.dart';
-import 'dart:math';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/design/luci_design_system.dart';
 import 'package:luci_mobile/widgets/luci_loading_states.dart';
@@ -204,39 +203,31 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     });
   }
 
-  double _headerOffset(BuildContext context) {
-    // App bar (56) + section header (60)
-    return 116.0;
-  }
-
   void _scrollToExpandedCard(String keyStr, {int retry = 0}) {
     if (!mounted) return;
 
-    // Set the expanded interface
     if (_expandedInterface != keyStr) {
       setState(() {
         _expandedInterface = keyStr;
       });
+    }
 
-      // Wait for the expansion animation to complete (400ms) before calculating scroll
-      Future.delayed(const Duration(milliseconds: 450), () {
+    // Wait for expanded layout before scrolling.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _performScrollToCard(keyStr, retry: retry);
       });
-    } else {
-      // Already expanded, perform scroll immediately
-      _performScrollToCard(keyStr, retry: retry);
-    }
+    });
   }
 
   void _performScrollToCard(String keyStr, {int retry = 0}) {
     if (!mounted) return;
 
     final key = _interfaceKeys[keyStr];
-    final currentContext = context; // Store context
-
     final ctx = key?.currentContext;
     if (ctx == null) {
-      if (retry < 5) {
+      if (retry < 8) {
         Future.delayed(const Duration(milliseconds: 100), () {
           if (mounted) _performScrollToCard(keyStr, retry: retry + 1);
         });
@@ -244,72 +235,34 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
       return;
     }
 
-    final headerOffset = _headerOffset(currentContext);
-    final renderBox = ctx.findRenderObject() as RenderBox?;
-    if (renderBox == null) {
-      if (retry < 5) {
-        Future.delayed(const Duration(milliseconds: 100), () {
-          if (mounted) _performScrollToCard(keyStr, retry: retry + 1);
-        });
-      }
-      return;
-    }
-
-    final cardOffset = renderBox.localToGlobal(Offset.zero).dy;
-    final cardHeight = renderBox.size.height;
-    final scrollableBox = _scrollController.position.hasContentDimensions
-        ? _scrollController.position.context.storageContext.findRenderObject()
-              as RenderBox?
-        : null;
-    final scrollableTop = scrollableBox?.localToGlobal(Offset.zero).dy ?? 0.0;
-    final visibleTop = scrollableTop + headerOffset;
-    final visibleBottom = MediaQuery.of(currentContext).size.height;
-    final cardBottom = cardOffset + cardHeight;
-
-    // Calculate how much of the card is visible
-    final visibleCardTop = max(cardOffset, visibleTop);
-    final visibleCardBottom = min(cardBottom, visibleBottom);
-    final visibleCardHeight = max(0.0, visibleCardBottom - visibleCardTop);
-    final cardVisibilityRatio = cardHeight > 0
-        ? visibleCardHeight / cardHeight
-        : 0.0;
-
-    // Only scroll if less than 90% of the card is visible
-    final needsScroll = cardVisibilityRatio < 0.9;
-
-    if (needsScroll) {
-      // Calculate optimal scroll position to center the card
-      final screenHeight = MediaQuery.of(currentContext).size.height;
-      final availableHeight = screenHeight - headerOffset;
-      final targetPosition =
-          cardOffset - headerOffset - (availableHeight - cardHeight) / 2;
-      final clampedPosition = targetPosition.clamp(
-        0.0,
-        _scrollController.position.maxScrollExtent,
+    Future<void> ensureCardVisible() {
+      final target = key?.currentContext;
+      if (target == null || !mounted) return Future.value();
+      return Scrollable.ensureVisible(
+        target,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        // Align card top near viewport top so expanded details are not clipped.
+        alignment: 0.05,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
       );
+    }
 
-      _scrollController
-          .animateTo(
-            clampedPosition,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.fastOutSlowIn,
-          )
-          .then((_) {
-            if (mounted) {
-              setState(() {
-                _targetInterface = null;
-              });
-              widget.onScrollComplete?.call();
-            }
-          });
-    } else {
+    ensureCardVisible().then((_) {
+      if (!mounted) return;
+      // One more pass after any scale/expand layout settles.
+      return Future<void>.delayed(
+        const Duration(milliseconds: 200),
+        () => ensureCardVisible(),
+      );
+    }).then((_) {
       if (mounted) {
         setState(() {
           _targetInterface = null;
         });
         widget.onScrollComplete?.call();
       }
-    }
+    });
   }
 
   void _scrollToSection(double targetPosition) {
@@ -416,7 +369,9 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                       _buildWirelessInterfacesList(context),
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.only(bottom: 16),
+                          padding: EdgeInsets.only(
+                            bottom: MediaQuery.paddingOf(context).bottom + 24,
+                          ),
                           child: SizedBox.shrink(),
                         ),
                       ),
