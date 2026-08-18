@@ -355,5 +355,12 @@
   "easytierPeerDownload": "下载",
   "easytierPeerUpload": "上传",
   "easytierPeerProtocol": "协议",
-  "easytierPeerNatType": "NAT 类型"
+  "easytierPeerNatType": "NAT 类型",
+  "easytierNatUnknown": "未知",
+  "easytierNatSymmetric": "对称型",
+  "easytierNatRestricted": "受限型",
+  "easytierNatPortRestricted": "端口受限型",
+  "easytierNatAddressRestricted": "地址受限型",
+  "easytierNatFullCone": "全锥型",
+  "easytierNatNoPat": "无端口映射"
 }

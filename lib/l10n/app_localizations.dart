@@ -1765,6 +1765,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'NAT type'**
   String get easytierPeerNatType;
+
+  /// No description provided for @easytierNatUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get easytierNatUnknown;
+
+  /// No description provided for @easytierNatSymmetric.
+  ///
+  /// In en, this message translates to:
+  /// **'Symmetric'**
+  String get easytierNatSymmetric;
+
+  /// No description provided for @easytierNatRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Restricted'**
+  String get easytierNatRestricted;
+
+  /// No description provided for @easytierNatPortRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Port Restricted'**
+  String get easytierNatPortRestricted;
+
+  /// No description provided for @easytierNatAddressRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Address Restricted'**
+  String get easytierNatAddressRestricted;
+
+  /// No description provided for @easytierNatFullCone.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Cone'**
+  String get easytierNatFullCone;
+
+  /// No description provided for @easytierNatNoPat.
+  ///
+  /// In en, this message translates to:
+  /// **'No PAT'**
+  String get easytierNatNoPat;
 }
 
 class _AppLocalizationsDelegate

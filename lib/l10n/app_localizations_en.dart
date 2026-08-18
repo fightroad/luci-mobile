@@ -887,4 +887,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get easytierPeerNatType => 'NAT type';
+
+  @override
+  String get easytierNatUnknown => 'Unknown';
+
+  @override
+  String get easytierNatSymmetric => 'Symmetric';
+
+  @override
+  String get easytierNatRestricted => 'Restricted';
+
+  @override
+  String get easytierNatPortRestricted => 'Port Restricted';
+
+  @override
+  String get easytierNatAddressRestricted => 'Address Restricted';
+
+  @override
+  String get easytierNatFullCone => 'Full Cone';
+
+  @override
+  String get easytierNatNoPat => 'No PAT';
 }

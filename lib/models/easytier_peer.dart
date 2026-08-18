@@ -42,15 +42,15 @@ class EasyTierPeer {
     }
 
     return EasyTierPeer(
-      ipv4: pick(const ['ipv4', 'virtualip', 'ip']),
-      hostname: pick(const ['hostname', 'host']),
-      route: pick(const ['route', 'conn']),
-      latency: pick(const ['latency', 'rtt']),
-      packetLoss: pick(const ['packetloss', 'loss']),
-      download: pick(const ['download', 'rx']),
-      upload: pick(const ['upload', 'tx']),
-      protocol: pick(const ['protocol', 'proto']),
-      natType: pick(const ['nattype', 'nat']),
+      ipv4: pick(const ['ipv4']),
+      hostname: pick(const ['hostname']),
+      route: pick(const ['route']),
+      latency: pick(const ['latency']),
+      packetLoss: pick(const ['packetloss']),
+      download: pick(const ['download']),
+      upload: pick(const ['upload']),
+      protocol: pick(const ['protocol']),
+      natType: pick(const ['nattype']),
       version: pick(const ['version']),
     );
   }
@@ -129,10 +129,14 @@ class EasyTierPeerParser {
     if (ascii.contains('hostname') || ascii.contains('主机名')) {
       return 'hostname';
     }
-    if (ascii.contains('route') || ascii.contains('路由')) {
+    if (ascii.contains('route') ||
+        ascii.contains('cost') ||
+        ascii.contains('路由')) {
       return 'route';
     }
     if (ascii.contains('latency') ||
+        ascii.contains('latms') ||
+        ascii == 'lat' ||
         ascii.contains('delay') ||
         ascii.contains('延迟') ||
         ascii.contains('rtt')) {
@@ -142,17 +146,18 @@ class EasyTierPeerParser {
       return 'packetloss';
     }
     if (ascii.contains('download') ||
-        ascii.contains('rx') ||
+        ascii == 'rx' ||
         ascii.contains('下载')) {
       return 'download';
     }
     if (ascii.contains('upload') ||
-        ascii.contains('tx') ||
+        ascii == 'tx' ||
         ascii.contains('上传')) {
       return 'upload';
     }
     if (ascii.contains('protocol') ||
         ascii.contains('proto') ||
+        ascii.contains('tunnel') ||
         ascii.contains('协议')) {
       return 'protocol';
     }

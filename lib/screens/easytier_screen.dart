@@ -159,6 +159,7 @@ class _EasyTierScreenState extends ConsumerState<EasyTierScreen> {
     return Scaffold(
       appBar: LuciAppBar(
         title: l10n.easytier,
+        showBack: true,
         actions: [
           IconButton(
             tooltip: l10n.easytierRefresh,
@@ -238,37 +239,33 @@ class _QuickActionsCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: LuciCardStyles.standardRadius,
       ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: busy ? null : onRestart,
-                icon: const Icon(Icons.restart_alt, size: 18),
-                label: Text(l10n.easytierRestart),
-                style: TextButton.styleFrom(
-                  foregroundColor: colorScheme.error,
-                ),
+      child: Column(
+        children: [
+          SwitchListTile(
+            title: Text(
+              l10n.easytierCore,
+              style: LuciTextStyles.cardTitle(context),
+            ),
+            subtitle: Text(
+              l10n.easytierCoreSubtitle,
+              style: LuciTextStyles.cardSubtitle(context),
+            ),
+            value: enabled,
+            onChanged: busy ? null : onToggle,
+          ),
+          const Divider(height: 1, indent: 16, endIndent: 16),
+          ListTile(
+            leading: Icon(Icons.restart_alt, color: colorScheme.error),
+            title: Text(
+              l10n.easytierRestart,
+              style: LuciTextStyles.cardTitle(context).copyWith(
+                color: colorScheme.error,
               ),
             ),
-            SwitchListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-              title: Text(
-                l10n.easytierCore,
-                style: LuciTextStyles.cardTitle(context),
-              ),
-              subtitle: Text(
-                l10n.easytierCoreSubtitle,
-                style: LuciTextStyles.cardSubtitle(context),
-              ),
-              value: enabled,
-              onChanged: busy ? null : onToggle,
-            ),
-          ],
-        ),
+            enabled: !busy,
+            onTap: busy ? null : onRestart,
+          ),
+        ],
       ),
     );
   }
@@ -281,7 +278,20 @@ class _StatusCard extends StatelessWidget {
 
   String _displayValue(String value, String fallback) {
     final trimmed = value.trim();
-    return trimmed.isEmpty ? fallback : trimmed;
+    if (trimmed.isEmpty || trimmed == '*') return fallback;
+    return trimmed;
+  }
+
+  Widget _statTileRow(List<Widget> tiles) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < tiles.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          Expanded(child: tiles[i]),
+        ],
+      ],
+    );
   }
 
   @override
@@ -343,35 +353,36 @@ class _StatusCard extends StatelessWidget {
             const SizedBox(height: 16),
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth >= 520 ? 4 : 2;
-                return GridView.count(
-                  crossAxisCount: crossAxisCount,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  childAspectRatio: 1.35,
+                final tiles = [
+                  _StatTile(
+                    icon: Icons.memory_outlined,
+                    label: l10n.easytierCpu,
+                    value: _displayValue(status.cpu, 'N/A'),
+                  ),
+                  _StatTile(
+                    icon: Icons.sd_storage_outlined,
+                    label: l10n.easytierMemory,
+                    value: _displayValue(status.memory, 'N/A'),
+                  ),
+                  _StatTile(
+                    icon: Icons.schedule_outlined,
+                    label: l10n.easytierUptime,
+                    value: _displayValue(status.uptime, 'N/A'),
+                  ),
+                  _StatTile(
+                    icon: Icons.info_outline,
+                    label: l10n.easytierVersion,
+                    value: _displayValue(status.version, 'N/A'),
+                  ),
+                ];
+                if (constraints.maxWidth >= 520) {
+                  return _statTileRow(tiles);
+                }
+                return Column(
                   children: [
-                    _StatTile(
-                      icon: Icons.memory_outlined,
-                      label: l10n.easytierCpu,
-                      value: _displayValue(status.cpu, '0%'),
-                    ),
-                    _StatTile(
-                      icon: Icons.sd_storage_outlined,
-                      label: l10n.easytierMemory,
-                      value: _displayValue(status.memory, 'N/A'),
-                    ),
-                    _StatTile(
-                      icon: Icons.schedule_outlined,
-                      label: l10n.easytierUptime,
-                      value: _displayValue(status.uptime, 'N/A'),
-                    ),
-                    _StatTile(
-                      icon: Icons.info_outline,
-                      label: l10n.easytierVersion,
-                      value: _displayValue(status.version, 'N/A'),
-                    ),
+                    _statTileRow(tiles.sublist(0, 2)),
+                    const SizedBox(height: 12),
+                    _statTileRow(tiles.sublist(2)),
                   ],
                 );
               },
@@ -444,19 +455,64 @@ class _PeerListSection extends StatelessWidget {
     }
 
     return Column(
-      children: peers.map((peer) => _PeerCard(peer: peer)).toList(),
+      children: peers
+          .map(
+            (peer) => _PeerCard(
+              key: ValueKey('${peer.ipv4}|${peer.hostname}'),
+              peer: peer,
+            ),
+          )
+          .toList(),
     );
   }
 }
 
-class _PeerCard extends StatelessWidget {
+class _PeerCard extends StatefulWidget {
   final EasyTierPeer peer;
 
-  const _PeerCard({required this.peer});
+  const _PeerCard({super.key, required this.peer});
+
+  @override
+  State<_PeerCard> createState() => _PeerCardState();
+}
+
+class _PeerCardState extends State<_PeerCard> {
+  bool _expanded = false;
+
+  EasyTierPeer get peer => widget.peer;
 
   String _display(String value) {
     final trimmed = value.trim();
-    return trimmed.isEmpty ? '-' : trimmed;
+    if (trimmed.isEmpty || trimmed == '*') return '-';
+    return trimmed;
+  }
+
+  String _displayRoute(String route) {
+    if (route.trim().toLowerCase() == 'p2p') return 'P2P';
+    return route.trim();
+  }
+
+  String _displayNatType(AppLocalizations l10n, String raw) {
+    final key = raw.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (key.isEmpty || key == '*') return '-';
+    switch (key) {
+      case 'unknown':
+        return l10n.easytierNatUnknown;
+      case 'symmetric':
+        return l10n.easytierNatSymmetric;
+      case 'restricted':
+        return l10n.easytierNatRestricted;
+      case 'portrestricted':
+        return l10n.easytierNatPortRestricted;
+      case 'addressrestricted':
+        return l10n.easytierNatAddressRestricted;
+      case 'fullcone':
+        return l10n.easytierNatFullCone;
+      case 'nopat':
+        return l10n.easytierNatNoPat;
+      default:
+        return raw.trim();
+    }
   }
 
   @override
@@ -465,9 +521,11 @@ class _PeerCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final title = peer.hostname.isNotEmpty ? peer.hostname : peer.ipv4;
+    final latency = _display(peer.latency);
     final subtitleParts = <String>[
       if (peer.ipv4.isNotEmpty) peer.ipv4,
-      if (peer.route.isNotEmpty) peer.route,
+      if (!peer.isLocal && peer.route.isNotEmpty) _displayRoute(peer.route),
+      if (latency != '-') latency,
     ];
 
     return Card(
@@ -479,88 +537,109 @@ class _PeerCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: LuciCardStyles.standardRadius,
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: LuciTextStyles.cardTitle(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (subtitleParts.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          InkWell(
+            onTap: () => setState(() => _expanded = !_expanded),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          subtitleParts.join(' · '),
-                          style: LuciTextStyles.cardSubtitle(context),
+                          title,
+                          style: LuciTextStyles.cardTitle(context),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        if (subtitleParts.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitleParts.join(' · '),
+                            style: LuciTextStyles.cardSubtitle(context),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ],
-                    ],
-                  ),
-                ),
-                if (peer.isLocal)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: colorScheme.primaryContainer.withValues(
-                        alpha: 0.35,
-                      ),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      l10n.easytierLocalNode,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
                     ),
                   ),
-              ],
+                  if (peer.isLocal) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(
+                          alpha: 0.35,
+                        ),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        l10n.easytierLocalNode,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Icon(
+                    _expanded ? Icons.expand_less : Icons.expand_more,
+                    color: colorScheme.onSurfaceVariant,
+                    semanticLabel: _expanded
+                        ? l10n.collapseDetails
+                        : l10n.expandDetails,
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            _PeerDetailRow(
-              label: l10n.easytierPeerLatency,
-              value: _display(peer.latency),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierPeerPacketLoss,
-              value: _display(peer.packetLoss),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierPeerDownload,
-              value: _display(peer.download),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierPeerUpload,
-              value: _display(peer.upload),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierPeerProtocol,
-              value: _display(peer.protocol),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierPeerNatType,
-              value: _display(peer.natType),
-            ),
-            _PeerDetailRow(
-              label: l10n.easytierVersion,
-              value: _display(peer.version),
+          ),
+          if (_expanded) ...[
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              child: Column(
+                children: [
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerLatency,
+                    value: latency,
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerPacketLoss,
+                    value: _display(peer.packetLoss),
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerDownload,
+                    value: _display(peer.download),
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerUpload,
+                    value: _display(peer.upload),
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerProtocol,
+                    value: _display(peer.protocol),
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierPeerNatType,
+                    value: _displayNatType(l10n, peer.natType),
+                  ),
+                  _PeerDetailRow(
+                    label: l10n.easytierVersion,
+                    value: _display(peer.version),
+                  ),
+                ],
+              ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -620,23 +699,25 @@ class _StatTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 20, color: colorScheme.primary),
-          const Spacer(),
+          const SizedBox(height: 8),
           Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             value,
             style: theme.textTheme.titleSmall?.copyWith(

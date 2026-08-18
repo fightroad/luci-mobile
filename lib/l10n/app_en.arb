@@ -955,5 +955,12 @@
   "easytierPeerDownload": "Download",
   "easytierPeerUpload": "Upload",
   "easytierPeerProtocol": "Protocol",
-  "easytierPeerNatType": "NAT type"
+  "easytierPeerNatType": "NAT type",
+  "easytierNatUnknown": "Unknown",
+  "easytierNatSymmetric": "Symmetric",
+  "easytierNatRestricted": "Restricted",
+  "easytierNatPortRestricted": "Port Restricted",
+  "easytierNatAddressRestricted": "Address Restricted",
+  "easytierNatFullCone": "Full Cone",
+  "easytierNatNoPat": "No PAT"
 }

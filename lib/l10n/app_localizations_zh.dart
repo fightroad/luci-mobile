@@ -862,4 +862,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get easytierPeerNatType => 'NAT 类型';
+
+  @override
+  String get easytierNatUnknown => '未知';
+
+  @override
+  String get easytierNatSymmetric => '对称型';
+
+  @override
+  String get easytierNatRestricted => '受限型';
+
+  @override
+  String get easytierNatPortRestricted => '端口受限型';
+
+  @override
+  String get easytierNatAddressRestricted => '地址受限型';
+
+  @override
+  String get easytierNatFullCone => '全锥型';
+
+  @override
+  String get easytierNatNoPat => '无端口映射';
 }
