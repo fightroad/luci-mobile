@@ -329,6 +329,7 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final subtitle = _buildMinimalClientSubtitle(widget.client);
 
     return Card(
       elevation: widget.isExpanded ? 6 : 2,
@@ -416,7 +417,7 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                           ),
                           const SizedBox(height: LuciSpacing.xs),
                           Container(
-                            margin: const EdgeInsets.only(right: 32),
+                            margin: const EdgeInsets.only(right: 8),
                             child: Divider(
                               color: colorScheme.surfaceContainerHighest
                                   .withValues(alpha: 0.10),
@@ -425,10 +426,11 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                             ),
                           ),
                           Text(
-                            _buildMinimalClientSubtitle(widget.client),
+                            subtitle,
                             style: LuciTextStyles.cardSubtitle(context),
-                            semanticsLabel:
-                                'Client details: ${_buildMinimalClientSubtitle(widget.client)}',
+                            semanticsLabel: 'Client details: $subtitle',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           if (widget.client.vendor != null &&
                               widget.client.vendor!.isNotEmpty)
@@ -441,13 +443,12 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              semanticsLabel: 'Vendor: ${widget.client.vendor}',
+                              semanticsLabel:
+                                  'Vendor: ${widget.client.vendor}',
                             ),
                         ],
                       ),
                     ),
-                    _buildWifiChip(context, widget.client),
-                    const SizedBox(width: 8),
                     Icon(
                       widget.isExpanded ? Icons.expand_less : Icons.expand_more,
                       color: colorScheme.onSurfaceVariant,
@@ -484,28 +485,6 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
       case DeviceKind.unknown:
         return Icons.person_outline;
     }
-  }
-
-  Widget _buildWifiChip(BuildContext context, Client client) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final l10n = AppLocalizations.of(context)!;
-    final ssid = client.accessPoint?.trim();
-    final label = (ssid != null && ssid.isNotEmpty) ? ssid : l10n.wiFi;
-    final fgColor = colorScheme.onPrimaryContainer;
-
-    return Chip(
-      label: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      avatar: Icon(Icons.wifi, size: 16, color: fgColor),
-      backgroundColor: colorScheme.primaryContainer,
-      labelStyle: theme.textTheme.labelSmall?.copyWith(color: fgColor),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    );
   }
 
   Widget _buildClientDetails(BuildContext context, Client client) {
@@ -652,20 +631,25 @@ class _UnifiedClientCardState extends State<_UnifiedClientCard>
     final v4 = client.ipAddress;
     final v6s = client.ipv6Addresses ?? [];
     final v6 = v6s.isNotEmpty ? v6s.first : null;
-    String? shown;
-    int extra = 0;
+    final ssid = client.accessPoint?.trim();
+
+    String? address;
+    var extra = 0;
     if (v4 != 'N/A') {
-      shown = v4;
+      address = v4;
       if (v6 != null) extra++;
     } else if (v6 != null) {
-      shown = v6;
+      address = v6;
     }
-    if (shown == null) return '';
-    if (extra > 0) {
-      return '$shown  +$extra';
-    } else {
-      return shown;
+
+    final parts = <String>[];
+    if (address != null) {
+      parts.add(extra > 0 ? '$address  +$extra' : address);
     }
+    if (ssid != null && ssid.isNotEmpty) {
+      parts.add(ssid);
+    }
+    return parts.join(' · ');
   }
 
   void _copyToClipboard(BuildContext context, String text, String label) {
