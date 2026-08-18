@@ -411,7 +411,7 @@ class _PeerListSection extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    if (!coreRunning) {
+    if (!coreRunning || EasyTierPeerParser.isCoreUnavailableMessage(error)) {
       return Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: LuciSpacing.lg,
@@ -433,7 +433,7 @@ class _PeerListSection extends StatelessWidget {
           vertical: LuciSpacing.md,
         ),
         child: Text(
-          error!,
+          error!.split('\n').first.trim(),
           style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.error),
         ),
       );

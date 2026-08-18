@@ -2142,8 +2142,10 @@ class AppState extends ChangeNotifier {
         context: context,
       );
       if (ok) {
-        await Future<void>.delayed(_easytierServiceSettleDelay);
-        await refreshEasyTier(context: context);
+        await _settleEasyTierAfterChange(
+          expectRunning: enabled,
+          context: context,
+        );
       }
       return ok;
     } catch (e, stack) {
@@ -2167,8 +2169,10 @@ class AppState extends ChangeNotifier {
         context: context,
       );
       if (ok) {
-        await Future<void>.delayed(_easytierServiceSettleDelay);
-        await refreshEasyTier(context: context);
+        await _settleEasyTierAfterChange(
+          expectRunning: true,
+          context: context,
+        );
       }
       return ok;
     } catch (e, stack) {
@@ -2221,5 +2225,43 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  static const _easytierServiceSettleDelay = Duration(seconds: 2);
+  /// After enable/restart the CGI returns before RPC on 15888 is up.
+  /// Poll status until running matches [expectRunning], then retry peers only.
+  Future<void> _settleEasyTierAfterChange({
+    required bool expectRunning,
+    BuildContext? context,
+  }) async {
+    await Future<void>.delayed(_easytierServiceSettleDelay);
+
+    for (var i = 0; i < _easytierStatusRetryAttempts; i++) {
+      await fetchEasyTierStatus(context: context);
+      final running = _easytierStatus?.coreRunning == true;
+      if (running == expectRunning) break;
+      if (i < _easytierStatusRetryAttempts - 1) {
+        await Future<void>.delayed(_easytierRetryDelay);
+      }
+    }
+
+    if (!expectRunning || _easytierStatus?.coreRunning != true) {
+      _easytierPeers = const [];
+      _easytierPeersError = null;
+      notifyListeners();
+      return;
+    }
+
+    for (var i = 0; i < _easytierPeerRetryAttempts; i++) {
+      await fetchEasyTierPeers(context: context);
+      if (!EasyTierPeerParser.isCoreUnavailableMessage(_easytierPeersError)) {
+        return;
+      }
+      if (i < _easytierPeerRetryAttempts - 1) {
+        await Future<void>.delayed(_easytierRetryDelay);
+      }
+    }
+  }
+
+  static const _easytierServiceSettleDelay = Duration(seconds: 1);
+  static const _easytierRetryDelay = Duration(milliseconds: 800);
+  static const _easytierStatusRetryAttempts = 3;
+  static const _easytierPeerRetryAttempts = 8;
 }

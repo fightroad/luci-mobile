@@ -106,6 +106,15 @@ class EasyTierPeerParser {
     return EasyTierPeerListParseResult(peers: peers);
   }
 
+  static bool isCoreUnavailableMessage(String? error) {
+    if (error == null) return false;
+    final lower = error.toLowerCase();
+    return lower.contains('not running') ||
+        lower.contains('failed to get manage client') ||
+        lower.contains('failed to connect to server') ||
+        lower.contains('connection refused');
+  }
+
   static List<String> _parsePipeRow(String line) {
     if (!line.startsWith('|')) return const [];
     final matches = RegExp(r'\|([^|]*)').allMatches(line);

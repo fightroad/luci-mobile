@@ -33,4 +33,23 @@ void main() {
     expect(result.peers, isEmpty);
     expect(result.error, raw);
   });
+
+  test('detects core-unavailable CLI errors', () {
+    expect(
+      EasyTierPeerParser.isCoreUnavailableMessage(
+        'Error: failed to get manage client\nCaused by:\n0: Connection refused',
+      ),
+      isTrue,
+    );
+    expect(
+      EasyTierPeerParser.isCoreUnavailableMessage(
+        'Error: Program not running! Please start the program and refresh',
+      ),
+      isTrue,
+    );
+    expect(
+      EasyTierPeerParser.isCoreUnavailableMessage('unexpected table parse'),
+      isFalse,
+    );
+  });
 }
