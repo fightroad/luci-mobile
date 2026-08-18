@@ -23,12 +23,7 @@ class EasyTierPeer {
     this.version = '',
   });
 
-  bool get isLocal {
-    final value = route.trim().toLowerCase();
-    return value == 'local' ||
-        value == '本机' ||
-        value.contains('local machine');
-  }
+  bool get isLocal => route.trim().toLowerCase() == 'local';
 
   factory EasyTierPeer.fromRow(Map<String, String> row) {
     String pick(List<String> keys) {
@@ -128,55 +123,33 @@ class EasyTierPeerParser {
   static String _normalizeHeader(String header) {
     final ascii = header
         .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9\u4e00-\u9fff]+'), '')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '')
         .trim();
-    if (ascii.contains('ipv4') ||
-        ascii.contains('virtualip') ||
-        (ascii.contains('虚拟') && ascii.contains('ip'))) {
-      return 'ipv4';
+    switch (ascii) {
+      case 'ipv4':
+        return 'ipv4';
+      case 'hostname':
+        return 'hostname';
+      case 'cost':
+        return 'route';
+      case 'latms':
+      case 'lat':
+        return 'latency';
+      case 'loss':
+        return 'packetloss';
+      case 'rx':
+        return 'download';
+      case 'tx':
+        return 'upload';
+      case 'tunnel':
+        return 'protocol';
+      case 'nat':
+        return 'nattype';
+      case 'version':
+        return 'version';
+      default:
+        return ascii;
     }
-    if (ascii.contains('hostname') || ascii.contains('主机名')) {
-      return 'hostname';
-    }
-    if (ascii.contains('route') ||
-        ascii.contains('cost') ||
-        ascii.contains('路由')) {
-      return 'route';
-    }
-    if (ascii.contains('latency') ||
-        ascii.contains('latms') ||
-        ascii == 'lat' ||
-        ascii.contains('delay') ||
-        ascii.contains('延迟') ||
-        ascii.contains('rtt')) {
-      return 'latency';
-    }
-    if (ascii.contains('loss') || ascii.contains('丢包')) {
-      return 'packetloss';
-    }
-    if (ascii.contains('download') ||
-        ascii == 'rx' ||
-        ascii.contains('下载')) {
-      return 'download';
-    }
-    if (ascii.contains('upload') ||
-        ascii == 'tx' ||
-        ascii.contains('上传')) {
-      return 'upload';
-    }
-    if (ascii.contains('protocol') ||
-        ascii.contains('proto') ||
-        ascii.contains('tunnel') ||
-        ascii.contains('协议')) {
-      return 'protocol';
-    }
-    if (ascii.contains('nat')) {
-      return 'nattype';
-    }
-    if (ascii.contains('version') || ascii.contains('版本')) {
-      return 'version';
-    }
-    return ascii;
   }
 
   static bool _looksLikePeerHeaders(List<String> headers) {
