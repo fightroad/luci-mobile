@@ -1310,13 +1310,13 @@ abstract class AppLocalizations {
   /// **'Plugin Management'**
   String get plugins;
 
-  /// Passwall plugin title
+  /// PassWall plugin title
   ///
   /// In en, this message translates to:
-  /// **'Passwall'**
+  /// **'PassWall'**
   String get passwall;
 
-  /// Passwall entry subtitle on More screen
+  /// PassWall entry subtitle on More screen
   ///
   /// In en, this message translates to:
   /// **'Enable, nodes, and shunt rules'**
@@ -1331,7 +1331,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwallEnabled.
   ///
   /// In en, this message translates to:
-  /// **'Enable Passwall'**
+  /// **'Enable PassWall'**
   String get passwallEnabled;
 
   /// No description provided for @passwallEnabledSubtitle.
@@ -1367,25 +1367,25 @@ abstract class AppLocalizations {
   /// No description provided for @passwallSaved.
   ///
   /// In en, this message translates to:
-  /// **'Passwall settings applied'**
+  /// **'PassWall settings applied'**
   String get passwallSaved;
 
   /// No description provided for @passwallSaveFailed.
   ///
   /// In en, this message translates to:
-  /// **'Failed to apply Passwall settings'**
+  /// **'Failed to apply PassWall settings'**
   String get passwallSaveFailed;
 
   /// No description provided for @passwallUnavailable.
   ///
   /// In en, this message translates to:
-  /// **'Passwall unavailable'**
+  /// **'PassWall unavailable'**
   String get passwallUnavailable;
 
   /// No description provided for @passwallUnavailableMessage.
   ///
   /// In en, this message translates to:
-  /// **'Could not read Passwall configuration from the router.'**
+  /// **'Could not read PassWall configuration from the router.'**
   String get passwallUnavailableMessage;
 
   /// No description provided for @passwallApply.
@@ -1405,6 +1405,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Update subscriptions'**
   String get passwallUpdateSubscribe;
+
+  /// No description provided for @passwallUpdateSubscribeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Update subscriptions?'**
+  String get passwallUpdateSubscribeTitle;
+
+  /// No description provided for @passwallUpdateSubscribeMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch latest nodes from all subscribe URLs?'**
+  String get passwallUpdateSubscribeMessage;
 
   /// No description provided for @passwallUpdateSubscribeSubtitle.
   ///
@@ -1463,7 +1475,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwallLogSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'View Passwall runtime logs'**
+  /// **'View PassWall runtime logs'**
   String get passwallLogSubtitle;
 
   /// No description provided for @passwallLogEmpty.
@@ -1493,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwallClearLogMessage.
   ///
   /// In en, this message translates to:
-  /// **'Clear the Passwall runtime log?'**
+  /// **'Clear the PassWall runtime log?'**
   String get passwallClearLogMessage;
 
   /// No description provided for @passwallClearLogFailed.

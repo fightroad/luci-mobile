@@ -148,8 +148,29 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     final draft = _draft;
     if (_busy || draft == null || !draft.hasSubscriptions) return;
 
-    setState(() => _busy = true);
     final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: Text(l10n.passwallUpdateSubscribeTitle),
+          content: Text(l10n.passwallUpdateSubscribeMessage),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.passwallUpdateSubscribe),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted || _busy) return;
+
+    setState(() => _busy = true);
     final ok = await ref
         .read(appStateProvider)
         .updatePasswallSubscriptions(context: context);

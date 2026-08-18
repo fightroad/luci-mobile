@@ -861,28 +861,30 @@
   "@plugins": {
     "description": "More screen section for optional router plugins"
   },
-  "passwall": "Passwall",
+  "passwall": "PassWall",
   "@passwall": {
-    "description": "Passwall plugin title"
+    "description": "PassWall plugin title"
   },
   "passwallSubtitle": "Enable, nodes, and shunt rules",
   "@passwallSubtitle": {
-    "description": "Passwall entry subtitle on More screen"
+    "description": "PassWall entry subtitle on More screen"
   },
   "passwallMain": "Main",
-  "passwallEnabled": "Enable Passwall",
+  "passwallEnabled": "Enable PassWall",
   "passwallEnabledSubtitle": "Main transparent proxy switch",
   "passwallTcpNode": "TCP node",
   "passwallUdpNode": "UDP node",
   "passwallNodeClose": "Close",
   "passwallUdpSameAsTcp": "Same as TCP node",
-  "passwallSaved": "Passwall settings applied",
-  "passwallSaveFailed": "Failed to apply Passwall settings",
-  "passwallUnavailable": "Passwall unavailable",
-  "passwallUnavailableMessage": "Could not read Passwall configuration from the router.",
+  "passwallSaved": "PassWall settings applied",
+  "passwallSaveFailed": "Failed to apply PassWall settings",
+  "passwallUnavailable": "PassWall unavailable",
+  "passwallUnavailableMessage": "Could not read PassWall configuration from the router.",
   "passwallApply": "Apply",
   "passwallRefresh": "Refresh",
   "passwallUpdateSubscribe": "Update subscriptions",
+  "passwallUpdateSubscribeTitle": "Update subscriptions?",
+  "passwallUpdateSubscribeMessage": "Fetch latest nodes from all subscribe URLs?",
   "passwallUpdateSubscribeSubtitle": "Fetch latest nodes from all subscribe URLs",
   "passwallUpdateSubscribeEmpty": "No subscribe URLs configured",
   "passwallUpdateSubscribeStarted": "Subscription update started",
@@ -899,12 +901,12 @@
   },
   "passwallTestConnectFailed": "Connection failed",
   "passwallLog": "Logs",
-  "passwallLogSubtitle": "View Passwall runtime logs",
+  "passwallLogSubtitle": "View PassWall runtime logs",
   "passwallLogEmpty": "No log output",
   "passwallLogFailed": "Failed to load logs",
   "passwallClearLog": "Clear",
   "passwallClearLogTitle": "Clear logs?",
-  "passwallClearLogMessage": "Clear the Passwall runtime log?",
+  "passwallClearLogMessage": "Clear the PassWall runtime log?",
   "passwallClearLogFailed": "Failed to clear logs",
   "passwallRefreshLog": "Refresh",
   "passwallShuntRules": "Shunt rules",

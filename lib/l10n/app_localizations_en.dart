@@ -652,7 +652,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plugins => 'Plugin Management';
 
   @override
-  String get passwall => 'Passwall';
+  String get passwall => 'PassWall';
 
   @override
   String get passwallSubtitle => 'Enable, nodes, and shunt rules';
@@ -661,7 +661,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallMain => 'Main';
 
   @override
-  String get passwallEnabled => 'Enable Passwall';
+  String get passwallEnabled => 'Enable PassWall';
 
   @override
   String get passwallEnabledSubtitle => 'Main transparent proxy switch';
@@ -679,17 +679,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallUdpSameAsTcp => 'Same as TCP node';
 
   @override
-  String get passwallSaved => 'Passwall settings applied';
+  String get passwallSaved => 'PassWall settings applied';
 
   @override
-  String get passwallSaveFailed => 'Failed to apply Passwall settings';
+  String get passwallSaveFailed => 'Failed to apply PassWall settings';
 
   @override
-  String get passwallUnavailable => 'Passwall unavailable';
+  String get passwallUnavailable => 'PassWall unavailable';
 
   @override
   String get passwallUnavailableMessage =>
-      'Could not read Passwall configuration from the router.';
+      'Could not read PassWall configuration from the router.';
 
   @override
   String get passwallApply => 'Apply';
@@ -699,6 +699,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwallUpdateSubscribe => 'Update subscriptions';
+
+  @override
+  String get passwallUpdateSubscribeTitle => 'Update subscriptions?';
+
+  @override
+  String get passwallUpdateSubscribeMessage =>
+      'Fetch latest nodes from all subscribe URLs?';
 
   @override
   String get passwallUpdateSubscribeSubtitle =>
@@ -731,7 +738,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallLog => 'Logs';
 
   @override
-  String get passwallLogSubtitle => 'View Passwall runtime logs';
+  String get passwallLogSubtitle => 'View PassWall runtime logs';
 
   @override
   String get passwallLogEmpty => 'No log output';
@@ -746,7 +753,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallClearLogTitle => 'Clear logs?';
 
   @override
-  String get passwallClearLogMessage => 'Clear the Passwall runtime log?';
+  String get passwallClearLogMessage => 'Clear the PassWall runtime log?';
 
   @override
   String get passwallClearLogFailed => 'Failed to clear logs';

@@ -636,7 +636,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plugins => '插件管理';
 
   @override
-  String get passwall => 'Passwall';
+  String get passwall => 'PassWall';
 
   @override
   String get passwallSubtitle => '开关、节点与分流规则';
@@ -645,7 +645,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallMain => '主设置';
 
   @override
-  String get passwallEnabled => '启用 Passwall';
+  String get passwallEnabled => '启用 PassWall';
 
   @override
   String get passwallEnabledSubtitle => '透明代理总开关';
@@ -663,16 +663,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallUdpSameAsTcp => '与 TCP 节点相同';
 
   @override
-  String get passwallSaved => 'Passwall 设置已应用';
+  String get passwallSaved => 'PassWall 设置已应用';
 
   @override
-  String get passwallSaveFailed => '应用 Passwall 设置失败';
+  String get passwallSaveFailed => '应用 PassWall 设置失败';
 
   @override
-  String get passwallUnavailable => '无法使用 Passwall';
+  String get passwallUnavailable => '无法使用 PassWall';
 
   @override
-  String get passwallUnavailableMessage => '无法从路由器读取 Passwall 配置。';
+  String get passwallUnavailableMessage => '无法从路由器读取 PassWall 配置。';
 
   @override
   String get passwallApply => '应用';
@@ -682,6 +682,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passwallUpdateSubscribe => '更新订阅';
+
+  @override
+  String get passwallUpdateSubscribeTitle => '更新订阅？';
+
+  @override
+  String get passwallUpdateSubscribeMessage => '确定从全部订阅链接拉取最新节点吗？';
 
   @override
   String get passwallUpdateSubscribeSubtitle => '从全部订阅链接拉取最新节点';
@@ -711,7 +717,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallLog => '日志';
 
   @override
-  String get passwallLogSubtitle => '查看 Passwall 运行日志';
+  String get passwallLogSubtitle => '查看 PassWall 运行日志';
 
   @override
   String get passwallLogEmpty => '暂无日志';
@@ -726,7 +732,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallClearLogTitle => '清空日志？';
 
   @override
-  String get passwallClearLogMessage => '确定清空 Passwall 运行日志吗？';
+  String get passwallClearLogMessage => '确定清空 PassWall 运行日志吗？';
 
   @override
   String get passwallClearLogFailed => '清空日志失败';
