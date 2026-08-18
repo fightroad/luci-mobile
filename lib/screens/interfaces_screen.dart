@@ -1,3 +1,5 @@
+import 'dart:math' show log, pow;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
@@ -249,11 +251,11 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
     }
 
     ensureCardVisible().then((_) {
-      if (!mounted) return;
+      if (!mounted) return Future<void>.value();
       // One more pass after any scale/expand layout settles.
       return Future<void>.delayed(
         const Duration(milliseconds: 200),
-        () => ensureCardVisible(),
+        ensureCardVisible,
       );
     }).then((_) {
       if (mounted) {
