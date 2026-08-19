@@ -109,9 +109,10 @@ coverage/
 google-services.json
 GoogleService-Info.plist
 
-# Keystore files
+# Keystore files (project release keystore is committed for CI sideload builds)
 *.keystore
 *.jks
+!android/app/luci_mobile_keystore.jks
 
 # Gradle files
 .gradle/
@@ -123,6 +124,7 @@ GoogleService-Info.plist
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+!android/key.properties
 *.hprof
 
 # CMake
