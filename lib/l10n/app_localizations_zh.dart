@@ -708,7 +708,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallTestConnectSubtitle => '调用官方谷歌连接测试';
 
   @override
-  String passwallTestConnectOk(String ms) => '连接成功：$ms ms';
+  String passwallTestConnectOk(String ms) {
+    return '连接成功：$ms ms';
+  }
 
   @override
   String get passwallTestConnectFailed => '连接失败';

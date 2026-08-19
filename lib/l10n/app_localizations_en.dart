@@ -729,7 +729,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Run official Google connection check';
 
   @override
-  String passwallTestConnectOk(String ms) => 'Connected: $ms ms';
+  String passwallTestConnectOk(String ms) {
+    return 'Connected: $ms ms';
+  }
 
   @override
   String get passwallTestConnectFailed => 'Connection failed';
