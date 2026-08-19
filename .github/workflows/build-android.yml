@@ -28,14 +28,39 @@ jobs:
       - name: Install Dependencies
         run: flutter pub get
 
+      # Prefer repo Secrets when present. Otherwise generate a throwaway
+      # keystore so sideload APKs still install. That CI key is discarded
+      # after the job, so later builds cannot update the previous APK.
       - name: Create Keystore
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > app/luci_mobile_keystore.jks
-          echo "${{ secrets.ANDROID_KEY_PROPERTIES_BASE64 }}" | base64 --decode > key.properties
+        working-directory: android
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEY_PROPERTIES_BASE64: ${{ secrets.ANDROID_KEY_PROPERTIES_BASE64 }}
-        working-directory: android
+        run: |
+          set -euo pipefail
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_PROPERTIES_BASE64:-}" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/luci_mobile_keystore.jks
+            echo "$ANDROID_KEY_PROPERTIES_BASE64" | base64 --decode > key.properties
+          else
+            echo "Signing secrets are not set; generating a CI keystore for sideload APKs."
+            keytool -genkeypair -noprompt \
+              -alias upload \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -keystore app/luci_mobile_keystore.jks \
+              -storepass android \
+              -keypass android \
+              -dname "CN=LuCI Mobile CI, OU=CI, O=LuCI Mobile, L=Unknown, ST=Unknown, C=US"
+            printf '%s\n' \
+              'storePassword=android' \
+              'keyPassword=android' \
+              'keyAlias=upload' \
+              'storeFile=luci_mobile_keystore.jks' \
+              > key.properties
+          fi
+          test -s app/luci_mobile_keystore.jks
+          test -s key.properties
 
       # Split per ABI so each APK stays under store size limits.
       # Outputs (under build/app/outputs/flutter-apk/):
