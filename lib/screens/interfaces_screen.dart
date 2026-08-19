@@ -1457,15 +1457,13 @@ class _UnifiedNetworkCardState extends State<_UnifiedNetworkCard>
       shape: RoundedRectangleBorder(
         borderRadius: LuciCardStyles.standardRadius,
         side: BorderSide(
-          color: widget.initiallyExpanded && _isExpanded
-              ? colorScheme.primary.withValues(alpha: 0.3)
-              : colorScheme.surfaceContainerHighest.withValues(alpha: 0.10),
-          width: widget.initiallyExpanded && _isExpanded ? 2 : 1,
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.10),
+          width: 1,
         ),
       ),
       clipBehavior: Clip.antiAlias,
       child: AnimatedScale(
-        scale: widget.initiallyExpanded && _isExpanded ? 1.02 : 1.0,
+        scale: 1.0,
         duration: LuciAnimations.standard,
         curve: Curves.easeOutBack,
         child: Column(
@@ -1492,9 +1490,7 @@ class _UnifiedNetworkCardState extends State<_UnifiedNetworkCard>
                             shape: BoxShape.circle,
                           ),
                           child: AnimatedScale(
-                            scale: widget.initiallyExpanded && _isExpanded
-                                ? 1.1
-                                : 1.0,
+                            scale: 1.0,
                             duration: const Duration(milliseconds: 500),
                             curve: Curves.elasticOut,
                             child: Icon(
