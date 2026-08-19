@@ -282,6 +282,35 @@ class _StatusCard extends StatelessWidget {
     return trimmed;
   }
 
+  String _formatUptime(String value, String fallback) {
+    final displayed = _displayValue(value, fallback);
+    if (displayed == fallback) return displayed;
+
+    // When uptime already includes days, omit seconds to reduce visual noise.
+    final zhDayDurationMatch = RegExp(
+      r'^(\d+\s*天)\s*(\d+\s*小时)\s*(\d+\s*分)\s*\d+\s*秒$',
+    ).firstMatch(displayed);
+    if (zhDayDurationMatch != null) {
+      final dayPart = zhDayDurationMatch.group(1)!.trim();
+      final hourPart = zhDayDurationMatch.group(2)!.trim();
+      final minutePart = zhDayDurationMatch.group(3)!.trim();
+      return '$dayPart$hourPart$minutePart';
+    }
+
+    final dayDurationMatch = RegExp(
+      r'^(.+?(?:d|day|days|天))\s+(\d{1,2}):(\d{2}):(\d{2})$',
+      caseSensitive: false,
+    ).firstMatch(displayed);
+    if (dayDurationMatch != null) {
+      final dayPart = dayDurationMatch.group(1)!.trim();
+      final hours = dayDurationMatch.group(2)!;
+      final minutes = dayDurationMatch.group(3)!;
+      return '$dayPart $hours:$minutes';
+    }
+
+    return displayed;
+  }
+
   Widget _statTileRow(List<Widget> tiles) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,7 +396,7 @@ class _StatusCard extends StatelessWidget {
                   _StatTile(
                     icon: Icons.schedule_outlined,
                     label: l10n.easytierUptime,
-                    value: _displayValue(status.uptime, 'N/A'),
+                    value: _formatUptime(status.uptime, 'N/A'),
                   ),
                   _StatTile(
                     icon: Icons.info_outline,
