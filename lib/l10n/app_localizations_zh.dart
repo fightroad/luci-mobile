@@ -651,16 +651,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallEnabledSubtitle => '透明代理总开关';
 
   @override
-  String get passwallTcpNode => 'TCP 节点';
-
-  @override
-  String get passwallUdpNode => 'UDP 节点';
+  String get passwallProxyNode => '代理节点';
 
   @override
   String get passwallNodeClose => '关闭';
-
-  @override
-  String get passwallUdpSameAsTcp => '与 TCP 节点相同';
 
   @override
   String get passwallSaved => 'PassWall 设置已应用';
@@ -756,6 +750,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passwallShuntBlackhole => '黑洞';
+
+  @override
+  String get passwallShuntBalancing => '负载均衡';
+
+  @override
+  String get passwallShuntUrltest => '自动测速';
+
+  @override
+  String get passwallShuntIface => '网卡';
+
+  @override
+  String get passwallSocksConfig => 'Socks';
+
+  @override
+  String get passwallPort => '端口';
 
   @override
   String get easytier => 'EasyTier';

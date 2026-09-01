@@ -673,16 +673,6 @@ class RealApiService implements IApiService {
     return 'sysauth=$sysauth; sysauth_http=$sysauth; sysauth_https=$sysauth';
   }
 
-  String? _extractLuciToken(String html) {
-    final fromJson = RegExp(r'"token"\s*:\s*"([^"]+)"').firstMatch(html);
-    if (fromJson != null) return fromJson.group(1);
-    final fromInput = RegExp(
-      r'name="token"\s+value="([^"]+)"',
-      caseSensitive: false,
-    ).firstMatch(html);
-    return fromInput?.group(1);
-  }
-
   bool _isJsonSubscribeSuccess(dynamic data) {
     if (data is Map) return data['success'] == true;
     final raw = data is String ? data : data?.toString();
@@ -728,67 +718,12 @@ class RealApiService implements IApiService {
     return _isJsonSubscribeSuccess(response.data);
   }
 
-  Future<bool> _tryPasswallSubscribeCbiForm(
-    Dio client,
-    String ipAddress,
-    String sysauth,
-    bool useHttps, {
-    String? globalSubscribeSection,
-  }) async {
-    final pageUri = _buildUrl(
-      ipAddress,
-      useHttps,
-      '/cgi-bin/luci/admin/services/passwall/node_subscribe',
-    );
-    final page = await client.get(
-      pageUri.toString(),
-      options: Options(
-        headers: {'Cookie': _luciSessionCookie(sysauth)},
-        validateStatus: (code) => code != null && code < 500,
-      ),
-    );
-    final html = page.data?.toString() ?? '';
-    if (html.isEmpty) return false;
-
-    final token = _extractLuciToken(html);
-    var section = globalSubscribeSection;
-    if (section == null || section.isEmpty) {
-      final allBtn = RegExp(
-        r'name="cbid\.passwall\.([^.]+)\._update"[^>]*value="[^"]*All[^"]*"',
-        caseSensitive: false,
-      ).firstMatch(html);
-      section = allBtn?.group(1);
-    }
-    if (token == null || section == null || section.isEmpty) {
-      return false;
-    }
-
-    // Old CBI builds start a background job then redirect (often to /log).
-    // Do not judge by final URL — firing the form is enough to treat as started.
-    await client.post(
-      pageUri.toString(),
-      data: {
-        'token': token,
-        'cbi.submit': '1',
-        'cbid.passwall.$section._update': 'Manual subscription All',
-      },
-      options: Options(
-        contentType: Headers.formUrlEncodedContentType,
-        headers: {'Cookie': _luciSessionCookie(sysauth)},
-        followRedirects: true,
-        validateStatus: (code) => code != null && code < 500,
-      ),
-    );
-    return true;
-  }
-
   @override
   Future<bool> triggerPasswallSubscribeAll(
     String ipAddress,
     String sysauth,
     bool useHttps, {
     required List<PasswallSubscribe> subscriptions,
-    String? globalSubscribeSection,
     BuildContext? context,
   }) async {
     final usable =
@@ -796,34 +731,13 @@ class RealApiService implements IApiService {
     if (usable.isEmpty) return false;
 
     final client = _createHttpClient(useHttps, ipAddress, context: context);
-
-    try {
-      if (await _tryPasswallSubscribeManualAllApi(
-        client,
-        ipAddress,
-        sysauth,
-        useHttps,
-        subscriptions: usable,
-      )) {
-        return true;
-      }
-    } catch (e, stack) {
-      Logger.warning('Passwall subscribe_manual_all unavailable: $e');
-      Logger.debug('Passwall subscribe_manual_all stack: $stack');
-    }
-
-    try {
-      return await _tryPasswallSubscribeCbiForm(
-        client,
-        ipAddress,
-        sysauth,
-        useHttps,
-        globalSubscribeSection: globalSubscribeSection,
-      );
-    } catch (e, stack) {
-      Logger.exception('Passwall CBI subscribe-all failed', e, stack);
-      return false;
-    }
+    return _tryPasswallSubscribeManualAllApi(
+      client,
+      ipAddress,
+      sysauth,
+      useHttps,
+      subscriptions: usable,
+    );
   }
 
   @override
@@ -894,10 +808,7 @@ class RealApiService implements IApiService {
     String ipAddress,
     String sysauth,
     bool useHttps, {
-    // Match Passwall status page: host/path only, no scheme.
-    // New firmware often prepends http(s)://; a full URL becomes
-    // https://https://... and returns empty use_time. Bare host also
-    // works on older builds that pass the url straight to curl.
+    // Passwall prepends http(s)://; a full URL becomes https://https://...
     String url = 'www.google.com/generate_204',
     String type = 'google',
     BuildContext? context,

@@ -19,12 +19,32 @@ class PasswallNode {
 
   bool get isShunt => protocol == '_shunt';
 
+  bool get isBalancing => protocol == '_balancing';
+
+  bool get isUrltest => protocol == '_urltest';
+
+  bool get isIface => protocol == '_iface';
+
   /// Display label. [shunt] is localized (e.g. "Shunt" / "分流").
-  String label({String shunt = 'Shunt'}) {
+  String label({
+    String shunt = 'Shunt',
+    String balancing = 'Load balancing',
+    String urltest = 'URL test',
+    String iface = 'Interface',
+  }) {
     final name = remarks.trim().isEmpty ? id : remarks.trim();
     final typeLabel = (type == null || type!.isEmpty) ? '' : type!;
     if (isShunt) {
       return typeLabel.isEmpty ? '$shunt: [$name]' : '$typeLabel $shunt: [$name]';
+    }
+    if (isBalancing) {
+      return '$balancing: [$name]';
+    }
+    if (isUrltest) {
+      return '$urltest: [$name]';
+    }
+    if (isIface) {
+      return '$iface: [$name]';
     }
     if (typeLabel.isEmpty) return name;
     final proto = (protocol == null || protocol!.isEmpty) ? '' : ' $protocol';
@@ -61,26 +81,40 @@ class PasswallSubscribe {
   bool get hasUrl => url.trim().isNotEmpty;
 }
 
+/// Enabled Socks listener usable as a shunt rule target (`Socks_<section>`).
+class PasswallSocksTarget {
+  final String id;
+  final String port;
+
+  const PasswallSocksTarget({
+    required this.id,
+    required this.port,
+  });
+
+  String label({String socksConfig = 'Socks', String portLabel = 'Port'}) {
+    final portText = port.trim().isEmpty ? '?' : port.trim();
+    return '$socksConfig [$portText $portLabel]';
+  }
+}
+
 class PasswallConfig {
   final String globalSection;
-  /// UCI section id for `global_subscribe` (used by older CBI subscribe-all).
-  final String? globalSubscribeSection;
   final bool enabled;
-  final String tcpNode;
-  final String udpNode;
+  /// Selected proxy node id (`node` in global UCI section).
+  final String node;
   final List<PasswallNode> nodes;
   final List<PasswallShuntRule> allShuntRules;
   final List<PasswallSubscribe> subscriptions;
+  final List<PasswallSocksTarget> socksShuntTargets;
 
   const PasswallConfig({
     required this.globalSection,
-    this.globalSubscribeSection,
     required this.enabled,
-    required this.tcpNode,
-    required this.udpNode,
+    required this.node,
     required this.nodes,
     required this.allShuntRules,
     this.subscriptions = const [],
+    this.socksShuntTargets = const [],
   });
 
   bool get hasSubscriptions =>
@@ -94,18 +128,26 @@ class PasswallConfig {
     return null;
   }
 
-  PasswallNode? get tcpNodeInfo => nodeById(tcpNode);
+  PasswallNode? get selectedNodeInfo => nodeById(node);
 
-  bool get tcpIsShunt => tcpNodeInfo?.isShunt == true;
+  bool get isShunt => selectedNodeInfo?.isShunt == true;
 
-  List<PasswallNode> get selectableNodes =>
+  /// Nodes selectable as shunt rule targets (excludes other shunt nodes).
+  List<PasswallNode> get shuntTargetNodes =>
       nodes.where((n) => !n.isShunt).toList();
 
-  /// Rules visible for the currently selected TCP shunt node.
+  PasswallSocksTarget? socksTargetById(String id) {
+    for (final target in socksShuntTargets) {
+      if (target.id == id) return target;
+    }
+    return null;
+  }
+
+  /// Rules visible for the currently selected shunt node.
   List<PasswallShuntRule> get shuntRules {
-    final tcp = tcpNodeInfo;
-    if (tcp == null || !tcp.isShunt) return const [];
-    final group = tcp.shuntGroup.toLowerCase();
+    final selected = selectedNodeInfo;
+    if (selected == null || !selected.isShunt) return const [];
+    final group = selected.shuntGroup.toLowerCase();
     final rules = allShuntRules
         .where((r) => r.group.toLowerCase() == group)
         .toList();
@@ -119,9 +161,9 @@ class PasswallConfig {
   }
 
   String shuntAssignment(String option) {
-    final tcp = tcpNodeInfo;
-    if (tcp == null || !tcp.isShunt) return '';
-    final raw = tcp.options[option] ?? '';
+    final selected = selectedNodeInfo;
+    if (selected == null || !selected.isShunt) return '';
+    final raw = selected.options[option] ?? '';
     if (raw.isNotEmpty) return raw;
     return option == 'default_node' ? '_direct' : '';
   }
@@ -168,11 +210,11 @@ class PasswallConfig {
   /// Parses LuCI `uci.get` payload for config `passwall`.
   factory PasswallConfig.fromUciValues(Map values) {
     String? globalId;
-    String? globalSubscribeId;
     Map<String, dynamic>? global;
     final nodes = <PasswallNode>[];
     final allShuntRules = <PasswallShuntRule>[];
     final subscriptions = <PasswallSubscribe>[];
+    final socksShuntTargets = <PasswallSocksTarget>[];
 
     values.forEach((key, raw) {
       if (raw is! Map) return;
@@ -182,8 +224,6 @@ class PasswallConfig {
       if (type == 'global' && global == null) {
         globalId = id;
         global = section;
-      } else if (type == 'global_subscribe' && globalSubscribeId == null) {
-        globalSubscribeId = id;
       } else if (type == 'nodes') {
         final protocol = _str(section['protocol']);
         final options = <String, String>{};
@@ -220,45 +260,52 @@ class PasswallConfig {
             url: _str(section['url']),
           ),
         );
+      } else if (type == 'socks' && _flag(section['enabled'])) {
+        final boundNode = _str(section['node']);
+        if (boundNode.isNotEmpty) {
+          socksShuntTargets.add(
+            PasswallSocksTarget(
+              id: 'Socks_$id',
+              port: _str(section['port']),
+            ),
+          );
+        }
       }
     });
 
     final g = global ?? <String, dynamic>{};
     return PasswallConfig(
       globalSection: globalId ?? '@global[0]',
-      globalSubscribeSection: globalSubscribeId,
       enabled: _flag(g['enabled']),
-      tcpNode: _str(g['tcp_node']),
-      udpNode: _str(g['udp_node']),
+      node: _str(g['node']),
       nodes: nodes,
       allShuntRules: allShuntRules,
       subscriptions: subscriptions,
+      socksShuntTargets: socksShuntTargets,
     );
   }
 
   PasswallConfig copyWith({
     bool? enabled,
-    String? tcpNode,
-    String? udpNode,
+    String? node,
     List<PasswallNode>? nodes,
   }) {
     return PasswallConfig(
       globalSection: globalSection,
-      globalSubscribeSection: globalSubscribeSection,
       enabled: enabled ?? this.enabled,
-      tcpNode: tcpNode ?? this.tcpNode,
-      udpNode: udpNode ?? this.udpNode,
+      node: node ?? this.node,
       nodes: nodes ?? this.nodes,
       allShuntRules: allShuntRules,
       subscriptions: subscriptions,
+      socksShuntTargets: socksShuntTargets,
     );
   }
 
   PasswallConfig withShuntAssignment(String option, String value) {
-    final tcp = tcpNodeInfo;
-    if (tcp == null || !tcp.isShunt) return this;
+    final selected = selectedNodeInfo;
+    if (selected == null || !selected.isShunt) return this;
     final nextNodes = nodes.map((n) {
-      if (n.id != tcp.id) return n;
+      if (n.id != selected.id) return n;
       final opts = Map<String, String>.from(n.options);
       opts[option] = value;
       return PasswallNode(

@@ -1340,29 +1340,17 @@ abstract class AppLocalizations {
   /// **'Main transparent proxy switch'**
   String get passwallEnabledSubtitle;
 
-  /// No description provided for @passwallTcpNode.
+  /// PassWall proxy node selector
   ///
   /// In en, this message translates to:
-  /// **'TCP node'**
-  String get passwallTcpNode;
-
-  /// No description provided for @passwallUdpNode.
-  ///
-  /// In en, this message translates to:
-  /// **'UDP node'**
-  String get passwallUdpNode;
+  /// **'Proxy node'**
+  String get passwallProxyNode;
 
   /// No description provided for @passwallNodeClose.
   ///
   /// In en, this message translates to:
   /// **'Close'**
   String get passwallNodeClose;
-
-  /// No description provided for @passwallUdpSameAsTcp.
-  ///
-  /// In en, this message translates to:
-  /// **'Same as TCP node'**
-  String get passwallUdpSameAsTcp;
 
   /// No description provided for @passwallSaved.
   ///
@@ -1549,6 +1537,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Blackhole'**
   String get passwallShuntBlackhole;
+
+  /// No description provided for @passwallShuntBalancing.
+  ///
+  /// In en, this message translates to:
+  /// **'Load balancing'**
+  String get passwallShuntBalancing;
+
+  /// No description provided for @passwallShuntUrltest.
+  ///
+  /// In en, this message translates to:
+  /// **'URL test'**
+  String get passwallShuntUrltest;
+
+  /// No description provided for @passwallShuntIface.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface'**
+  String get passwallShuntIface;
+
+  /// No description provided for @passwallSocksConfig.
+  ///
+  /// In en, this message translates to:
+  /// **'Socks'**
+  String get passwallSocksConfig;
+
+  /// No description provided for @passwallPort.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get passwallPort;
 
   /// EasyTier plugin title
   ///

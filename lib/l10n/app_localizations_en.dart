@@ -667,16 +667,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallEnabledSubtitle => 'Main transparent proxy switch';
 
   @override
-  String get passwallTcpNode => 'TCP node';
-
-  @override
-  String get passwallUdpNode => 'UDP node';
+  String get passwallProxyNode => 'Proxy node';
 
   @override
   String get passwallNodeClose => 'Close';
-
-  @override
-  String get passwallUdpSameAsTcp => 'Same as TCP node';
 
   @override
   String get passwallSaved => 'PassWall settings applied';
@@ -777,6 +771,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwallShuntBlackhole => 'Blackhole';
+
+  @override
+  String get passwallShuntBalancing => 'Load balancing';
+
+  @override
+  String get passwallShuntUrltest => 'URL test';
+
+  @override
+  String get passwallShuntIface => 'Interface';
+
+  @override
+  String get passwallSocksConfig => 'Socks';
+
+  @override
+  String get passwallPort => 'Port';
 
   @override
   String get easytier => 'EasyTier';

@@ -44,8 +44,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     final base = _baseline;
     if (draft == null || base == null) return false;
     if (draft.enabled != base.enabled) return true;
-    if (draft.tcpNode != base.tcpNode) return true;
-    if (draft.udpNode != base.udpNode) return true;
+    if (draft.node != base.node) return true;
     for (final node in draft.nodes.where((n) => n.isShunt)) {
       if (draft.changedShuntOptions(base, node.id).isNotEmpty) return true;
     }
@@ -101,11 +100,8 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     if (draft.enabled != base.enabled) {
       globalValues['enabled'] = draft.enabled ? '1' : '0';
     }
-    if (draft.tcpNode != base.tcpNode) {
-      globalValues['tcp_node'] = draft.tcpNode;
-    }
-    if (draft.udpNode != base.udpNode) {
-      globalValues['udp_node'] = draft.udpNode;
+    if (draft.node != base.node) {
+      globalValues['node'] = draft.node;
     }
 
     final nodeUpdates = <String, Map<String, String>>{};
@@ -213,7 +209,69 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
   }
 
   String _nodeLabel(PasswallNode node, AppLocalizations l10n) {
-    return node.label(shunt: l10n.passwallShunt);
+    return node.label(
+      shunt: l10n.passwallShunt,
+      balancing: l10n.passwallShuntBalancing,
+      urltest: l10n.passwallShuntUrltest,
+      iface: l10n.passwallShuntIface,
+    );
+  }
+
+  String _shuntTargetLabel(PasswallConfig draft, String value, AppLocalizations l10n) {
+    final special = _shuntValueLabels(l10n);
+    if (special.containsKey(value)) return special[value]!;
+    final socks = draft.socksTargetById(value);
+    if (socks != null) {
+      return socks.label(
+        socksConfig: l10n.passwallSocksConfig,
+        portLabel: l10n.passwallPort,
+      );
+    }
+    return _labelForValue(
+      value: value,
+      nodes: draft.shuntTargetNodes,
+      l10n: l10n,
+    );
+  }
+
+  List<_SheetOption> _shuntRuleTargetOptions({
+    required PasswallConfig draft,
+    required PasswallShuntRule rule,
+    required AppLocalizations l10n,
+  }) {
+    final labels = _shuntValueLabels(l10n);
+    final nodeOptions = draft.shuntTargetNodes
+        .map((n) => _SheetOption(n.id, _nodeLabel(n, l10n)))
+        .toList();
+    final socksOptions = draft.socksShuntTargets
+        .map(
+          (s) => _SheetOption(
+            s.id,
+            s.label(
+              socksConfig: l10n.passwallSocksConfig,
+              portLabel: l10n.passwallPort,
+            ),
+          ),
+        )
+        .toList();
+
+    if (rule.isDefault) {
+      return [
+        _SheetOption('_direct', labels['_direct']!),
+        _SheetOption('_blackhole', labels['_blackhole']!),
+        ...socksOptions,
+        ...nodeOptions,
+      ];
+    }
+
+    return [
+      _SheetOption('', labels['']!),
+      _SheetOption('_default', labels['_default']!),
+      _SheetOption('_direct', labels['_direct']!),
+      _SheetOption('_blackhole', labels['_blackhole']!),
+      ...socksOptions,
+      ...nodeOptions,
+    ];
   }
 
   String _labelForValue({
@@ -222,13 +280,11 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     required AppLocalizations l10n,
     Map<String, String>? specialLabels,
     String? emptyLabel,
-    String? tcpAliasLabel,
   }) {
     if (specialLabels != null && specialLabels.containsKey(value)) {
       return specialLabels[value]!;
     }
     if (value.isEmpty) return emptyLabel ?? value;
-    if (value == 'tcp') return tcpAliasLabel ?? value;
     for (final n in nodes) {
       if (n.id == value) return _nodeLabel(n, l10n);
     }
@@ -354,7 +410,6 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     final draft = _draft;
     final loading = appState.isPasswallLoading && draft == null;
     final dirty = draft != null && _baseline != null && _isDirty();
-    final shuntLabels = _shuntValueLabels(l10n);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -414,17 +469,17 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                             ),
                             const Divider(height: 1),
                             _SelectTile(
-                              title: l10n.passwallTcpNode,
+                              title: l10n.passwallProxyNode,
                               valueLabel: _labelForValue(
-                                value: draft.tcpNode,
+                                value: draft.node,
                                 nodes: draft.nodes,
                                 l10n: l10n,
                                 emptyLabel: l10n.passwallNodeClose,
                               ),
                               enabled: !_busy,
                               onTap: () => _pickOption(
-                                title: l10n.passwallTcpNode,
-                                currentValue: draft.tcpNode,
+                                title: l10n.passwallProxyNode,
+                                currentValue: draft.node,
                                 options: [
                                   _SheetOption('', l10n.passwallNodeClose),
                                   ...draft.nodes.map(
@@ -435,39 +490,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                                   ),
                                 ],
                                 onSelected: (id) => _updateDraft(
-                                  (c) => c.copyWith(tcpNode: id),
-                                ),
-                              ),
-                            ),
-                            const Divider(height: 1),
-                            _SelectTile(
-                              title: l10n.passwallUdpNode,
-                              valueLabel: _labelForValue(
-                                value: draft.udpNode,
-                                nodes: draft.nodes,
-                                l10n: l10n,
-                                emptyLabel: l10n.passwallNodeClose,
-                                tcpAliasLabel: l10n.passwallUdpSameAsTcp,
-                              ),
-                              enabled: !_busy,
-                              onTap: () => _pickOption(
-                                title: l10n.passwallUdpNode,
-                                currentValue: draft.udpNode,
-                                options: [
-                                  _SheetOption('', l10n.passwallNodeClose),
-                                  _SheetOption(
-                                    'tcp',
-                                    l10n.passwallUdpSameAsTcp,
-                                  ),
-                                  ...draft.nodes.map(
-                                    (n) => _SheetOption(
-                                      n.id,
-                                      _nodeLabel(n, l10n),
-                                    ),
-                                  ),
-                                ],
-                                onSelected: (id) => _updateDraft(
-                                  (c) => c.copyWith(udpNode: id),
+                                  (c) => c.copyWith(node: id),
                                 ),
                               ),
                             ),
@@ -513,7 +536,7 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                           ],
                         ),
                       ),
-                      if (draft.tcpIsShunt) ...[
+                      if (draft.isShunt) ...[
                         LuciSectionHeader(l10n.passwallShuntRules),
                         Card(
                           margin: const EdgeInsets.symmetric(
@@ -529,13 +552,10 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                                   title: entry.value.isDefault
                                       ? l10n.passwallShuntDefault
                                       : entry.value.remarks,
-                                  valueLabel: _labelForValue(
-                                    value: draft.shuntAssignment(
-                                      entry.value.option,
-                                    ),
-                                    nodes: draft.selectableNodes,
-                                    l10n: l10n,
-                                    specialLabels: shuntLabels,
+                                  valueLabel: _shuntTargetLabel(
+                                    draft,
+                                    draft.shuntAssignment(entry.value.option),
+                                    l10n,
                                   ),
                                   enabled: !_busy,
                                   onTap: () {
@@ -548,18 +568,11 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                                           ? l10n.passwallShuntDefault
                                           : rule.remarks,
                                       currentValue: value,
-                                      options: [
-                                        ...shuntLabels.entries.map(
-                                          (e) =>
-                                              _SheetOption(e.key, e.value),
-                                        ),
-                                        ...draft.selectableNodes.map(
-                                          (n) => _SheetOption(
-                                            n.id,
-                                            _nodeLabel(n, l10n),
-                                          ),
-                                        ),
-                                      ],
+                                      options: _shuntRuleTargetOptions(
+                                        draft: draft,
+                                        rule: rule,
+                                        l10n: l10n,
+                                      ),
                                       onSelected: (v) => _updateDraft(
                                         (c) => c.withShuntAssignment(
                                           rule.option,

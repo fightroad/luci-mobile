@@ -1996,7 +1996,6 @@ class AppState extends ChangeNotifier {
         _authService!.sysauth!,
         _authService!.useHttps,
         subscriptions: config.subscriptions.where((s) => s.hasUrl).toList(),
-        globalSubscribeSection: config.globalSubscribeSection,
         context: context,
       );
     } catch (e, stack) {

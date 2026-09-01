@@ -872,10 +872,11 @@
   "passwallMain": "Main",
   "passwallEnabled": "Enable PassWall",
   "passwallEnabledSubtitle": "Main transparent proxy switch",
-  "passwallTcpNode": "TCP node",
-  "passwallUdpNode": "UDP node",
+  "passwallProxyNode": "Proxy node",
+  "@passwallProxyNode": {
+    "description": "PassWall proxy node selector"
+  },
   "passwallNodeClose": "Close",
-  "passwallUdpSameAsTcp": "Same as TCP node",
   "passwallSaved": "PassWall settings applied",
   "passwallSaveFailed": "Failed to apply PassWall settings",
   "passwallUnavailable": "PassWall unavailable",
@@ -914,6 +915,11 @@
   "passwallShuntDefault": "Default",
   "passwallShuntDirect": "Direct",
   "passwallShuntBlackhole": "Blackhole",
+  "passwallShuntBalancing": "Load balancing",
+  "passwallShuntUrltest": "URL test",
+  "passwallShuntIface": "Interface",
+  "passwallSocksConfig": "Socks",
+  "passwallPort": "Port",
   "easytier": "EasyTier",
   "@easytier": {
     "description": "EasyTier plugin title"
