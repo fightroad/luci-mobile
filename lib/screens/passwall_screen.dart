@@ -215,8 +215,8 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
   String _proxyModeLabel(PasswallProxyMode mode, AppLocalizations l10n) {
     return mode.label(
       gfwList: l10n.passwallModeGfwList,
-      outsideChina: l10n.passwallModeOutsideChina,
-      chinaList: l10n.passwallModeChinaList,
+      notChinaList: l10n.passwallModeOutsideChina,
+      returnHome: l10n.passwallModeChinaList,
       global: l10n.passwallModeGlobal,
     );
   }

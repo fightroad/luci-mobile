@@ -84,8 +84,10 @@ class PasswallSubscribe {
 /// Preset transparent-proxy modes from LuCI `global/proxy.htm`.
 enum PasswallProxyMode {
   gfwList,
-  outsideChina,
-  chinaList,
+  /// LuCI `switch_chnroute_mode` — "Not China List" / 中国列表以外.
+  notChinaList,
+  /// LuCI `switch_returnhome_mode` — "China List" / 中国列表.
+  returnHome,
   global;
 
   Map<String, String> toGlobalUci() {
@@ -97,19 +99,19 @@ enum PasswallProxyMode {
           'tcp_proxy_mode': 'disable',
           'udp_proxy_mode': 'disable',
         };
-      case PasswallProxyMode.outsideChina:
-        return const {
-          'use_gfw_list': '0',
-          'chn_list': 'proxy',
-          'tcp_proxy_mode': 'disable',
-          'udp_proxy_mode': 'disable',
-        };
-      case PasswallProxyMode.chinaList:
+      case PasswallProxyMode.notChinaList:
         return const {
           'use_gfw_list': '1',
           'chn_list': 'direct',
           'tcp_proxy_mode': 'proxy',
           'udp_proxy_mode': 'proxy',
+        };
+      case PasswallProxyMode.returnHome:
+        return const {
+          'use_gfw_list': '0',
+          'chn_list': 'proxy',
+          'tcp_proxy_mode': 'disable',
+          'udp_proxy_mode': 'disable',
         };
       case PasswallProxyMode.global:
         return const {
@@ -135,17 +137,17 @@ enum PasswallProxyMode {
         udp == 'disable') {
       return PasswallProxyMode.gfwList;
     }
-    if (!useGfwList &&
-        chnList == 'proxy' &&
-        tcp == 'disable' &&
-        udp == 'disable') {
-      return PasswallProxyMode.outsideChina;
-    }
     if (useGfwList &&
         chnList == 'direct' &&
         tcp == 'proxy' &&
         udp == 'proxy') {
-      return PasswallProxyMode.chinaList;
+      return PasswallProxyMode.notChinaList;
+    }
+    if (!useGfwList &&
+        chnList == 'proxy' &&
+        tcp == 'disable' &&
+        udp == 'disable') {
+      return PasswallProxyMode.returnHome;
     }
     if (!useGfwList &&
         chnList == '0' &&
@@ -160,17 +162,17 @@ enum PasswallProxyMode {
 extension PasswallProxyModeLabels on PasswallProxyMode {
   String label({
     String gfwList = 'GFW list',
-    String outsideChina = 'Outside China list',
-    String chinaList = 'China list',
+    String notChinaList = 'Outside China list',
+    String returnHome = 'China list',
     String global = 'Global proxy',
   }) {
     switch (this) {
       case PasswallProxyMode.gfwList:
         return gfwList;
-      case PasswallProxyMode.outsideChina:
-        return outsideChina;
-      case PasswallProxyMode.chinaList:
-        return chinaList;
+      case PasswallProxyMode.notChinaList:
+        return notChinaList;
+      case PasswallProxyMode.returnHome:
+        return returnHome;
       case PasswallProxyMode.global:
         return global;
     }
