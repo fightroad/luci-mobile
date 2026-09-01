@@ -39,8 +39,14 @@ class AppState extends ChangeNotifier {
   String? _dashboardError;
 
   Timer? _throughputTimer;
+  Timer? _vitalsTimer;
   Timer? _pollingTimer;
   int _pollAttempts = 0;
+  bool _dashboardVitalsPollingRequested = false;
+  int _vitalsPollCount = 0;
+  bool _vitalsUpdateInFlight = false;
+  static const Duration _vitalsPollInterval = Duration(seconds: 5);
+  static const int _onlineClientsPollEvery = 3;
   static const int _maxPollAttempts =
       40; // Max 40 attempts = ~5 minutes with backoff
 
@@ -339,6 +345,7 @@ class AppState extends ChangeNotifier {
 
     // Clear throughput data when switching routers to prevent mixing data from different routers
     _cancelThroughputTimer();
+    _cancelVitalsTimer();
     _passwallInstalled = null;
     _passwallConfig = null;
     _passwallError = null;
@@ -499,6 +506,8 @@ class AppState extends ChangeNotifier {
     _easytierPeers = const [];
     _easytierPeersError = null;
     _cancelThroughputTimer();
+    _dashboardVitalsPollingRequested = false;
+    _cancelVitalsTimer();
     // Re-sync routers from storage (loadRouters notifies listeners).
     await loadRouters();
   }
@@ -864,6 +873,10 @@ class AppState extends ChangeNotifier {
 
       // Ensure throughput timer is running
       _startThroughputTimer();
+      if (_dashboardVitalsPollingRequested) {
+        _startVitalsTimer();
+        unawaited(_updateVitalsOnly());
+      }
 
       // Schedule an immediate throughput update to get initial data faster
       Future.delayed(const Duration(milliseconds: 100), () {
@@ -1323,6 +1336,188 @@ class AppState extends ChangeNotifier {
     _throughputService?.clear();
   }
 
+  /// Enable lightweight vitals polling while the dashboard tab is visible.
+  void setDashboardVitalsPolling(bool enabled) {
+    if (_dashboardVitalsPollingRequested == enabled) return;
+    _dashboardVitalsPollingRequested = enabled;
+    if (enabled) {
+      _vitalsPollCount = 0;
+      _startVitalsTimer();
+      unawaited(_updateVitalsOnly());
+    } else {
+      _cancelVitalsTimer();
+    }
+  }
+
+  /// Pause vitals polling while the app is in the background.
+  void pauseDashboardVitalsPolling() {
+    _cancelVitalsTimer();
+  }
+
+  /// Resume vitals polling after foreground if the dashboard is still visible.
+  void resumeDashboardVitalsPolling() {
+    if (_dashboardVitalsPollingRequested && !_isRebooting) {
+      _startVitalsTimer();
+      unawaited(_updateVitalsOnly());
+    }
+  }
+
+  void _startVitalsTimer() {
+    _vitalsTimer?.cancel();
+    if (!_dashboardVitalsPollingRequested || _isRebooting) {
+      return;
+    }
+    _vitalsTimer = Timer.periodic(_vitalsPollInterval, (_) {
+      unawaited(_updateVitalsOnly());
+    });
+  }
+
+  void _cancelVitalsTimer() {
+    _vitalsTimer?.cancel();
+    _vitalsTimer = null;
+    _vitalsUpdateInFlight = false;
+  }
+
+  Future<dynamic> _callOptionalDashboardRpc({
+    required String ip,
+    required bool useHttps,
+    required String object,
+    required String method,
+    Map<String, dynamic>? params,
+  }) async {
+    try {
+      return await _apiService!.call(
+        ip,
+        _authService!.sysauth!,
+        useHttps,
+        object: object,
+        method: method,
+        params: params ?? const {},
+      );
+    } catch (e, stack) {
+      Logger.warning('Optional vitals RPC $object.$method failed: $e');
+      Logger.debug('Optional vitals RPC $object.$method stack: $stack');
+      return null;
+    }
+  }
+
+  dynamic _unwrapDashboardRpc(dynamic result) {
+    if (result is List && result.length > 1 && result[0] == 0) {
+      return result[1];
+    }
+    return null;
+  }
+
+  /// Refresh CPU, memory, temperature, conntrack, and occasionally online clients.
+  Future<void> _updateVitalsOnly() async {
+    if (_isRebooting || _vitalsUpdateInFlight) return;
+    if (_routerService?.selectedRouter == null ||
+        _authService?.sysauth == null ||
+        _dashboardData == null) {
+      return;
+    }
+
+    final ip = _authService!.ipAddress ?? _routerService!.selectedRouter!.ipAddress;
+    final useHttps = _authService!.ipAddress != null
+        ? _authService!.useHttps
+        : _routerService!.selectedRouter!.useHttps;
+
+    _vitalsUpdateInFlight = true;
+    try {
+      _vitalsPollCount++;
+      final fetchOnlineClients = _vitalsPollCount % _onlineClientsPollEvery == 0;
+
+      final futures = <Future<dynamic>>[
+        _callOptionalDashboardRpc(
+          ip: ip,
+          useHttps: useHttps,
+          object: 'system',
+          method: 'info',
+        ),
+        _callOptionalDashboardRpc(
+          ip: ip,
+          useHttps: useHttps,
+          object: 'luci',
+          method: 'getCPUUsage',
+        ),
+        _callOptionalDashboardRpc(
+          ip: ip,
+          useHttps: useHttps,
+          object: 'luci',
+          method: 'getTempInfo',
+        ),
+        _callOptionalDashboardRpc(
+          ip: ip,
+          useHttps: useHttps,
+          object: 'file',
+          method: 'read',
+          params: {
+            'path': '/proc/sys/net/netfilter/nf_conntrack_count',
+          },
+        ),
+      ];
+      if (fetchOnlineClients) {
+        futures.add(
+          _apiService!
+              .fetchAllAssociatedWirelessMacsWithContext(
+                ipAddress: ip,
+                sysauth: _authService!.sysauth!,
+                useHttps: useHttps,
+              )
+              .catchError((Object _, StackTrace __) => <String, String>{}),
+        );
+      }
+
+      final results = await Future.wait(futures);
+      final updates = <String, dynamic>{};
+
+      final sysInfo = _unwrapDashboardRpc(results[0]);
+      if (sysInfo is Map) {
+        updates['sysInfo'] = Map<String, dynamic>.from(sysInfo);
+      }
+
+      final cpuUsageParsed = _parseCpuUsage(
+        _unwrapDashboardRpc(results[1]),
+      );
+      if (cpuUsageParsed != null) {
+        updates['cpuUsage'] = cpuUsageParsed.percent;
+        updates['cpuUsageDetail'] = cpuUsageParsed.detail;
+      }
+
+      final temperature = _parseTemperature(_unwrapDashboardRpc(results[2]));
+      if (temperature != null) {
+        updates['temperature'] = temperature;
+        updates['temperatureShort'] = _formatTemperatureShort(temperature);
+      }
+
+      final conntrackCount = _parseProcInt(_unwrapDashboardRpc(results[3]));
+      if (conntrackCount != null) {
+        updates['conntrackCount'] = conntrackCount;
+      }
+
+      if (fetchOnlineClients && results.length > 4) {
+        final macToAccessPoint = results[4];
+        if (macToAccessPoint is Map<String, String>) {
+          updates['onlineClients'] =
+              _countWifiAssociatedClients(macToAccessPoint);
+        }
+      }
+
+      if (updates.isEmpty) return;
+
+      _dashboardData = {
+        ...?_dashboardData,
+        ...updates,
+        '_lastUpdated': DateTime.now().millisecondsSinceEpoch,
+      };
+      notifyListeners();
+    } catch (_) {
+      // Vitals polling is best-effort.
+    } finally {
+      _vitalsUpdateInFlight = false;
+    }
+  }
+
   Future<bool> reboot({BuildContext? context}) async {
     if (_authService?.sysauth == null || _authService?.ipAddress == null) {
       return false;
@@ -1330,6 +1525,7 @@ class AppState extends ChangeNotifier {
 
     // Cancel throughput timer before starting reboot to prevent "client closed" errors
     _cancelThroughputTimer();
+    _cancelVitalsTimer();
 
     _isRebooting = true;
     notifyListeners();
@@ -1601,6 +1797,7 @@ class AppState extends ChangeNotifier {
       }
       await fetchDashboardData();
       _startThroughputTimer();
+      resumeDashboardVitalsPolling();
     } catch (e, stack) {
       Logger.exception('Failed to reconnect session', e, stack);
     } finally {

@@ -31,6 +31,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = ref.read(appStateProvider);
+      appState.setDashboardVitalsPolling(true);
       // Splash / login may already have loaded dashboard — avoid a second spinner.
       if (appState.dashboardData == null) {
         appState.fetchDashboardData();
@@ -63,6 +64,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    ref.read(appStateProvider).setDashboardVitalsPolling(false);
+    _wirelessScrollController.removeListener(_updateWirelessArrows);
+    _wanScrollController.removeListener(_updateWanArrows);
+    _wirelessScrollController.dispose();
+    _wanScrollController.dispose();
+    super.dispose();
+  }
+
   void _updateWirelessArrows() {
     if (!_wirelessScrollController.hasClients) return;
     final max = _wirelessScrollController.position.maxScrollExtent;
@@ -83,15 +94,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       _showWanLeftArrow = offset > min + 2;
       _showWanRightArrow = offset < max - 2;
     });
-  }
-
-  @override
-  void dispose() {
-    _wirelessScrollController.removeListener(_updateWirelessArrows);
-    _wirelessScrollController.dispose();
-    _wanScrollController.removeListener(_updateWanArrows);
-    _wanScrollController.dispose();
-    super.dispose();
   }
 
   String _formatUptime(int seconds) {

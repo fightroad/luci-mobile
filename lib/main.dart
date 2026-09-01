@@ -47,6 +47,7 @@ class _LuCIAppState extends ConsumerState<LuCIApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       _wasInBackground = true;
+      ref.read(appStateProvider).pauseDashboardVitalsPolling();
     }
     if (state == AppLifecycleState.resumed && _wasInBackground) {
       _wasInBackground = false;
