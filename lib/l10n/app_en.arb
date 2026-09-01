@@ -876,7 +876,7 @@
   "@passwallProxyNode": {
     "description": "PassWall proxy node selector"
   },
-  "passwallSwitchMode": "Switch mode",
+  "passwallSwitchMode": "Proxy mode",
   "passwallModeGfwList": "GFW list",
   "passwallModeOutsideChina": "Outside China list",
   "passwallModeChinaList": "China list",

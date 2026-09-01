@@ -670,7 +670,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallProxyNode => 'Proxy node';
 
   @override
-  String get passwallSwitchMode => 'Switch mode';
+  String get passwallSwitchMode => 'Proxy mode';
 
   @override
   String get passwallModeGfwList => 'GFW list';

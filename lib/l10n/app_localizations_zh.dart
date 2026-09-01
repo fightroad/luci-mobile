@@ -654,7 +654,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallProxyNode => '代理节点';
 
   @override
-  String get passwallSwitchMode => '切换模式';
+  String get passwallSwitchMode => '代理模式';
 
   @override
   String get passwallModeGfwList => 'GFW 列表';

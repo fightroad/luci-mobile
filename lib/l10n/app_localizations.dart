@@ -1349,7 +1349,7 @@ abstract class AppLocalizations {
   /// No description provided for @passwallSwitchMode.
   ///
   /// In en, this message translates to:
-  /// **'Switch mode'**
+  /// **'Proxy mode'**
   String get passwallSwitchMode;
 
   /// No description provided for @passwallModeGfwList.

@@ -281,7 +281,7 @@
   "passwallEnabled": "启用 PassWall",
   "passwallEnabledSubtitle": "透明代理总开关",
   "passwallProxyNode": "代理节点",
-  "passwallSwitchMode": "切换模式",
+  "passwallSwitchMode": "代理模式",
   "passwallModeGfwList": "GFW 列表",
   "passwallModeOutsideChina": "中国列表以外",
   "passwallModeChinaList": "中国列表",

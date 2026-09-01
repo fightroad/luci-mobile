@@ -221,58 +221,6 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
     );
   }
 
-  Widget _buildProxyModeSwitcher(
-    PasswallConfig draft,
-    AppLocalizations l10n,
-    ColorScheme colorScheme,
-  ) {
-    final current = draft.proxyMode;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        LuciSpacing.md,
-        LuciSpacing.sm,
-        LuciSpacing.md,
-        LuciSpacing.md,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.passwallSwitchMode,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (current == null) ...[
-            const SizedBox(height: 4),
-            Text(
-              l10n.passwallSwitchModeCustom,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-          const SizedBox(height: LuciSpacing.sm),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: PasswallProxyMode.values.map((mode) {
-              final selected = current == mode;
-              return FilterChip(
-                label: Text(_proxyModeLabel(mode, l10n)),
-                selected: selected,
-                showCheckmark: false,
-                onSelected: _busy
-                    ? null
-                    : (_) => _updateDraft((c) => c.withProxyMode(mode)),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _nodeLabel(PasswallNode node, AppLocalizations l10n) {
     return node.label(
       shunt: l10n.passwallShunt,
@@ -560,7 +508,35 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                               ),
                             ),
                             const Divider(height: 1),
-                            _buildProxyModeSwitcher(draft, l10n, colorScheme),
+                            _SelectTile(
+                              title: l10n.passwallSwitchMode,
+                              valueLabel: draft.proxyMode != null
+                                  ? _proxyModeLabel(draft.proxyMode!, l10n)
+                                  : l10n.passwallSwitchModeCustom,
+                              enabled: !_busy,
+                              onTap: () => _pickOption(
+                                title: l10n.passwallSwitchMode,
+                                currentValue: draft.proxyMode?.name ?? '',
+                                options: PasswallProxyMode.values
+                                    .map(
+                                      (mode) => _SheetOption(
+                                        mode.name,
+                                        _proxyModeLabel(mode, l10n),
+                                      ),
+                                    )
+                                    .toList(),
+                                onSelected: (value) {
+                                  for (final mode in PasswallProxyMode.values) {
+                                    if (mode.name == value) {
+                                      _updateDraft(
+                                        (c) => c.withProxyMode(mode),
+                                      );
+                                      return;
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
                             const Divider(height: 1),
                             ListTile(
                               title: Text(l10n.passwallTestConnect),
