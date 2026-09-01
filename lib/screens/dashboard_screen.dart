@@ -8,6 +8,7 @@ import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/widgets/luci_animation_system.dart';
 import 'package:luci_mobile/widgets/luci_refresh_components.dart';
 import 'package:luci_mobile/models/router.dart' as model;
+import 'package:luci_mobile/utils/uci_value.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -1369,10 +1370,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           for (var interface in interfaces) {
             final config = interface['config'] ?? {};
             final iwinfo = interface['iwinfo'] ?? {};
-            final ssid = iwinfo['ssid'] ?? config['ssid'] ?? 'N/A';
-            if (ssid == 'N/A') continue;
+            final ssid = resolveWirelessSsid(iwinfo, config);
+            if (ssid.isEmpty) continue;
 
-            final deviceName = config['device'] ?? radioName;
+            final deviceName = uciString(config['device'], radioName);
+            final ifname = uciString(interface['ifname']);
+            final section = uciString(interface['section']);
+            final scrollTarget = wirelessInterfaceScrollTarget(
+              ssid: ssid,
+              radioName: radioName,
+              ifname: ifname.isEmpty ? null : ifname,
+              section: section.isEmpty ? null : section,
+            );
             final interfaceId = '$ssid ($deviceName)';
             final uciName = interface['section'] as String?;
 
@@ -1403,9 +1412,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onLongPress: () {
-                    // Navigate to interfaces tab with the specific interface name
                     final appState = ref.read(appStateProvider);
-                    appState.requestTab(2, interfaceToScroll: deviceName);
+                    appState.requestTab(2, interfaceToScroll: scrollTarget);
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -1445,8 +1453,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         // Add interfaces that aren't in runtime data
         uciInterfaces.forEach((uciName, config) {
           if (!addedInterfaces.contains(uciName)) {
-            final ssid = config['ssid'] ?? 'Unnamed';
-            final device = config['device'] ?? '';
+            final ssid = uciString(config['ssid'], 'Unnamed');
+            final device = uciString(config['device']);
+            final scrollTarget = wirelessInterfaceScrollTarget(
+              ssid: ssid,
+              radioName: device,
+              section: uciName,
+            );
             final interfaceId = '$ssid ($device)';
 
             // Check if this interface should be shown based on preferences
@@ -1470,9 +1483,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
                   onLongPress: () {
-                    // Navigate to interfaces tab with the specific interface name
                     final appState = ref.read(appStateProvider);
-                    appState.requestTab(2, interfaceToScroll: device);
+                    appState.requestTab(2, interfaceToScroll: scrollTarget);
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),

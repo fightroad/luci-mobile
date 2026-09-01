@@ -96,16 +96,15 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return const Scaffold(body: SizedBox.shrink());
     }
 
-    if (appState.requestedTab != null &&
-        appState.requestedTab != _selectedIndex) {
-      // Store the values before the callback to avoid null reference issues
+    if (appState.requestedTab != null) {
       final requestedTab = appState.requestedTab!;
       final requestedInterface = appState.requestedInterfaceToScroll;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         setState(() {
-          _selectedIndex = requestedTab;
-          // Update interface to scroll if provided
+          if (requestedTab != _selectedIndex) {
+            _selectedIndex = requestedTab;
+          }
           if (requestedInterface != null) {
             _currentInterfaceToScroll = requestedInterface;
           }

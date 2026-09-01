@@ -10,6 +10,7 @@ import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/design/luci_design_system.dart';
 import 'package:luci_mobile/widgets/luci_loading_states.dart';
 import 'package:luci_mobile/widgets/luci_refresh_components.dart';
+import 'package:luci_mobile/utils/uci_value.dart';
 
 class InterfacesScreen extends ConsumerStatefulWidget {
   final String? scrollToInterface;
@@ -31,16 +32,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   String? _expandedInterface;
   final Map<String, GlobalKey> _interfaceKeys = {};
 
-  /// Safely extract a String from a UCI config value that may be a List or String.
-  static String _uciString(dynamic value, [String fallback = '']) {
-    if (value is String) return value;
-    if (value is List) {
-      return value.isNotEmpty ? value.first.toString() : fallback;
-    }
-    return value?.toString() ?? fallback;
-  }
-
-  // Unified key generator for all interfaces
+  // Unified key generator for wired interfaces
   String _interfaceKey({String? name, String? ssid, String? deviceName}) {
     if (ssid != null && ssid.trim().isNotEmpty) {
       return ssid.trim(); // SSID is case sensitive
@@ -50,40 +42,6 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
       return name.trim().toLowerCase();
     }
     return '';
-  }
-
-  // Unified key generator and matcher for all interfaces
-  String _normalizeInterfaceKey(String? value) {
-    return (value ?? '').trim().toLowerCase();
-  }
-
-  String _interfaceKeyForWireless({
-    String? ssid,
-    String? radioName,
-    String? deviceName,
-    String? name,
-  }) {
-    final radio = (radioName ?? '').trim();
-    final ssidTrimmed = (ssid ?? '').trim();
-
-    // If SSID is empty, we need to ensure uniqueness even with same radio
-    if (ssidTrimmed.isEmpty) {
-      // Use device name as fallback for uniqueness
-      final device = (deviceName ?? '').trim();
-      if (device.isNotEmpty && device != radio) {
-        return '${ssidTrimmed.toLowerCase()}__${device.toLowerCase()}';
-      }
-      // Use interface name as fallback
-      final interfaceName = (name ?? '').trim();
-      if (interfaceName.isNotEmpty && interfaceName != radio) {
-        return '${ssidTrimmed.toLowerCase()}__${interfaceName.toLowerCase()}';
-      }
-      // If all names are the same, add a unique suffix
-      return '${ssidTrimmed.toLowerCase()}__${radio.toLowerCase()}_${DateTime.now().millisecondsSinceEpoch}';
-    }
-
-    // If SSID is not empty, use SSID + radio
-    return '${ssidTrimmed.toLowerCase()}__${radio.toLowerCase()}';
   }
 
   @override
@@ -157,39 +115,73 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
           final wirelessData =
               dashboardData['wireless'] as Map<String, dynamic>?;
           if (wirelessData != null) {
-            final normalizedTarget = _normalizeInterfaceKey(interfaceName);
-            wirelessData.forEach((radioName, radioData) {
+            for (final entry in wirelessData.entries) {
+              final radioName = entry.key;
+              final radioData = entry.value;
+              if (radioData is! Map) continue;
               final interfaces = radioData['interfaces'] as List<dynamic>?;
-              if (interfaces != null) {
-                for (var i = 0; i < interfaces.length; i++) {
-                  final interface = interfaces[i];
-                  final config = interface['config'] ?? {};
-                  final iwinfo = interface['iwinfo'] ?? {};
-                  final deviceName = _uciString(config['device'], radioName);
-                  final ssid = _uciString(iwinfo['ssid']).isNotEmpty
-                      ? _uciString(iwinfo['ssid'])
-                      : _uciString(config['ssid']);
-                  final name = interface['name'] ?? '';
-                  final keyStr = _interfaceKeyForWireless(
-                    ssid: ssid,
-                    radioName: radioName,
-                    deviceName: deviceName,
-                    name: name,
-                  );
-                  // Generate all possible normalized keys for matching
-                  final ssidKey = _normalizeInterfaceKey(ssid);
-                  final deviceKey = _normalizeInterfaceKey(deviceName);
-                  final nameKey = _normalizeInterfaceKey(name);
-                  // Match against all possible keys
-                  if (normalizedTarget == ssidKey ||
-                      normalizedTarget == deviceKey ||
-                      normalizedTarget == nameKey) {
-                    _scrollToExpandedCard(keyStr);
-                    return;
-                  }
+              if (interfaces == null) continue;
+
+              for (final interface in interfaces) {
+                if (interface is! Map) continue;
+                final config = interface['config'] ?? {};
+                final iwinfo = interface['iwinfo'] ?? {};
+                final deviceName = uciString(config['device'], radioName);
+                final ssid = resolveWirelessSsid(iwinfo, config);
+                final name = uciString(interface['name']);
+                final ifname = uciString(interface['ifname']);
+                final section = uciString(interface['section']);
+                final keyStr = wirelessInterfaceKey(
+                  ssid: ssid,
+                  radioName: radioName,
+                  deviceName: deviceName,
+                  name: ifname.isNotEmpty ? ifname : name,
+                );
+                if (wirelessInterfaceMatchesTarget(
+                  target: interfaceName,
+                  keyStr: keyStr,
+                  ssid: ssid,
+                  deviceName: deviceName,
+                  name: name,
+                  ifname: ifname,
+                  section: section,
+                )) {
+                  _scrollToExpandedCard(keyStr);
+                  return;
                 }
               }
-            });
+            }
+          }
+
+          final uciWirelessConfig = dashboardData['uciWirelessConfig'];
+          final uciValues = uciWirelessConfig is Map
+              ? uciWirelessConfig['values'] as Map?
+              : null;
+          if (uciValues != null) {
+            for (final entry in uciValues.entries) {
+              final config = entry.value;
+              if (config is! Map || config['.type'] != 'wifi-iface') continue;
+              final radioName = uciString(config['device']);
+              final ssid = uciString(config['ssid']);
+              final section = entry.key.toString();
+              final keyStr = wirelessInterfaceKey(
+                ssid: ssid,
+                radioName: radioName,
+                deviceName: radioName,
+              );
+              if (wirelessInterfaceMatchesTarget(
+                target: interfaceName,
+                keyStr: keyStr,
+                ssid: ssid,
+                deviceName: radioName,
+                name: '',
+                ifname: '',
+                section: section,
+              )) {
+                _scrollToExpandedCard(keyStr);
+                return;
+              }
+            }
           }
         }
 
@@ -491,13 +483,12 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
             final isIfaceEnabled = config['disabled'] != '1';
             final isEnabled = isRadioEnabled && isIfaceEnabled;
 
-            final name = iface['name'] ?? '';
-            final ssid = _uciString(iwinfo['ssid']).isNotEmpty
-                ? _uciString(iwinfo['ssid'])
-                : _uciString(config['ssid']);
-            final deviceName = _uciString(config['device'], radioName);
-            final mode = _uciString(config['mode']).toUpperCase().isNotEmpty
-                ? _uciString(config['mode']).toUpperCase()
+            final name = uciString(iface['name']);
+            final ifname = uciString(iface['ifname']);
+            final ssid = resolveWirelessSsid(iwinfo, config);
+            final deviceName = uciString(config['device'], radioName);
+            final mode = uciString(config['mode']).toUpperCase().isNotEmpty
+                ? uciString(config['mode']).toUpperCase()
                 : (iwinfo['mode']?.toString().toUpperCase() ?? 'N/A');
             final uciIface =
                 uciName != null ? uciInterfaces[uciName] : null;
@@ -505,7 +496,6 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
               iwinfo['encryption'],
               config['encryption'] ?? uciIface?['encryption'],
             );
-            final ifname = iface['ifname']?.toString();
             final assocHint = _associationCountHint(iwinfo, iface);
             final rawPassword = _wifiPasswordFromConfig(config, uciIface);
             final wifiPassword = _shouldShowWifiPassword(
@@ -515,32 +505,33 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
                 ? rawPassword
                 : null;
             interfacesList.add({
-              'name': _uciString(config['ssid']).isNotEmpty
-                  ? _uciString(config['ssid'])
+              'name': uciString(config['ssid']).isNotEmpty
+                  ? uciString(config['ssid'])
                   : (iwinfo['ssid']?.toString() ?? l10n.unnamed),
               'subtitle':
-                  '$mode • ${l10n.channelShort} ${iwinfo['channel']?.toString() ?? _uciString(config['channel'], 'N/A')}',
+                  '$mode • ${l10n.channelShort} ${iwinfo['channel']?.toString() ?? uciString(config['channel'], 'N/A')}',
               'isEnabled': isEnabled,
               'deviceName': deviceName,
               'radioName': radioName,
               'ssid': ssid,
               'interfaceName': name,
               'ifname': ifname,
+              'section': uciName ?? '',
               'assocHint': assocHint,
               'wifiPassword': wifiPassword,
               'details': {
-                'Device': _uciString(config['device'], radioName),
-                'Mode': _uciString(config['mode']).isNotEmpty
-                    ? _uciString(config['mode'])
+                'Device': uciString(config['device'], radioName),
+                'Mode': uciString(config['mode']).isNotEmpty
+                    ? uciString(config['mode'])
                     : (iwinfo['mode']?.toString() ?? 'N/A'),
                 'Channel':
                     iwinfo['channel']?.toString() ??
-                    _uciString(config['channel'], 'N/A'),
+                    uciString(config['channel'], 'N/A'),
                 'Encryption': encryption,
                 'Signal': '${iwinfo['signal']?.toString() ?? '--'} dBm',
                 'Network': (config['network'] is List)
                     ? (config['network'] as List).join(', ')
-                    : _uciString(config['network'], 'N/A'),
+                    : uciString(config['network'], 'N/A'),
               },
             });
           }
@@ -550,12 +541,12 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
 
     uciInterfaces.forEach((uciName, config) {
       if (!runtimeInterfaces.contains(uciName)) {
-        final radioName = _uciString(config['device']);
+        final radioName = uciString(config['device']);
         final isRadioEnabled = uciRadios[radioName]?['disabled'] != '1';
-        final isIfaceEnabled = _uciString(config['disabled']) != '1';
+        final isIfaceEnabled = uciString(config['disabled']) != '1';
         final isEnabled = isRadioEnabled && isIfaceEnabled;
 
-        final name = _uciString(config['ssid'], l10n.unnamed);
+        final name = uciString(config['ssid'], l10n.unnamed);
         final rawPassword = _wifiPasswordFromConfig(config, null);
         final wifiPassword = _shouldShowWifiPassword(null, config['encryption'])
             ? rawPassword
@@ -563,24 +554,26 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         interfacesList.add({
           'name': name,
           'subtitle':
-              '${_uciString(config['mode'], 'N/A').toUpperCase()} • ${l10n.disabled}',
+              '${uciString(config['mode'], 'N/A').toUpperCase()} • ${l10n.disabled}',
           'isEnabled': isEnabled,
           'deviceName': radioName,
           'radioName': radioName,
           'ssid': name,
           'interfaceName': name,
+          'ifname': '',
+          'section': uciName,
           'wifiPassword': wifiPassword,
           'details': {
             'Device': radioName,
-            'Mode': _uciString(config['mode'], 'N/A'),
-            'SSID': _uciString(config['ssid'], 'N/A'),
+            'Mode': uciString(config['mode'], 'N/A'),
+            'SSID': uciString(config['ssid'], 'N/A'),
             'Encryption': _formatWifiEncryption(
               null,
               config['encryption'],
             ),
             'Network': (config['network'] is List)
                 ? (config['network'] as List).join(', ')
-                : _uciString(config['network'], 'N/A'),
+                : uciString(config['network'], 'N/A'),
           },
         });
       }
@@ -597,12 +590,13 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         final radioName = iface['radioName'] ?? '';
         final ssid = iface['ssid'] ?? '';
         final name = iface['interfaceName'] ?? '';
-        // Use the stored values for key generation
-        final keyStr = _interfaceKeyForWireless(
-          ssid: ssid,
-          radioName: radioName,
-          deviceName: deviceName,
-          name: name,
+        final ifname = iface['ifname'] ?? '';
+        final section = iface['section'] ?? '';
+        final keyStr = wirelessInterfaceKey(
+          ssid: ssid.toString(),
+          radioName: radioName.toString(),
+          deviceName: deviceName.toString(),
+          name: ifname.toString().isNotEmpty ? ifname.toString() : name.toString(),
         );
         final key = _interfaceKeys.putIfAbsent(keyStr, () => GlobalKey());
         final displayName = ssid.toString().isNotEmpty
@@ -612,12 +606,15 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
         // Check if this is the target interface for expansion
         final isTargetInterface =
             _targetInterface != null &&
-            (_normalizeInterfaceKey(ssid) ==
-                    _normalizeInterfaceKey(_targetInterface!) ||
-                _normalizeInterfaceKey(deviceName) ==
-                    _normalizeInterfaceKey(_targetInterface!) ||
-                _normalizeInterfaceKey(name) ==
-                    _normalizeInterfaceKey(_targetInterface!));
+            wirelessInterfaceMatchesTarget(
+              target: _targetInterface!,
+              keyStr: keyStr,
+              ssid: ssid.toString(),
+              deviceName: deviceName.toString(),
+              name: name.toString(),
+              ifname: ifname.toString(),
+              section: section.toString(),
+            );
 
         final shouldExpand = isTargetInterface || _expandedInterface == keyStr;
         return Padding(
@@ -1036,7 +1033,7 @@ class _InterfacesScreenState extends ConsumerState<InterfacesScreen> {
   static String? _wifiPasswordFromConfig(Map? config, Map? uciConfig) {
     for (final source in [uciConfig, config]) {
       if (source == null) continue;
-      final key = _uciString(source['key']);
+      final key = uciString(source['key']);
       if (key.isEmpty || key == '********' || key == '*') continue;
       // WEP sometimes stores slot index 1–4 here; skip rather than show "1".
       if (RegExp(r'^[1-4]$').hasMatch(key)) continue;
