@@ -769,17 +769,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     // LuCI Total Available / 「可用数」: prefer MemAvailable, else free+buffered.
     final availableMem = _asInt(sysInfo?['memory']?['available']) ??
         (totalMem > 0 ? freeMem + bufferedMem : null);
-    // LuCI Used / 「已使用」 (20_memory.js): total - free.
-    final usedMem =
-        totalMem > 0 ? (totalMem - freeMem).clamp(0, totalMem) : 0;
-    // LuCI progressbar: Math.floor((100 / total) * value)
+    // Occupied for display: total - available (not LuCI's total - free).
+    final occupiedMem = availableMem != null && totalMem > 0
+        ? (totalMem - availableMem).clamp(0, totalMem)
+        : (totalMem > 0 ? (totalMem - freeMem).clamp(0, totalMem) : 0);
     final memoryValue = totalMem > 0
-        ? '${((100 * usedMem) / totalMem).floor()}%'
+        ? '${((100 * occupiedMem) / totalMem).floor()}%'
         : 'N/A';
     final memoryDetail = totalMem > 0
         ? _formatMemoryDetail(
             l10n: l10n,
-            used: usedMem,
+            used: occupiedMem,
             total: totalMem,
             buffered: bufferedMem,
             cached: cachedMem,
@@ -1251,7 +1251,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       return '${_formatMemoryBytes(value)} / ${_formatMemoryBytes(total)} ($pct%)';
     }
 
-    // Match LuCI 20_memory.js rows: Available, Used, Buffered?, Cached?
+    // Available first, then occupied (total - available) for the main used row.
     return [
       if (available != null) '${l10n.memoryAvailable}: ${bar(available)}',
       '${l10n.memory}: ${bar(used)}',

@@ -1103,6 +1103,8 @@ class AppState extends ChangeNotifier {
   }
 
   /// Prefer vendor realtime CPU% (luci.getCPUUsage); null → UI falls back to loadavg.
+  ///
+  /// Priority: `CPU: N%` → `USR% + SYS%` → first `N%` in the string.
   ({String percent, String? detail})? _parseCpuUsage(dynamic data) {
     if (data == null) return null;
 
@@ -1114,10 +1116,32 @@ class AppState extends ChangeNotifier {
     }
     if (raw == null || raw.isEmpty) return null;
 
+    String formatPercent(double value) {
+      final rounded = value.roundToDouble();
+      final text = rounded == value
+          ? value.toInt().toString()
+          : value.toStringAsFixed(1);
+      return '$text%';
+    }
+
     final cpuMatch = RegExp(r'CPU:\s*(\d+(?:\.\d+)?)\s*%', caseSensitive: false)
         .firstMatch(raw);
     if (cpuMatch != null) {
       return (percent: '${cpuMatch.group(1)}%', detail: raw);
+    }
+
+    final usrMatch = RegExp(
+      r'USR:\s*(\d+(?:\.\d+)?)\s*%',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    final sysMatch = RegExp(
+      r'SYS:\s*(\d+(?:\.\d+)?)\s*%',
+      caseSensitive: false,
+    ).firstMatch(raw);
+    if (usrMatch != null && sysMatch != null) {
+      final sum = double.parse(usrMatch.group(1)!) +
+          double.parse(sysMatch.group(1)!);
+      return (percent: formatPercent(sum), detail: raw);
     }
 
     final percentMatch = RegExp(r'(\d+(?:\.\d+)?)\s*%').firstMatch(raw);
