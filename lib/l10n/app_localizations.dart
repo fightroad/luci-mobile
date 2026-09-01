@@ -1346,6 +1346,42 @@ abstract class AppLocalizations {
   /// **'Proxy node'**
   String get passwallProxyNode;
 
+  /// No description provided for @passwallSwitchMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch mode'**
+  String get passwallSwitchMode;
+
+  /// No description provided for @passwallModeGfwList.
+  ///
+  /// In en, this message translates to:
+  /// **'GFW list'**
+  String get passwallModeGfwList;
+
+  /// No description provided for @passwallModeOutsideChina.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside China list'**
+  String get passwallModeOutsideChina;
+
+  /// No description provided for @passwallModeChinaList.
+  ///
+  /// In en, this message translates to:
+  /// **'China list'**
+  String get passwallModeChinaList;
+
+  /// No description provided for @passwallModeGlobal.
+  ///
+  /// In en, this message translates to:
+  /// **'Global proxy'**
+  String get passwallModeGlobal;
+
+  /// No description provided for @passwallSwitchModeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom mode (not a LuCI preset)'**
+  String get passwallSwitchModeCustom;
+
   /// No description provided for @passwallNodeClose.
   ///
   /// In en, this message translates to:

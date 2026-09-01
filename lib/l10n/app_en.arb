@@ -876,6 +876,12 @@
   "@passwallProxyNode": {
     "description": "PassWall proxy node selector"
   },
+  "passwallSwitchMode": "Switch mode",
+  "passwallModeGfwList": "GFW list",
+  "passwallModeOutsideChina": "Outside China list",
+  "passwallModeChinaList": "China list",
+  "passwallModeGlobal": "Global proxy",
+  "passwallSwitchModeCustom": "Custom mode (not a LuCI preset)",
   "passwallNodeClose": "Close",
   "passwallSaved": "PassWall settings applied",
   "passwallSaveFailed": "Failed to apply PassWall settings",

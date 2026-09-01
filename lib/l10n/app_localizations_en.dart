@@ -670,6 +670,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallProxyNode => 'Proxy node';
 
   @override
+  String get passwallSwitchMode => 'Switch mode';
+
+  @override
+  String get passwallModeGfwList => 'GFW list';
+
+  @override
+  String get passwallModeOutsideChina => 'Outside China list';
+
+  @override
+  String get passwallModeChinaList => 'China list';
+
+  @override
+  String get passwallModeGlobal => 'Global proxy';
+
+  @override
+  String get passwallSwitchModeCustom => 'Custom mode (not a LuCI preset)';
+
+  @override
   String get passwallNodeClose => 'Close';
 
   @override

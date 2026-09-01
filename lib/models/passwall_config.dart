@@ -81,6 +81,102 @@ class PasswallSubscribe {
   bool get hasUrl => url.trim().isNotEmpty;
 }
 
+/// Preset transparent-proxy modes from LuCI `global/proxy.htm`.
+enum PasswallProxyMode {
+  gfwList,
+  outsideChina,
+  chinaList,
+  global;
+
+  Map<String, String> toGlobalUci() {
+    switch (this) {
+      case PasswallProxyMode.gfwList:
+        return const {
+          'use_gfw_list': '1',
+          'chn_list': '0',
+          'tcp_proxy_mode': 'disable',
+          'udp_proxy_mode': 'disable',
+        };
+      case PasswallProxyMode.outsideChina:
+        return const {
+          'use_gfw_list': '0',
+          'chn_list': 'proxy',
+          'tcp_proxy_mode': 'disable',
+          'udp_proxy_mode': 'disable',
+        };
+      case PasswallProxyMode.chinaList:
+        return const {
+          'use_gfw_list': '1',
+          'chn_list': 'direct',
+          'tcp_proxy_mode': 'proxy',
+          'udp_proxy_mode': 'proxy',
+        };
+      case PasswallProxyMode.global:
+        return const {
+          'use_gfw_list': '0',
+          'chn_list': '0',
+          'tcp_proxy_mode': 'proxy',
+          'udp_proxy_mode': 'proxy',
+        };
+    }
+  }
+
+  static PasswallProxyMode? fromGlobalUci({
+    required bool useGfwList,
+    required String chnList,
+    required String tcpProxyMode,
+    required String udpProxyMode,
+  }) {
+    final tcp = tcpProxyMode == 'disable' ? 'disable' : 'proxy';
+    final udp = udpProxyMode == 'disable' ? 'disable' : 'proxy';
+    if (useGfwList &&
+        chnList == '0' &&
+        tcp == 'disable' &&
+        udp == 'disable') {
+      return PasswallProxyMode.gfwList;
+    }
+    if (!useGfwList &&
+        chnList == 'proxy' &&
+        tcp == 'disable' &&
+        udp == 'disable') {
+      return PasswallProxyMode.outsideChina;
+    }
+    if (useGfwList &&
+        chnList == 'direct' &&
+        tcp == 'proxy' &&
+        udp == 'proxy') {
+      return PasswallProxyMode.chinaList;
+    }
+    if (!useGfwList &&
+        chnList == '0' &&
+        tcp == 'proxy' &&
+        udp == 'proxy') {
+      return PasswallProxyMode.global;
+    }
+    return null;
+  }
+}
+
+extension PasswallProxyModeLabels on PasswallProxyMode {
+  String label({
+    String gfwList = 'GFW list',
+    String outsideChina = 'Outside China list',
+    String chinaList = 'China list',
+    String global = 'Global proxy',
+  }) {
+    switch (this) {
+      case PasswallProxyMode.gfwList:
+        return gfwList;
+      case PasswallProxyMode.outsideChina:
+        return outsideChina;
+      case PasswallProxyMode.chinaList:
+        return chinaList;
+      case PasswallProxyMode.global:
+        return global;
+    }
+  }
+}
+
 /// Enabled Socks listener usable as a shunt rule target (`Socks_<section>`).
 class PasswallSocksTarget {
   final String id;
@@ -102,6 +198,10 @@ class PasswallConfig {
   final bool enabled;
   /// Selected proxy node id (`node` in global UCI section).
   final String node;
+  final bool useGfwList;
+  final String chnList;
+  final String tcpProxyMode;
+  final String udpProxyMode;
   final List<PasswallNode> nodes;
   final List<PasswallShuntRule> allShuntRules;
   final List<PasswallSubscribe> subscriptions;
@@ -111,6 +211,10 @@ class PasswallConfig {
     required this.globalSection,
     required this.enabled,
     required this.node,
+    required this.useGfwList,
+    required this.chnList,
+    required this.tcpProxyMode,
+    required this.udpProxyMode,
     required this.nodes,
     required this.allShuntRules,
     this.subscriptions = const [],
@@ -131,6 +235,37 @@ class PasswallConfig {
   PasswallNode? get selectedNodeInfo => nodeById(node);
 
   bool get isShunt => selectedNodeInfo?.isShunt == true;
+
+  PasswallProxyMode? get proxyMode => PasswallProxyMode.fromGlobalUci(
+    useGfwList: useGfwList,
+    chnList: chnList,
+    tcpProxyMode: tcpProxyMode,
+    udpProxyMode: udpProxyMode,
+  );
+
+  bool proxyModeFieldsMatch(PasswallConfig other) {
+    return useGfwList == other.useGfwList &&
+        chnList == other.chnList &&
+        tcpProxyMode == other.tcpProxyMode &&
+        udpProxyMode == other.udpProxyMode;
+  }
+
+  Map<String, String> proxyModeGlobalUci() => {
+    'use_gfw_list': useGfwList ? '1' : '0',
+    'chn_list': chnList,
+    'tcp_proxy_mode': tcpProxyMode,
+    'udp_proxy_mode': udpProxyMode,
+  };
+
+  PasswallConfig withProxyMode(PasswallProxyMode mode) {
+    final values = mode.toGlobalUci();
+    return copyWith(
+      useGfwList: values['use_gfw_list'] == '1',
+      chnList: values['chn_list']!,
+      tcpProxyMode: values['tcp_proxy_mode']!,
+      udpProxyMode: values['udp_proxy_mode']!,
+    );
+  }
 
   /// Nodes selectable as shunt rule targets (excludes other shunt nodes).
   List<PasswallNode> get shuntTargetNodes =>
@@ -207,6 +342,11 @@ class PasswallConfig {
     return s == '1' || s.toLowerCase() == 'true';
   }
 
+  static String _proxyModeValue(dynamic value) {
+    final s = _str(value, 'proxy');
+    return s == 'disable' ? 'disable' : 'proxy';
+  }
+
   /// Parses LuCI `uci.get` payload for config `passwall`.
   factory PasswallConfig.fromUciValues(Map values) {
     String? globalId;
@@ -278,6 +418,10 @@ class PasswallConfig {
       globalSection: globalId ?? '@global[0]',
       enabled: _flag(g['enabled']),
       node: _str(g['node']),
+      useGfwList: _flag(g['use_gfw_list'], defaultValue: true),
+      chnList: _str(g['chn_list'], 'direct'),
+      tcpProxyMode: _proxyModeValue(g['tcp_proxy_mode']),
+      udpProxyMode: _proxyModeValue(g['udp_proxy_mode']),
       nodes: nodes,
       allShuntRules: allShuntRules,
       subscriptions: subscriptions,
@@ -288,12 +432,20 @@ class PasswallConfig {
   PasswallConfig copyWith({
     bool? enabled,
     String? node,
+    bool? useGfwList,
+    String? chnList,
+    String? tcpProxyMode,
+    String? udpProxyMode,
     List<PasswallNode>? nodes,
   }) {
     return PasswallConfig(
       globalSection: globalSection,
       enabled: enabled ?? this.enabled,
       node: node ?? this.node,
+      useGfwList: useGfwList ?? this.useGfwList,
+      chnList: chnList ?? this.chnList,
+      tcpProxyMode: tcpProxyMode ?? this.tcpProxyMode,
+      udpProxyMode: udpProxyMode ?? this.udpProxyMode,
       nodes: nodes ?? this.nodes,
       allShuntRules: allShuntRules,
       subscriptions: subscriptions,
