@@ -84,5 +84,6 @@ opkg install luci-mod-rpc rpcd-mod-luci rpcd-mod-iwinfo luci-mod-status
 ## 许可与致谢
 
 - 许可：[GPL-3.0](LICENSE)
-- 上游与社区：OpenWrt / LuCI、Flutter
+- 上游项目：[cogwheel0/luci-mobile](https://github.com/cogwheel0/luci-mobile)
+- 社区：OpenWrt / LuCI、Flutter
 - 灵感：[OpenWrtManager](https://github.com/hagaygo/OpenWrtManager)
