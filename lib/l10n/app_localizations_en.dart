@@ -685,6 +685,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passwallMain => 'Main';
 
   @override
+  String get passwallStatus => 'Status';
+
+  @override
+  String get passwallStatusTcp => 'TCP';
+
+  @override
+  String get passwallStatusUdp => 'UDP';
+
+  @override
+  String get passwallStatusDns => 'DNS';
+
+  @override
+  String get passwallStatusRunning => 'Running';
+
+  @override
+  String get passwallStatusNotRunning => 'Not running';
+
+  @override
+  String get passwallStatusUnknown => 'Unknown';
+
+  @override
   String get passwallEnabled => 'Enable PassWall';
 
   @override

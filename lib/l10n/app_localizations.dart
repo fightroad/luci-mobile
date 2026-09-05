@@ -1370,6 +1370,48 @@ abstract class AppLocalizations {
   /// **'Main'**
   String get passwallMain;
 
+  /// No description provided for @passwallStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get passwallStatus;
+
+  /// No description provided for @passwallStatusTcp.
+  ///
+  /// In en, this message translates to:
+  /// **'TCP'**
+  String get passwallStatusTcp;
+
+  /// No description provided for @passwallStatusUdp.
+  ///
+  /// In en, this message translates to:
+  /// **'UDP'**
+  String get passwallStatusUdp;
+
+  /// No description provided for @passwallStatusDns.
+  ///
+  /// In en, this message translates to:
+  /// **'DNS'**
+  String get passwallStatusDns;
+
+  /// No description provided for @passwallStatusRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get passwallStatusRunning;
+
+  /// No description provided for @passwallStatusNotRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Not running'**
+  String get passwallStatusNotRunning;
+
+  /// No description provided for @passwallStatusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get passwallStatusUnknown;
+
   /// No description provided for @passwallEnabled.
   ///
   /// In en, this message translates to:

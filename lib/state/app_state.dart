@@ -14,6 +14,7 @@ import 'package:luci_mobile/models/dashboard_preferences.dart';
 import 'package:luci_mobile/models/easytier_peer.dart';
 import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/models/passwall_status.dart';
 import 'package:luci_mobile/models/zerotier_config.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
@@ -61,6 +62,8 @@ class AppState extends ChangeNotifier {
   bool? get passwallInstalled => _passwallInstalled;
   PasswallConfig? _passwallConfig;
   PasswallConfig? get passwallConfig => _passwallConfig;
+  PasswallIndexStatus? _passwallIndexStatus;
+  PasswallIndexStatus? get passwallIndexStatus => _passwallIndexStatus;
   bool _isPasswallLoading = false;
   bool get isPasswallLoading => _isPasswallLoading;
   String? _passwallError;
@@ -363,6 +366,7 @@ class AppState extends ChangeNotifier {
     _cancelVitalsTimer();
     _passwallInstalled = null;
     _passwallConfig = null;
+    _passwallIndexStatus = null;
     _passwallError = null;
     _isPasswallLoading = false;
     _easytierInstalled = null;
@@ -518,6 +522,7 @@ class AppState extends ChangeNotifier {
     _dashboardError = null;
     _passwallInstalled = null;
     _passwallConfig = null;
+    _passwallIndexStatus = null;
     _passwallError = null;
     _isPasswallLoading = false;
     _easytierInstalled = null;
@@ -2083,6 +2088,7 @@ class AppState extends ChangeNotifier {
     if (_authService?.sysauth == null || _authService?.ipAddress == null) {
       _passwallInstalled = false;
       _passwallConfig = null;
+      _passwallIndexStatus = null;
       notifyListeners();
       return false;
     }
@@ -2108,6 +2114,7 @@ class AppState extends ChangeNotifier {
       _passwallInstalled = installed;
       if (!installed) {
         _passwallConfig = null;
+        _passwallIndexStatus = null;
       }
       notifyListeners();
       return installed;
@@ -2143,6 +2150,7 @@ class AppState extends ChangeNotifier {
       if (values is! Map || values.isEmpty) {
         _passwallInstalled = false;
         _passwallConfig = null;
+        _passwallIndexStatus = null;
         _passwallError = 'Passwall config not found';
         return null;
       }
@@ -2150,6 +2158,9 @@ class AppState extends ChangeNotifier {
       final config = PasswallConfig.fromUciValues(values);
       _passwallInstalled = true;
       _passwallConfig = config;
+      _passwallIndexStatus = await _fetchPasswallIndexStatus(
+        context: context?.mounted == true ? context : null,
+      );
       return config;
     } catch (e, stack) {
       // Keep prior installed flag so a blip does not remove the More entry.
@@ -2159,6 +2170,25 @@ class AppState extends ChangeNotifier {
     } finally {
       _isPasswallLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<PasswallIndexStatus?> _fetchPasswallIndexStatus({
+    BuildContext? context,
+  }) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+    try {
+      return await _apiService!.fetchPasswallIndexStatus(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context,
+      );
+    } catch (e) {
+      Logger.debug('Passwall index_status failed: $e');
+      return null;
     }
   }
 

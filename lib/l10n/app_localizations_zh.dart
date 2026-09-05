@@ -668,6 +668,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passwallMain => '主设置';
 
   @override
+  String get passwallStatus => '状态';
+
+  @override
+  String get passwallStatusTcp => 'TCP';
+
+  @override
+  String get passwallStatusUdp => 'UDP';
+
+  @override
+  String get passwallStatusDns => 'DNS';
+
+  @override
+  String get passwallStatusRunning => '运行中';
+
+  @override
+  String get passwallStatusNotRunning => '未运行';
+
+  @override
+  String get passwallStatusUnknown => '未知';
+
+  @override
   String get passwallEnabled => '启用 PassWall';
 
   @override

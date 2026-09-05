@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/models/passwall_status.dart';
 
 /// API service interface for LuCI RPC communication.
 ///
@@ -120,6 +121,14 @@ abstract class IApiService {
     bool useHttps, {
     String url = 'https://www.google.com/generate_204',
     String type = 'google',
+    BuildContext? context,
+  });
+
+  /// Reads Passwall homepage TCP/UDP/DNS flags (`index_status`).
+  Future<PasswallIndexStatus> fetchPasswallIndexStatus(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
     BuildContext? context,
   });
 

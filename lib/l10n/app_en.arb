@@ -903,6 +903,13 @@
     "description": "PassWall entry subtitle on More screen"
   },
   "passwallMain": "Main",
+  "passwallStatus": "Status",
+  "passwallStatusTcp": "TCP",
+  "passwallStatusUdp": "UDP",
+  "passwallStatusDns": "DNS",
+  "passwallStatusRunning": "Running",
+  "passwallStatusNotRunning": "Not running",
+  "passwallStatusUnknown": "Unknown",
   "passwallEnabled": "Enable PassWall",
   "passwallEnabledSubtitle": "Main transparent proxy switch",
   "passwallProxyNode": "Proxy node",

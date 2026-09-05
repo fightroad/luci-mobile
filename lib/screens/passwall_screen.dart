@@ -4,6 +4,7 @@ import 'package:luci_mobile/design/luci_design_system.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/models/passwall_status.dart';
 import 'package:luci_mobile/screens/passwall_log_screen.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 
@@ -462,6 +463,10 @@ class _PasswallScreenState extends ConsumerState<PasswallScreen> {
                       vertical: LuciSpacing.sm,
                     ),
                     children: [
+                      LuciSectionHeader(l10n.passwallStatus),
+                      _PasswallRuntimeStatusRow(
+                        status: appState.passwallIndexStatus,
+                      ),
                       LuciSectionHeader(l10n.passwallMain),
                       Card(
                         margin: const EdgeInsets.symmetric(
@@ -681,6 +686,131 @@ class _SelectTile extends StatelessWidget {
       ),
       enabled: enabled,
       onTap: enabled ? onTap : null,
+    );
+  }
+}
+
+class _PasswallRuntimeStatusRow extends StatelessWidget {
+  final PasswallIndexStatus? status;
+
+  const _PasswallRuntimeStatusRow({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: LuciSpacing.md,
+        vertical: LuciSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _PasswallStatusChip(
+              label: l10n.passwallStatusTcp,
+              running: status?.tcpRunning,
+              icon: Icons.swap_horiz_rounded,
+              accent: const Color(0xFF5B8DEF),
+            ),
+          ),
+          const SizedBox(width: LuciSpacing.sm),
+          Expanded(
+            child: _PasswallStatusChip(
+              label: l10n.passwallStatusUdp,
+              running: status?.udpRunning,
+              icon: Icons.sports_esports_outlined,
+              accent: const Color(0xFFE88A3C),
+            ),
+          ),
+          const SizedBox(width: LuciSpacing.sm),
+          Expanded(
+            child: _PasswallStatusChip(
+              label: l10n.passwallStatusDns,
+              running: status?.dnsRunning,
+              icon: Icons.dns_outlined,
+              accent: const Color(0xFF3B82F6),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PasswallStatusChip extends StatelessWidget {
+  final String label;
+  final bool? running;
+  final IconData icon;
+  final Color accent;
+
+  const _PasswallStatusChip({
+    required this.label,
+    required this.running,
+    required this.icon,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final statusText = running == true
+        ? l10n.passwallStatusRunning
+        : running == false
+        ? l10n.passwallStatusNotRunning
+        : l10n.passwallStatusUnknown;
+    final statusColor = running == true
+        ? Colors.green.shade600
+        : running == false
+        ? colorScheme.error
+        : colorScheme.onSurfaceVariant;
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 18, color: accent),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    statusText,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

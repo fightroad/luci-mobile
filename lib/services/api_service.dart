@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/models/passwall_status.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import '../utils/http_client_manager.dart';
 import '../utils/logger.dart';
@@ -855,6 +856,42 @@ class RealApiService implements IApiService {
     final useTime = double.tryParse(data['use_time']?.toString() ?? '');
     if (useTime == null || useTime <= 0) return null;
     return useTime;
+  }
+
+  @override
+  Future<PasswallIndexStatus> fetchPasswallIndexStatus(
+    String ipAddress,
+    String sysauth,
+    bool useHttps, {
+    BuildContext? context,
+  }) async {
+    final client = _createHttpClient(useHttps, ipAddress, context: context);
+    final uri = _buildUrl(
+      ipAddress,
+      useHttps,
+      '/cgi-bin/luci/admin/services/passwall/index_status',
+    );
+    final response = await client.get(
+      uri.toString(),
+      options: Options(
+        headers: {
+          'Cookie': _luciSessionCookie(sysauth),
+          'Accept': 'application/json',
+        },
+        responseType: ResponseType.json,
+        validateStatus: (code) => code != null && code < 500,
+      ),
+    );
+    if (response.statusCode != null && response.statusCode! >= 400) {
+      throw Exception(
+        'Failed to fetch Passwall index status (${response.statusCode})',
+      );
+    }
+    final json = _decodeLuciJsonResponse(response.data);
+    if (json == null) {
+      throw Exception('Failed to fetch Passwall index status');
+    }
+    return PasswallIndexStatus.fromJson(json);
   }
 
   Map<String, dynamic>? _decodeLuciJsonResponse(dynamic data) {
