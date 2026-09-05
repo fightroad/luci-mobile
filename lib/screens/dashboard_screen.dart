@@ -9,6 +9,7 @@ import 'package:luci_mobile/widgets/luci_animation_system.dart';
 import 'package:luci_mobile/widgets/luci_refresh_components.dart';
 import 'package:luci_mobile/widgets/wifi_qr_dialog.dart';
 import 'package:luci_mobile/models/router.dart' as model;
+import 'package:luci_mobile/utils/ethernet_port_info.dart';
 import 'package:luci_mobile/utils/uci_value.dart';
 import 'package:luci_mobile/utils/wifi_qr.dart';
 
@@ -1208,6 +1209,128 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  void _showEthernetPortDetailDialog({
+    required String device,
+    Map<String, dynamic>? networkDevices,
+    Map<String, dynamic>? interfaceDump,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    final details = EthernetPortDetails.resolve(
+      device: device,
+      networkDevices: networkDevices,
+      interfaceDump: interfaceDump,
+    );
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        final theme = Theme.of(dialogContext);
+        final colorScheme = theme.colorScheme;
+        return AlertDialog(
+          title: Text(device),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.ethernetPortNetworks,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                if (details.networks.isEmpty)
+                  Text(
+                    l10n.ethernetPortNoNetworks,
+                    style: theme.textTheme.bodyMedium,
+                  )
+                else
+                  for (final name in details.networks) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.settings_ethernet_rounded,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: SelectableText(
+                              name,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                const SizedBox(height: 16),
+                Text(
+                  l10n.transmitted,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_upward_rounded,
+                      size: 16,
+                      color: colorScheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    SelectableText(
+                      EthernetPortDetails.formatTrafficBytes(details.txBytes),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  l10n.received,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.arrow_downward_rounded,
+                      size: 16,
+                      color: Colors.green.shade700,
+                    ),
+                    const SizedBox(width: 6),
+                    SelectableText(
+                      EthernetPortDetails.formatTrafficBytes(details.rxBytes),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.cancel),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   String _formatConnections(int? count, int? max) {
     if (count == null) return 'N/A';
     if (max == null || max <= 0) return 'N/A';
@@ -1759,6 +1882,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     final networkDevices =
         appState.dashboardData?['networkDevices'] as Map<String, dynamic>?;
+    final interfaceDump =
+        appState.dashboardData?['interfaceDump'] as Map<String, dynamic>?;
     final l10n = AppLocalizations.of(context)!;
     final scheme = Theme.of(context).colorScheme;
 
@@ -1802,75 +1927,83 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             borderRadius: BorderRadius.circular(18),
           ),
           clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 12.0,
-              horizontal: 10.0,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: () => _showEthernetPortDetailDialog(
+              device: device,
+              networkDevices: networkDevices,
+              interfaceDump: interfaceDump,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  isWan
-                      ? Icons.public_rounded
-                      : Icons.settings_ethernet_rounded,
-                  color: accent,
-                  size: 20,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  device,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 12.0,
+                horizontal: 10.0,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    isWan
+                        ? Icons.public_rounded
+                        : Icons.settings_ethernet_rounded,
+                    color: accent,
+                    size: 20,
                   ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                  const SizedBox(height: 4),
+                  Text(
+                    device,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  decoration: BoxDecoration(
-                    color: linked
-                        ? accent.withValues(alpha: 0.15)
-                        : scheme.outlineVariant.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: SizedBox(
-                    width: 72,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            linked
-                                ? Icons.link_rounded
-                                : Icons.link_off_rounded,
-                            size: 11,
-                            color: linked
-                                ? accent
-                                : scheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: linked
+                          ? accent.withValues(alpha: 0.15)
+                          : scheme.outlineVariant.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: SizedBox(
+                      width: 72,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              linked
+                                  ? Icons.link_rounded
+                                  : Icons.link_off_rounded,
+                              size: 11,
                               color: linked
                                   ? accent
                                   : scheme.onSurfaceVariant,
-                              fontSize: 10,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 2),
+                            Text(
+                              statusText,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: linked
+                                    ? accent
+                                    : scheme.onSurfaceVariant,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -719,6 +719,14 @@
   "@wifiQrUnavailableMessage": {
     "description": "Detail when secured network has no key in UCI"
   },
+  "ethernetPortNetworks": "Part of networks:",
+  "@ethernetPortNetworks": {
+    "description": "Section title listing logical networks for an ethernet port"
+  },
+  "ethernetPortNoNetworks": "Port is not part of any network",
+  "@ethernetPortNoNetworks": {
+    "description": "Shown when an ethernet port has no logical network membership"
+  },
   "showAllNetworks": "Show All Networks",
   "@showAllNetworks": {
     "description": "Show all networks option"

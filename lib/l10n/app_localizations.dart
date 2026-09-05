@@ -1124,6 +1124,18 @@ abstract class AppLocalizations {
   /// **'Password is missing for this secured network.'**
   String get wifiQrUnavailableMessage;
 
+  /// Section title listing logical networks for an ethernet port
+  ///
+  /// In en, this message translates to:
+  /// **'Part of networks:'**
+  String get ethernetPortNetworks;
+
+  /// Shown when an ethernet port has no logical network membership
+  ///
+  /// In en, this message translates to:
+  /// **'Port is not part of any network'**
+  String get ethernetPortNoNetworks;
+
   /// Show all networks option
   ///
   /// In en, this message translates to:

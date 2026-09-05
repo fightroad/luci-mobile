@@ -551,6 +551,12 @@ class AppLocalizationsEn extends AppLocalizations {
       'Password is missing for this secured network.';
 
   @override
+  String get ethernetPortNetworks => 'Part of networks:';
+
+  @override
+  String get ethernetPortNoNetworks => 'Port is not part of any network';
+
+  @override
   String get showAllNetworks => 'Show All Networks';
 
   @override

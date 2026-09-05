@@ -219,6 +219,8 @@
   },
   "wifiQrUnavailable": "无法生成二维码",
   "wifiQrUnavailableMessage": "该加密网络缺少密码，无法生成二维码。",
+  "ethernetPortNetworks": "属于以下网络：",
+  "ethernetPortNoNetworks": "该网口未加入任何网络",
   "wirelessNetworksSubtitle": "选择要显示的无线网络",
   "showAllNetworks": "显示所有网络",
   "unableToLoadDashboardData": "无法加载仪表板数据。请检查您的连接。",
