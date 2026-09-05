@@ -533,6 +533,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Choose which wireless networks to display';
 
   @override
+  String get wifiQrTitle => 'Wi-Fi QR';
+
+  @override
+  String get wifiQrTooltip => 'Show Wi-Fi QR code';
+
+  @override
+  String wifiQrScanHint(String ssid) {
+    return 'Scan to join $ssid';
+  }
+
+  @override
+  String get wifiQrUnavailable => 'Wi-Fi QR unavailable';
+
+  @override
+  String get wifiQrUnavailableMessage =>
+      'Password is missing for this secured network.';
+
+  @override
   String get showAllNetworks => 'Show All Networks';
 
   @override

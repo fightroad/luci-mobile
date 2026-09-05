@@ -1094,6 +1094,36 @@ abstract class AppLocalizations {
   /// **'Choose which wireless networks to display'**
   String get wirelessNetworksSubtitle;
 
+  /// Title for Wi-Fi QR share dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi QR'**
+  String get wifiQrTitle;
+
+  /// Tooltip for Wi-Fi QR button on dashboard wireless card
+  ///
+  /// In en, this message translates to:
+  /// **'Show Wi-Fi QR code'**
+  String get wifiQrTooltip;
+
+  /// Hint under Wi-Fi QR code
+  ///
+  /// In en, this message translates to:
+  /// **'Scan to join {ssid}'**
+  String wifiQrScanHint(String ssid);
+
+  /// Shown when SSID/password cannot form a valid WIFI QR
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi QR unavailable'**
+  String get wifiQrUnavailable;
+
+  /// Detail when secured network has no key in UCI
+  ///
+  /// In en, this message translates to:
+  /// **'Password is missing for this secured network.'**
+  String get wifiQrUnavailableMessage;
+
   /// Show all networks option
   ///
   /// In en, this message translates to:

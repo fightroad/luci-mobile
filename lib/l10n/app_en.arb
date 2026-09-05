@@ -694,6 +694,31 @@
   "@wirelessNetworksSubtitle": {
     "description": "Wireless networks subtitle"
   },
+  "wifiQrTitle": "Wi-Fi QR",
+  "@wifiQrTitle": {
+    "description": "Title for Wi-Fi QR share dialog"
+  },
+  "wifiQrTooltip": "Show Wi-Fi QR code",
+  "@wifiQrTooltip": {
+    "description": "Tooltip for Wi-Fi QR button on dashboard wireless card"
+  },
+  "wifiQrScanHint": "Scan to join {ssid}",
+  "@wifiQrScanHint": {
+    "description": "Hint under Wi-Fi QR code",
+    "placeholders": {
+      "ssid": {
+        "type": "String"
+      }
+    }
+  },
+  "wifiQrUnavailable": "Wi-Fi QR unavailable",
+  "@wifiQrUnavailable": {
+    "description": "Shown when SSID/password cannot form a valid WIFI QR"
+  },
+  "wifiQrUnavailableMessage": "Password is missing for this secured network.",
+  "@wifiQrUnavailableMessage": {
+    "description": "Detail when secured network has no key in UCI"
+  },
   "showAllNetworks": "Show All Networks",
   "@showAllNetworks": {
     "description": "Show all networks option"

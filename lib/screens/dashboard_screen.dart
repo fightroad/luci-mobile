@@ -7,8 +7,10 @@ import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 import 'package:luci_mobile/widgets/luci_animation_system.dart';
 import 'package:luci_mobile/widgets/luci_refresh_components.dart';
+import 'package:luci_mobile/widgets/wifi_qr_dialog.dart';
 import 'package:luci_mobile/models/router.dart' as model;
 import 'package:luci_mobile/utils/uci_value.dart';
+import 'package:luci_mobile/utils/wifi_qr.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -1268,89 +1270,156 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required bool isEnabled,
     required int? signal,
     required String channel,
+    VoidCallback? onShowWifiQr,
   }) {
     final textTheme = Theme.of(context).textTheme;
     final primaryColor = Theme.of(context).colorScheme.primary;
+    final l10n = AppLocalizations.of(context)!;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.wifi,
-              color: isEnabled
-                  ? primaryColor
-                  : Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.5),
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              ssid,
-              style: textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
           children: [
-            if (signal != null)
-              Flexible(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.network_cell,
-                      size: 16,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        '$signal dBm',
-                        style: textTheme.bodySmall,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.wifi,
+                  color: isEnabled
+                      ? primaryColor
+                      : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withValues(alpha: 0.5),
+                  size: 20,
                 ),
-              ),
-            if (signal != null) const SizedBox(width: 8),
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.settings_input_antenna,
-                    size: 16,
-                    color: Colors.grey.shade600,
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    ssid,
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(width: 4),
+                ),
+                if (onShowWifiQr != null) const SizedBox(width: 28),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                if (signal != null)
                   Flexible(
-                    child: Text(
-                      'Ch: $channel',
-                      style: textTheme.bodySmall,
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.network_cell,
+                          size: 16,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            '$signal dBm',
+                            style: textTheme.bodySmall,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                if (signal != null) const SizedBox(width: 8),
+                Flexible(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.settings_input_antenna,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Ch: $channel',
+                          style: textTheme.bodySmall,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ],
         ),
+        if (onShowWifiQr != null)
+          Positioned(
+            top: -4,
+            right: -4,
+            child: IconButton(
+              tooltip: l10n.wifiQrTooltip,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              iconSize: 18,
+              onPressed: onShowWifiQr,
+              icon: Icon(
+                Icons.qr_code_2_rounded,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
       ],
     );
+  }
+
+  /// Prefer runtime iface config; fill missing key/encryption from UCI section.
+  Map<String, String> _wirelessCredentials(
+    dynamic config, {
+    String? section,
+    Map? uciValues,
+  }) {
+    var encryption = uciString(config is Map ? config['encryption'] : null);
+    var key = uciString(config is Map ? config['key'] : null);
+    var hidden = false;
+    if (config is Map) {
+      hidden = config['hidden'] == true ||
+          config['hidden'] == '1' ||
+          config['hidden'] == 1;
+    }
+
+    if ((encryption.isEmpty || key.isEmpty) &&
+        section != null &&
+        section.isNotEmpty &&
+        uciValues != null) {
+      final uciSection = uciValues[section];
+      if (uciSection is Map) {
+        if (encryption.isEmpty) {
+          encryption = uciString(uciSection['encryption']);
+        }
+        if (key.isEmpty) {
+          key = uciString(uciSection['key']);
+        }
+        if (!hidden) {
+          hidden =
+              uciSection['hidden'] == '1' || uciSection['hidden'] == 1;
+        }
+      }
+    }
+
+    return {
+      'encryption': encryption,
+      'key': key,
+      'hidden': hidden ? '1' : '0',
+    };
   }
 
   Widget _buildWirelessNetworksCard(AppState appState) {
@@ -1358,6 +1427,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     final wirelessRadios =
         appState.dashboardData?['wireless'] as Map<String, dynamic>?;
     final uciWirelessConfig = appState.dashboardData?['uciWirelessConfig'];
+    final uciValues = uciWirelessConfig is Map
+        ? uciWirelessConfig['values'] as Map?
+        : null;
 
     // Track which interfaces we've already added from runtime data
     final addedInterfaces = <String>{};
@@ -1402,6 +1474,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             final channel = (iwinfo['channel'] ?? config['channel'] ?? 'N/A')
                 .toString();
             final signal = iwinfo['signal'] as int?;
+            final creds = _wirelessCredentials(
+              config,
+              section: section.isEmpty ? uciName : section,
+              uciValues: uciValues,
+            );
+            final wifiQr = WifiQrPayload.fromOpenWrt(
+              ssid: ssid,
+              encryption: creds['encryption'],
+              key: creds['key'],
+              hidden: creds['hidden'] == '1',
+            );
 
             networkCardWidgets.add(
               Card(
@@ -1425,6 +1508,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       isEnabled: isEnabled,
                       signal: signal,
                       channel: channel,
+                      onShowWifiQr: () =>
+                          showWifiQrDialog(context, payload: wifiQr),
                     ),
                   ),
                 ),
@@ -1436,11 +1521,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
 
     // Now add disabled interfaces from UCI config that aren't in runtime data
-    if (uciWirelessConfig != null) {
-      final uciValues = uciWirelessConfig['values'] as Map?;
-      if (uciValues != null) {
-        final uciRadios = <String, Map>{};
-        final uciInterfaces = <String, Map>{};
+    if (uciValues != null) {
+      final uciRadios = <String, Map>{};
+      final uciInterfaces = <String, Map>{};
 
         // Categorize UCI entries
         uciValues.forEach((key, value) {
@@ -1473,6 +1556,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             final isRadioEnabled = uciRadios[device]?['disabled'] != '1';
             final isIfaceEnabled = config['disabled'] != '1';
             final isEnabled = isRadioEnabled && isIfaceEnabled;
+            final creds = _wirelessCredentials(config);
+            final wifiQr = WifiQrPayload.fromOpenWrt(
+              ssid: ssid,
+              encryption: creds['encryption'],
+              key: creds['key'],
+              hidden: creds['hidden'] == '1',
+            );
 
             networkCardWidgets.add(
               Card(
@@ -1496,6 +1586,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       isEnabled: isEnabled,
                       signal: null, // No signal for disabled interfaces
                       channel: config['channel']?.toString() ?? 'N/A',
+                      onShowWifiQr: () =>
+                          showWifiQrDialog(context, payload: wifiQr),
                     ),
                   ),
                 ),
@@ -1503,7 +1595,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             );
           }
         });
-      }
     }
 
     if (networkCardWidgets.isEmpty) {

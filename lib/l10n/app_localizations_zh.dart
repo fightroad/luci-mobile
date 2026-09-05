@@ -520,6 +520,23 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wirelessNetworksSubtitle => '选择要显示的无线网络';
 
   @override
+  String get wifiQrTitle => 'Wi-Fi 二维码';
+
+  @override
+  String get wifiQrTooltip => '显示 Wi-Fi 二维码';
+
+  @override
+  String wifiQrScanHint(String ssid) {
+    return '扫码连接 $ssid';
+  }
+
+  @override
+  String get wifiQrUnavailable => '无法生成二维码';
+
+  @override
+  String get wifiQrUnavailableMessage => '该加密网络缺少密码，无法生成二维码。';
+
+  @override
   String get showAllNetworks => '显示所有网络';
 
   @override
