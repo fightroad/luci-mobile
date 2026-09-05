@@ -1320,12 +1320,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(l10n.cancel),
-            ),
-          ],
         );
       },
     );
@@ -1393,113 +1387,89 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     required bool isEnabled,
     required int? signal,
     required String channel,
-    VoidCallback? onShowWifiQr,
   }) {
     final textTheme = Theme.of(context).textTheme;
     final primaryColor = Theme.of(context).colorScheme.primary;
-    final l10n = AppLocalizations.of(context)!;
 
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.wifi,
-                  color: isEnabled
-                      ? primaryColor
-                      : Theme.of(
-                          context,
-                        ).colorScheme.onSurface.withValues(alpha: 0.5),
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    ssid,
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (onShowWifiQr != null) const SizedBox(width: 28),
-              ],
+            Icon(
+              Icons.wifi,
+              color: isEnabled
+                  ? primaryColor
+                  : Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.5),
+              size: 20,
             ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                if (signal != null)
-                  Flexible(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.network_cell,
-                          size: 16,
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.6),
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            '$signal dBm',
-                            style: textTheme.bodySmall,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                if (signal != null) const SizedBox(width: 8),
-                Flexible(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.settings_input_antenna,
-                        size: 16,
-                        color: Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          'Ch: $channel',
-                          style: textTheme.bodySmall,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                ssid,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
                 ),
-              ],
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
-        if (onShowWifiQr != null)
-          Positioned(
-            top: -4,
-            right: -4,
-            child: IconButton(
-              tooltip: l10n.wifiQrTooltip,
-              visualDensity: VisualDensity.compact,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              iconSize: 18,
-              onPressed: onShowWifiQr,
-              icon: Icon(
-                Icons.qr_code_2_rounded,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            if (signal != null)
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.network_cell,
+                      size: 16,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        '$signal dBm',
+                        style: textTheme.bodySmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            if (signal != null) const SizedBox(width: 8),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.settings_input_antenna,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: Text(
+                      'Ch: $channel',
+                      style: textTheme.bodySmall,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
+        ),
       ],
     );
   }
@@ -1619,6 +1589,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
+                  onTap: () => showWifiQrDialog(context, payload: wifiQr),
                   onLongPress: () {
                     final appState = ref.read(appStateProvider);
                     appState.requestTab(2, interfaceToScroll: scrollTarget);
@@ -1631,8 +1602,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       isEnabled: isEnabled,
                       signal: signal,
                       channel: channel,
-                      onShowWifiQr: () =>
-                          showWifiQrDialog(context, payload: wifiQr),
                     ),
                   ),
                 ),
@@ -1697,6 +1666,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 clipBehavior: Clip.antiAlias,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(18),
+                  onTap: () => showWifiQrDialog(context, payload: wifiQr),
                   onLongPress: () {
                     final appState = ref.read(appStateProvider);
                     appState.requestTab(2, interfaceToScroll: scrollTarget);
@@ -1709,8 +1679,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       isEnabled: isEnabled,
                       signal: null, // No signal for disabled interfaces
                       channel: config['channel']?.toString() ?? 'N/A',
-                      onShowWifiQr: () =>
-                          showWifiQrDialog(context, payload: wifiQr),
                     ),
                   ),
                 ),

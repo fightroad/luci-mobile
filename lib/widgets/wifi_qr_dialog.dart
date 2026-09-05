@@ -15,12 +15,6 @@ Future<void> showWifiQrDialog(
         return AlertDialog(
           title: Text(l10n.wifiQrUnavailable),
           content: Text(l10n.wifiQrUnavailableMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(l10n.cancel),
-            ),
-          ],
         );
       },
     );
@@ -67,12 +61,6 @@ Future<void> showWifiQrDialog(
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(l10n.cancel),
-          ),
-        ],
       );
     },
   );
