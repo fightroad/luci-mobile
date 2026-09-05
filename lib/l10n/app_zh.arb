@@ -388,7 +388,7 @@
   "easytierNatFullCone": "全锥型",
   "easytierNatNoPat": "无端口映射",
   "zerotier": "ZeroTier",
-  "zerotierSubtitle": "开关网络并应用，交互同 PassWall",
+  "zerotierSubtitle": "开关网络并应用更改",
   "zerotierMain": "服务",
   "zerotierEnabled": "启用 ZeroTier",
   "zerotierEnabledSubtitle": "对应 zerotier.global.enabled，点「应用」后生效",

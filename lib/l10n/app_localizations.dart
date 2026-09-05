@@ -1919,7 +1919,7 @@ abstract class AppLocalizations {
   /// ZeroTier entry subtitle on More screen
   ///
   /// In en, this message translates to:
-  /// **'Enable networks and apply like LuCI'**
+  /// **'Enable networks and apply changes'**
   String get zerotierSubtitle;
 
   /// No description provided for @zerotierMain.

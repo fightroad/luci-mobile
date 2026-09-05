@@ -970,7 +970,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zerotier => 'ZeroTier';
 
   @override
-  String get zerotierSubtitle => 'Enable networks and apply like LuCI';
+  String get zerotierSubtitle => 'Enable networks and apply changes';
 
   @override
   String get zerotierMain => 'Service';

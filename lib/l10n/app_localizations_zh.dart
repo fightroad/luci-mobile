@@ -943,7 +943,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get zerotier => 'ZeroTier';
 
   @override
-  String get zerotierSubtitle => '开关网络并应用，交互同 PassWall';
+  String get zerotierSubtitle => '开关网络并应用更改';
 
   @override
   String get zerotierMain => '服务';

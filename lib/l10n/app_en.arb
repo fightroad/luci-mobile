@@ -1013,7 +1013,7 @@
   "@zerotier": {
     "description": "ZeroTier plugin title"
   },
-  "zerotierSubtitle": "Enable networks and apply like LuCI",
+  "zerotierSubtitle": "Enable networks and apply changes",
   "@zerotierSubtitle": {
     "description": "ZeroTier entry subtitle on More screen"
   },
