@@ -2249,6 +2249,11 @@ class AppState extends ChangeNotifier {
       await fetchPasswallConfig(
         context: context?.mounted == true ? context : null,
       );
+      // uci.apply returns before TCP/UDP/DNS processes are ready.
+      await _settlePasswallAfterApply(
+        expectRunning: _passwallConfig?.enabled == true,
+        context: context?.mounted == true ? context : null,
+      );
       return true;
     } catch (e, stack) {
       Logger.exception('Failed to apply Passwall settings', e, stack);
@@ -2256,6 +2261,41 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  /// After enable/apply, index_status lags until redirect/DNS processes start.
+  Future<void> _settlePasswallAfterApply({
+    required bool expectRunning,
+    BuildContext? context,
+  }) async {
+    await Future<void>.delayed(_passwallServiceSettleDelay);
+
+    for (var i = 0; i < _passwallStatusRetryAttempts; i++) {
+      await _refreshPasswallIndexStatus(context: context);
+      final status = _passwallIndexStatus;
+      if (status == null) {
+        if (i < _passwallStatusRetryAttempts - 1) {
+          await Future<void>.delayed(_passwallRetryDelay);
+        }
+        continue;
+      }
+      if (expectRunning) {
+        // TCP is the primary homepage signal; UDP may be absent without TPROXY.
+        if (status.tcpRunning) return;
+      } else if (!status.tcpRunning && !status.udpRunning) {
+        return;
+      }
+      if (i < _passwallStatusRetryAttempts - 1) {
+        await Future<void>.delayed(_passwallRetryDelay);
+      }
+    }
+  }
+
+  Future<void> _refreshPasswallIndexStatus({BuildContext? context}) async {
+    _passwallIndexStatus = await _fetchPasswallIndexStatus(
+      context: context?.mounted == true ? context : null,
+    );
+    notifyListeners();
   }
 
   /// Starts Passwall "manual subscribe all" in the background on the router.
@@ -2691,6 +2731,13 @@ class AppState extends ChangeNotifier {
       await fetchZerotierConfig(
         context: context?.mounted == true ? context : null,
       );
+      // uci.apply returns before zerotierd / zt* are ready.
+      await _settleZerotierAfterApply(
+        expectRunning: draft.enabled,
+        expectInterfaces:
+            draft.enabled && draft.networks.any((n) => n.enabled),
+        context: context?.mounted == true ? context : null,
+      );
       return true;
     } catch (e, stack) {
       Logger.exception('Failed to apply ZeroTier settings', e, stack);
@@ -2698,6 +2745,43 @@ class AppState extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  /// After enable/apply, service list and zt* devices lag uci.apply.
+  Future<void> _settleZerotierAfterApply({
+    required bool expectRunning,
+    required bool expectInterfaces,
+    BuildContext? context,
+  }) async {
+    await Future<void>.delayed(_zerotierServiceSettleDelay);
+
+    for (var i = 0; i < _zerotierRuntimeRetryAttempts; i++) {
+      await _refreshZerotierRuntime(context: context);
+      final running = _zerotierRunning == true;
+      if (running != expectRunning) {
+        if (i < _zerotierRuntimeRetryAttempts - 1) {
+          await Future<void>.delayed(_zerotierRetryDelay);
+        }
+        continue;
+      }
+      if (!expectRunning) return;
+      if (!expectInterfaces || _zerotierInterfaces.isNotEmpty) return;
+      if (i < _zerotierRuntimeRetryAttempts - 1) {
+        await Future<void>.delayed(_zerotierRetryDelay);
+      }
+    }
+  }
+
+  Future<void> _refreshZerotierRuntime({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return;
+    }
+    final ctx = context?.mounted == true ? context : null;
+    final runningFuture = _fetchZerotierServiceRunning(context: ctx);
+    final interfacesFuture = _fetchZerotierInterfaces(context: ctx);
+    _zerotierRunning = await runningFuture;
+    _zerotierInterfaces = await interfacesFuture;
+    notifyListeners();
   }
 
   Future<bool?> _fetchZerotierServiceRunning({BuildContext? context}) async {
@@ -2765,4 +2849,12 @@ class AppState extends ChangeNotifier {
     }
     return false;
   }
+
+  static const _zerotierServiceSettleDelay = Duration(seconds: 1);
+  static const _zerotierRetryDelay = Duration(milliseconds: 800);
+  static const _zerotierRuntimeRetryAttempts = 5;
+
+  static const _passwallServiceSettleDelay = Duration(seconds: 2);
+  static const _passwallRetryDelay = Duration(seconds: 1);
+  static const _passwallStatusRetryAttempts = 6;
 }
