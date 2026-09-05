@@ -965,4 +965,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get easytierNatNoPat => 'No PAT';
+
+  @override
+  String get zerotier => 'ZeroTier';
+
+  @override
+  String get zerotierSubtitle => 'Enable networks and apply like LuCI';
+
+  @override
+  String get zerotierMain => 'Service';
+
+  @override
+  String get zerotierEnabled => 'Enable ZeroTier';
+
+  @override
+  String get zerotierEnabledSubtitle =>
+      'Maps to zerotier.global.enabled — tap Apply to save';
+
+  @override
+  String get zerotierStatus => 'Status';
+
+  @override
+  String get zerotierRunning => 'Running';
+
+  @override
+  String get zerotierStopped => 'Not running';
+
+  @override
+  String get zerotierRunningUnknown => 'Status unknown';
+
+  @override
+  String zerotierPortValue(String port) {
+    return 'Port $port';
+  }
+
+  @override
+  String get zerotierNetworks => 'Networks';
+
+  @override
+  String get zerotierNetworksEmpty => 'No ZeroTier networks configured';
+
+  @override
+  String zerotierNetworkSubtitle(String section) {
+    return 'Section $section';
+  }
+
+  @override
+  String get zerotierNetworkLegacyHint =>
+      'Legacy join list — edit enable on the router';
+
+  @override
+  String get zerotierApplyHint =>
+      'Changes are local until you tap Apply (same as LuCI Save & Apply).';
+
+  @override
+  String get zerotierSaved => 'ZeroTier settings applied';
+
+  @override
+  String get zerotierSaveFailed => 'Failed to apply ZeroTier settings';
+
+  @override
+  String get zerotierUnavailable => 'ZeroTier unavailable';
+
+  @override
+  String get zerotierUnavailableMessage =>
+      'Could not read ZeroTier configuration from the router.';
+
+  @override
+  String get zerotierApply => 'Apply';
+
+  @override
+  String get zerotierRefresh => 'Refresh';
 }

@@ -1008,5 +1008,46 @@
   "easytierNatPortRestricted": "Port Restricted",
   "easytierNatAddressRestricted": "Address Restricted",
   "easytierNatFullCone": "Full Cone",
-  "easytierNatNoPat": "No PAT"
+  "easytierNatNoPat": "No PAT",
+  "zerotier": "ZeroTier",
+  "@zerotier": {
+    "description": "ZeroTier plugin title"
+  },
+  "zerotierSubtitle": "Enable networks and apply like LuCI",
+  "@zerotierSubtitle": {
+    "description": "ZeroTier entry subtitle on More screen"
+  },
+  "zerotierMain": "Service",
+  "zerotierEnabled": "Enable ZeroTier",
+  "zerotierEnabledSubtitle": "Maps to zerotier.global.enabled — tap Apply to save",
+  "zerotierStatus": "Status",
+  "zerotierRunning": "Running",
+  "zerotierStopped": "Not running",
+  "zerotierRunningUnknown": "Status unknown",
+  "zerotierPortValue": "Port {port}",
+  "@zerotierPortValue": {
+    "placeholders": {
+      "port": {
+        "type": "String"
+      }
+    }
+  },
+  "zerotierNetworks": "Networks",
+  "zerotierNetworksEmpty": "No ZeroTier networks configured",
+  "zerotierNetworkSubtitle": "Section {section}",
+  "@zerotierNetworkSubtitle": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "zerotierNetworkLegacyHint": "Legacy join list — edit enable on the router",
+  "zerotierApplyHint": "Changes are local until you tap Apply (same as LuCI Save & Apply).",
+  "zerotierSaved": "ZeroTier settings applied",
+  "zerotierSaveFailed": "Failed to apply ZeroTier settings",
+  "zerotierUnavailable": "ZeroTier unavailable",
+  "zerotierUnavailableMessage": "Could not read ZeroTier configuration from the router.",
+  "zerotierApply": "Apply",
+  "zerotierRefresh": "Refresh"
 }

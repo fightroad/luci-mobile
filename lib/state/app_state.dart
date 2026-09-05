@@ -14,6 +14,7 @@ import 'package:luci_mobile/models/dashboard_preferences.dart';
 import 'package:luci_mobile/models/easytier_peer.dart';
 import 'package:luci_mobile/models/easytier_status.dart';
 import 'package:luci_mobile/models/passwall_config.dart';
+import 'package:luci_mobile/models/zerotier_config.dart';
 import 'package:luci_mobile/services/interfaces/auth_service_interface.dart';
 import 'package:luci_mobile/services/interfaces/api_service_interface.dart';
 import 'package:luci_mobile/services/service_factory.dart';
@@ -78,6 +79,18 @@ class AppState extends ChangeNotifier {
   List<EasyTierPeer> get easytierPeers => _easytierPeers;
   String? _easytierPeersError;
   String? get easytierPeersError => _easytierPeersError;
+
+  /// null = not checked yet; true when `/etc/config/zerotier` is readable via UCI.
+  bool? _zerotierInstalled;
+  bool? get zerotierInstalled => _zerotierInstalled;
+  ZerotierConfig? _zerotierConfig;
+  ZerotierConfig? get zerotierConfig => _zerotierConfig;
+  bool? _zerotierRunning;
+  bool? get zerotierRunning => _zerotierRunning;
+  bool _isZerotierLoading = false;
+  bool get isZerotierLoading => _isZerotierLoading;
+  String? _zerotierError;
+  String? get zerotierError => _zerotierError;
 
   // Theme mode state
   ThemeMode _themeMode = ThemeMode.system;
@@ -356,6 +369,11 @@ class AppState extends ChangeNotifier {
     _isEasytierLoading = false;
     _easytierPeers = const [];
     _easytierPeersError = null;
+    _zerotierInstalled = null;
+    _zerotierConfig = null;
+    _zerotierRunning = null;
+    _zerotierError = null;
+    _isZerotierLoading = false;
 
     // Determine a safe context before any awaits
     final safeContext = context?.mounted == true ? context : null; // ignore: use_build_context_synchronously
@@ -505,6 +523,11 @@ class AppState extends ChangeNotifier {
     _isEasytierLoading = false;
     _easytierPeers = const [];
     _easytierPeersError = null;
+    _zerotierInstalled = null;
+    _zerotierConfig = null;
+    _zerotierRunning = null;
+    _zerotierError = null;
+    _isZerotierLoading = false;
     _cancelThroughputTimer();
     _dashboardVitalsPollingRequested = false;
     _cancelVitalsTimer();
@@ -2484,4 +2507,196 @@ class AppState extends ChangeNotifier {
   static const _easytierRetryDelay = Duration(milliseconds: 800);
   static const _easytierStatusRetryAttempts = 3;
   static const _easytierPeerRetryAttempts = 8;
+
+  /// Detects luci-app-zerotier / zerotier package by reading UCI config `zerotier`.
+  Future<bool> detectZerotier({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      _zerotierInstalled = false;
+      _zerotierConfig = null;
+      _zerotierRunning = null;
+      notifyListeners();
+      return false;
+    }
+
+    final detectIp = _authService!.ipAddress!;
+    try {
+      final result = await _apiService!.call(
+        detectIp,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'uci',
+        method: 'get',
+        params: {'config': 'zerotier'},
+        context: context,
+      );
+      if (_authService?.ipAddress != detectIp) {
+        return false;
+      }
+      final data = _unwrapLuciRpc(result);
+      final values = data is Map ? data['values'] : null;
+      final installed = values is Map && values.isNotEmpty;
+      _zerotierInstalled = installed;
+      if (!installed) {
+        _zerotierConfig = null;
+        _zerotierRunning = null;
+      }
+      notifyListeners();
+      return installed;
+    } catch (e, stack) {
+      Logger.debug('ZeroTier detect failed: $e');
+      Logger.debug('ZeroTier detect stack: $stack');
+      return false;
+    }
+  }
+
+  Future<ZerotierConfig?> fetchZerotierConfig({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+
+    _isZerotierLoading = true;
+    _zerotierError = null;
+    notifyListeners();
+
+    try {
+      final result = await _apiService!.call(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'uci',
+        method: 'get',
+        params: {'config': 'zerotier'},
+        context: context,
+      );
+      final data = _unwrapLuciRpc(result);
+      final values = data is Map ? data['values'] : null;
+      if (values is! Map || values.isEmpty) {
+        _zerotierInstalled = false;
+        _zerotierConfig = null;
+        _zerotierRunning = null;
+        _zerotierError = 'ZeroTier config not found';
+        return null;
+      }
+
+      final config = ZerotierConfig.fromUciValues(values);
+      _zerotierInstalled = true;
+      _zerotierConfig = config;
+      _zerotierRunning = await _fetchZerotierServiceRunning(
+        context: context?.mounted == true ? context : null,
+      );
+      return config;
+    } catch (e, stack) {
+      Logger.exception('Failed to fetch ZeroTier config', e, stack);
+      _zerotierError = e.toString();
+      return null;
+    } finally {
+      _isZerotierLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> applyZerotierSettings({
+    required ZerotierConfig draft,
+    required ZerotierConfig baseline,
+    BuildContext? context,
+  }) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return false;
+    }
+
+    try {
+      if (draft.enabled != baseline.enabled) {
+        await _apiService!.uciSet(
+          _authService!.ipAddress!,
+          _authService!.sysauth!,
+          _authService!.useHttps,
+          config: 'zerotier',
+          section: draft.globalSection,
+          values: {'enabled': draft.enabled ? '1' : '0'},
+          context: context?.mounted == true ? context : null,
+        );
+      }
+
+      if (!draft.isLegacyFormat) {
+        final baseBySection = {
+          for (final n in baseline.networks) n.section: n,
+        };
+        for (final network in draft.networks) {
+          final before = baseBySection[network.section];
+          if (before == null || before.enabled == network.enabled) continue;
+          await _apiService!.uciSet(
+            _authService!.ipAddress!,
+            _authService!.sysauth!,
+            _authService!.useHttps,
+            config: 'zerotier',
+            section: network.section,
+            values: {'enabled': network.enabled ? '1' : '0'},
+            context: context?.mounted == true ? context : null,
+          );
+        }
+      }
+
+      final applyResult = await _apiService!.uciApply(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        context: context?.mounted == true ? context : null,
+      );
+      if (applyResult is List &&
+          applyResult.isNotEmpty &&
+          applyResult[0] != 0 &&
+          applyResult[0] != 5) {
+        throw Exception('uci.apply failed with status ${applyResult[0]}');
+      }
+
+      await fetchZerotierConfig(
+        context: context?.mounted == true ? context : null,
+      );
+      return true;
+    } catch (e, stack) {
+      Logger.exception('Failed to apply ZeroTier settings', e, stack);
+      _zerotierError = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool?> _fetchZerotierServiceRunning({BuildContext? context}) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return null;
+    }
+    try {
+      final result = await _apiService!.call(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'service',
+        method: 'list',
+        params: {'name': 'zerotier'},
+        context: context,
+      );
+      final data = _unwrapLuciRpc(result);
+      return _parseZerotierServiceRunning(data);
+    } catch (e) {
+      Logger.debug('ZeroTier service list failed: $e');
+      return null;
+    }
+  }
+
+  static bool _parseZerotierServiceRunning(dynamic data) {
+    if (data is! Map) return false;
+    final service = data['zerotier'] is Map
+        ? data['zerotier'] as Map
+        : data;
+    final instances = service['instances'];
+    if (instances is! Map) return false;
+    for (final value in instances.values) {
+      if (value is! Map) continue;
+      final running = value['running'];
+      if (running == true || running == 1 || running == '1') {
+        return true;
+      }
+    }
+    return false;
+  }
 }

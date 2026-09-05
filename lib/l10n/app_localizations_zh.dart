@@ -938,4 +938,73 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get easytierNatNoPat => '无端口映射';
+
+  @override
+  String get zerotier => 'ZeroTier';
+
+  @override
+  String get zerotierSubtitle => '开关网络并应用，交互同 PassWall';
+
+  @override
+  String get zerotierMain => '服务';
+
+  @override
+  String get zerotierEnabled => '启用 ZeroTier';
+
+  @override
+  String get zerotierEnabledSubtitle =>
+      '对应 zerotier.global.enabled，点「应用」后生效';
+
+  @override
+  String get zerotierStatus => '状态';
+
+  @override
+  String get zerotierRunning => '运行中';
+
+  @override
+  String get zerotierStopped => '未运行';
+
+  @override
+  String get zerotierRunningUnknown => '状态未知';
+
+  @override
+  String zerotierPortValue(String port) {
+    return '端口 $port';
+  }
+
+  @override
+  String get zerotierNetworks => '网络列表';
+
+  @override
+  String get zerotierNetworksEmpty => '尚未配置 ZeroTier 网络';
+
+  @override
+  String zerotierNetworkSubtitle(String section) {
+    return '配置段 $section';
+  }
+
+  @override
+  String get zerotierNetworkLegacyHint => '旧版 join 列表，请在网页端修改启用状态';
+
+  @override
+  String get zerotierApplyHint =>
+      '修改仅保存在本地，点「应用」才会写入并生效（同 LuCI 保存并应用）。';
+
+  @override
+  String get zerotierSaved => 'ZeroTier 设置已应用';
+
+  @override
+  String get zerotierSaveFailed => '应用 ZeroTier 设置失败';
+
+  @override
+  String get zerotierUnavailable => '无法使用 ZeroTier';
+
+  @override
+  String get zerotierUnavailableMessage => '无法从路由器读取 ZeroTier 配置。';
+
+  @override
+  String get zerotierApply => '应用';
+
+  @override
+  String get zerotierRefresh => '刷新';
 }

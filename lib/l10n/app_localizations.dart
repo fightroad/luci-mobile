@@ -1909,6 +1909,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No PAT'**
   String get easytierNatNoPat;
+
+  /// ZeroTier plugin title
+  ///
+  /// In en, this message translates to:
+  /// **'ZeroTier'**
+  String get zerotier;
+
+  /// ZeroTier entry subtitle on More screen
+  ///
+  /// In en, this message translates to:
+  /// **'Enable networks and apply like LuCI'**
+  String get zerotierSubtitle;
+
+  /// No description provided for @zerotierMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get zerotierMain;
+
+  /// No description provided for @zerotierEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable ZeroTier'**
+  String get zerotierEnabled;
+
+  /// No description provided for @zerotierEnabledSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maps to zerotier.global.enabled — tap Apply to save'**
+  String get zerotierEnabledSubtitle;
+
+  /// No description provided for @zerotierStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get zerotierStatus;
+
+  /// No description provided for @zerotierRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get zerotierRunning;
+
+  /// No description provided for @zerotierStopped.
+  ///
+  /// In en, this message translates to:
+  /// **'Not running'**
+  String get zerotierStopped;
+
+  /// No description provided for @zerotierRunningUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Status unknown'**
+  String get zerotierRunningUnknown;
+
+  /// No description provided for @zerotierPortValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Port {port}'**
+  String zerotierPortValue(String port);
+
+  /// No description provided for @zerotierNetworks.
+  ///
+  /// In en, this message translates to:
+  /// **'Networks'**
+  String get zerotierNetworks;
+
+  /// No description provided for @zerotierNetworksEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No ZeroTier networks configured'**
+  String get zerotierNetworksEmpty;
+
+  /// No description provided for @zerotierNetworkSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Section {section}'**
+  String zerotierNetworkSubtitle(String section);
+
+  /// No description provided for @zerotierNetworkLegacyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Legacy join list — edit enable on the router'**
+  String get zerotierNetworkLegacyHint;
+
+  /// No description provided for @zerotierApplyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes are local until you tap Apply (same as LuCI Save \& Apply).'**
+  String get zerotierApplyHint;
+
+  /// No description provided for @zerotierSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'ZeroTier settings applied'**
+  String get zerotierSaved;
+
+  /// No description provided for @zerotierSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to apply ZeroTier settings'**
+  String get zerotierSaveFailed;
+
+  /// No description provided for @zerotierUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'ZeroTier unavailable'**
+  String get zerotierUnavailable;
+
+  /// No description provided for @zerotierUnavailableMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read ZeroTier configuration from the router.'**
+  String get zerotierUnavailableMessage;
+
+  /// No description provided for @zerotierApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get zerotierApply;
+
+  /// No description provided for @zerotierRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get zerotierRefresh;
 }
 
 class _AppLocalizationsDelegate

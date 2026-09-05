@@ -13,6 +13,7 @@ import 'package:luci_mobile/config/app_config.dart';
 import 'package:luci_mobile/screens/manage_routers_screen.dart';
 import 'package:luci_mobile/screens/easytier_screen.dart';
 import 'package:luci_mobile/screens/passwall_screen.dart';
+import 'package:luci_mobile/screens/zerotier_screen.dart';
 import 'package:luci_mobile/utils/http_client_manager.dart';
 import 'package:luci_mobile/state/app_state.dart';
 
@@ -54,6 +55,9 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
   bool _easytierDetecting = false;
   bool _easytierTried = false;
   String? _easytierTriedRouterId;
+  bool _zerotierDetecting = false;
+  bool _zerotierTried = false;
+  String? _zerotierTriedRouterId;
 
   @override
   void didChangeDependencies() {
@@ -67,7 +71,40 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
     await Future.wait([
       _ensurePasswallDetected(),
       _ensureEasyTierDetected(),
+      _ensureZerotierDetected(),
     ]);
+  }
+
+  Future<void> _ensureZerotierDetected() async {
+    final appState = ref.read(appStateProvider);
+    if (!appState.isAuthenticated) {
+      _zerotierTried = false;
+      _zerotierTriedRouterId = null;
+      return;
+    }
+
+    final routerId = appState.selectedRouter?.id;
+    if (routerId != _zerotierTriedRouterId) {
+      _zerotierTriedRouterId = routerId;
+      _zerotierTried = false;
+    }
+
+    if (appState.zerotierInstalled != null ||
+        _zerotierDetecting ||
+        _zerotierTried) {
+      return;
+    }
+
+    _zerotierDetecting = true;
+    _zerotierTried = true;
+    try {
+      await appState.detectZerotier(context: mounted ? context : null);
+    } finally {
+      _zerotierDetecting = false;
+      if (ref.read(appStateProvider).zerotierInstalled == null) {
+        _zerotierTried = false;
+      }
+    }
   }
 
   Future<void> _ensureEasyTierDetected() async {
@@ -375,17 +412,24 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                 final easytierInstalled = ref.watch(
                   appStateProvider.select((state) => state.easytierInstalled),
                 );
+                final zerotierInstalled = ref.watch(
+                  appStateProvider.select((state) => state.zerotierInstalled),
+                );
                 // Re-run when router changes (installed is cleared to null).
                 ref.watch(
                   appStateProvider.select((state) => state.selectedRouter?.id),
                 );
-                if (passwallInstalled == null || easytierInstalled == null) {
+                if (passwallInstalled == null ||
+                    easytierInstalled == null ||
+                    zerotierInstalled == null) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (mounted) _ensurePluginsDetected();
                   });
                 }
                 final showPlugins =
-                    passwallInstalled == true || easytierInstalled == true;
+                    passwallInstalled == true ||
+                    easytierInstalled == true ||
+                    zerotierInstalled == true;
                 if (!showPlugins) {
                   return const SizedBox.shrink();
                 }
@@ -420,6 +464,24 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const EasyTierScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+                if (zerotierInstalled == true) {
+                  tiles.add(
+                    _buildMoreTile(
+                      context,
+                      icon: Icons.public_outlined,
+                      iconColor: Theme.of(context).colorScheme.primary,
+                      title: l10n.zerotier,
+                      subtitle: l10n.zerotierSubtitle,
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ZerotierScreen(),
                           ),
                         );
                       },
