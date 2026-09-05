@@ -4,6 +4,7 @@ import 'package:luci_mobile/design/luci_design_system.dart';
 import 'package:luci_mobile/l10n/app_localizations.dart';
 import 'package:luci_mobile/main.dart';
 import 'package:luci_mobile/models/zerotier_config.dart';
+import 'package:luci_mobile/utils/ethernet_port_info.dart';
 import 'package:luci_mobile/widgets/luci_app_bar.dart';
 
 class ZerotierScreen extends ConsumerStatefulWidget {
@@ -85,42 +86,67 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
         ),
         backgroundColor: success ? colorScheme.primary : colorScheme.error,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.symmetric(
-          horizontal: LuciSpacing.lg,
-          vertical: LuciSpacing.md,
-        ),
-        duration: const Duration(seconds: 3),
       ),
     );
   }
 
   Future<void> _apply() async {
     final draft = _draft;
-    final base = _baseline;
-    if (_busy || draft == null || base == null || !_isDirty()) return;
-
-    setState(() => _busy = true);
+    final baseline = _baseline;
+    if (draft == null || baseline == null || _busy) return;
     final l10n = AppLocalizations.of(context)!;
-    final ok = await ref.read(appStateProvider).applyZerotierSettings(
-      draft: draft,
-      baseline: base,
-      context: context,
-    );
+    setState(() => _busy = true);
+    final ok = await ref
+        .read(appStateProvider)
+        .applyZerotierSettings(
+          draft: draft,
+          baseline: baseline,
+          context: context,
+        );
     if (!mounted) return;
-
     if (ok) {
       final refreshed = ref.read(appStateProvider).zerotierConfig;
       setState(() {
-        _busy = false;
         _baseline = refreshed;
         _draft = refreshed;
+        _busy = false;
       });
       _showToast(l10n.zerotierSaved, success: true);
     } else {
       setState(() => _busy = false);
       _showToast(l10n.zerotierSaveFailed, success: false);
     }
+  }
+
+  Widget _infoRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontFamily: 'monospace',
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -132,6 +158,7 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
     final dirty = draft != null && _baseline != null && _isDirty();
     final colorScheme = Theme.of(context).colorScheme;
     final running = appState.zerotierRunning;
+    final interfaces = appState.zerotierInterfaces;
 
     return Scaffold(
       appBar: LuciAppBar(
@@ -269,9 +296,7 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
                               subtitle: Text(
                                 draft.isLegacyFormat
                                     ? l10n.zerotierNetworkLegacyHint
-                                    : l10n.zerotierNetworkSubtitle(
-                                        network.section,
-                                      ),
+                                    : l10n.zerotierNetworkSubtitle,
                               ),
                               value: network.enabled,
                               onChanged:
@@ -286,19 +311,85 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
                             ),
                           );
                         }),
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          LuciSpacing.lg,
-                          LuciSpacing.sm,
-                          LuciSpacing.lg,
-                          LuciSpacing.lg,
-                        ),
-                        child: Text(
-                          l10n.zerotierApplyHint,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: colorScheme.onSurfaceVariant),
-                        ),
-                      ),
+                      LuciSectionHeader(l10n.zerotierInterfaces),
+                      if (interfaces.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            LuciSpacing.lg,
+                            LuciSpacing.md,
+                            LuciSpacing.lg,
+                            LuciSpacing.lg,
+                          ),
+                          child: Text(
+                            l10n.zerotierInterfacesEmpty,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                        )
+                      else
+                        ...interfaces.map((iface) {
+                          return Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: LuciSpacing.md,
+                              vertical: LuciSpacing.sm,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(LuciSpacing.md),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    iface.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          fontFamily: 'monospace',
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  _infoRow(
+                                    context,
+                                    l10n.macAddress,
+                                    iface.mac ?? '—',
+                                  ),
+                                  _infoRow(
+                                    context,
+                                    l10n.ipAddress,
+                                    iface.ipv4 ?? '—',
+                                  ),
+                                  _infoRow(
+                                    context,
+                                    l10n.ipv6Address,
+                                    iface.ipv6 ?? '—',
+                                  ),
+                                  _infoRow(
+                                    context,
+                                    l10n.zerotierInterfaceMtu,
+                                    iface.mtu ?? '—',
+                                  ),
+                                  _infoRow(
+                                    context,
+                                    l10n.zerotierInterfaceDownload,
+                                    EthernetPortDetails.formatTrafficBytes(
+                                      iface.rxBytes,
+                                    ),
+                                  ),
+                                  _infoRow(
+                                    context,
+                                    l10n.zerotierInterfaceUpload,
+                                    EthernetPortDetails.formatTrafficBytes(
+                                      iface.txBytes,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
                     ],
                   ),
                 ),

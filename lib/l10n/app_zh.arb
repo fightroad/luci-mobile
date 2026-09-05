@@ -388,10 +388,10 @@
   "easytierNatFullCone": "全锥型",
   "easytierNatNoPat": "无端口映射",
   "zerotier": "ZeroTier",
-  "zerotierSubtitle": "开关网络并应用更改",
+  "zerotierSubtitle": "开关、网络与接口信息",
   "zerotierMain": "服务",
   "zerotierEnabled": "启用 ZeroTier",
-  "zerotierEnabledSubtitle": "对应 zerotier.global.enabled，点「应用」后生效",
+  "zerotierEnabledSubtitle": "启用或关闭 ZeroTier 服务",
   "zerotierStatus": "状态",
   "zerotierRunning": "运行中",
   "zerotierStopped": "未运行",
@@ -406,16 +406,13 @@
   },
   "zerotierNetworks": "网络列表",
   "zerotierNetworksEmpty": "尚未配置 ZeroTier 网络",
-  "zerotierNetworkSubtitle": "配置段 {section}",
-  "@zerotierNetworkSubtitle": {
-    "placeholders": {
-      "section": {
-        "type": "String"
-      }
-    }
-  },
+  "zerotierNetworkSubtitle": "启用后加入该网络",
   "zerotierNetworkLegacyHint": "旧版 join 列表，请在网页端修改启用状态",
-  "zerotierApplyHint": "修改仅保存在本地，点「应用」才会写入并生效（同 LuCI 保存并应用）。",
+  "zerotierInterfaces": "接口信息",
+  "zerotierInterfacesEmpty": "暂无在线的 ZeroTier 接口",
+  "zerotierInterfaceMtu": "MTU",
+  "zerotierInterfaceDownload": "总下载",
+  "zerotierInterfaceUpload": "总上传",
   "zerotierSaved": "ZeroTier 设置已应用",
   "zerotierSaveFailed": "应用 ZeroTier 设置失败",
   "zerotierUnavailable": "无法使用 ZeroTier",

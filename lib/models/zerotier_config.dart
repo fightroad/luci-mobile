@@ -1,3 +1,98 @@
+/// Snapshot of a live ZeroTier `zt*` adapter (LuCI Interface page fields).
+class ZerotierInterface {
+  final String name;
+  final String? mac;
+  final String? ipv4;
+  final String? ipv6;
+  final String? mtu;
+  final int rxBytes;
+  final int txBytes;
+
+  const ZerotierInterface({
+    required this.name,
+    this.mac,
+    this.ipv4,
+    this.ipv6,
+    this.mtu,
+    this.rxBytes = 0,
+    this.txBytes = 0,
+  });
+
+  static final RegExp _ztName = RegExp(r'^zt[a-z0-9]+$', caseSensitive: false);
+
+  /// Builds interface rows from `luci-rpc.getNetworkDevices`.
+  static List<ZerotierInterface> fromNetworkDevices(Map devices) {
+    final list = <ZerotierInterface>[];
+    for (final entry in devices.entries) {
+      final name = entry.key.toString().trim();
+      if (!_ztName.hasMatch(name)) continue;
+      final info = entry.value;
+      if (info is! Map) continue;
+
+      final link = info['link'] is Map ? info['link'] as Map : null;
+      final mac = _firstNonEmpty([
+        info['mac'],
+        info['macaddr'],
+        link?['mac'],
+        link?['macaddr'],
+      ]);
+      final mtu = _emptyToNull((info['mtu'] ?? link?['mtu'])?.toString());
+      final ipv4 = _firstIp(_stringList(info['ipaddrs']));
+      final ipv6 = _firstIp(_stringList(info['ip6addrs']));
+
+      list.add(
+        ZerotierInterface(
+          name: name,
+          mac: mac,
+          ipv4: ipv4,
+          ipv6: ipv6,
+          mtu: mtu,
+          rxBytes: _statBytes(info, 'rx_bytes'),
+          txBytes: _statBytes(info, 'tx_bytes'),
+        ),
+      );
+    }
+    list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return list;
+  }
+
+  static String? _firstNonEmpty(List<dynamic> values) {
+    for (final value in values) {
+      final text = value?.toString().trim() ?? '';
+      if (text.isNotEmpty) return text;
+    }
+    return null;
+  }
+
+  static String? _firstIp(List<String> addrs) {
+    for (final addr in addrs) {
+      final cleaned = addr.split('/').first.trim();
+      if (cleaned.isNotEmpty) return cleaned;
+    }
+    return null;
+  }
+
+  static String? _emptyToNull(String? value) {
+    final text = value?.trim() ?? '';
+    return text.isEmpty ? null : text;
+  }
+
+  static int _statBytes(Map info, String key) {
+    final stats = info['stats'];
+    if (stats is Map) {
+      return _asInt(stats[key]) ?? 0;
+    }
+    return _asInt(info[key]) ?? 0;
+  }
+
+  static int? _asInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.round();
+    return int.tryParse(value.toString());
+  }
+}
+
 /// Snapshot of OpenWrt / ImmortalWrt `luci-app-zerotier` UCI (`config zerotier`).
 ///
 /// Modern layout:
@@ -141,17 +236,17 @@ class ZerotierConfig {
     if (text.isEmpty) return defaultValue;
     return text == '1' || text == 'true' || text == 'yes' || text == 'on';
   }
+}
 
-  static List<String> _stringList(dynamic value) {
-    if (value is List) {
-      return value
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
-          .toList();
-    }
-    if (value is String && value.trim().isNotEmpty) {
-      return [value.trim()];
-    }
-    return const [];
+List<String> _stringList(dynamic value) {
+  if (value is List) {
+    return value
+        .map((e) => e.toString().trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
+  if (value is String && value.trim().isNotEmpty) {
+    return [value.trim()];
+  }
+  return const [];
 }

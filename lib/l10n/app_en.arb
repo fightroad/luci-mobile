@@ -1013,13 +1013,13 @@
   "@zerotier": {
     "description": "ZeroTier plugin title"
   },
-  "zerotierSubtitle": "Enable networks and apply changes",
+  "zerotierSubtitle": "Toggle, networks, and interfaces",
   "@zerotierSubtitle": {
     "description": "ZeroTier entry subtitle on More screen"
   },
   "zerotierMain": "Service",
   "zerotierEnabled": "Enable ZeroTier",
-  "zerotierEnabledSubtitle": "Maps to zerotier.global.enabled — tap Apply to save",
+  "zerotierEnabledSubtitle": "Enable or disable the ZeroTier service",
   "zerotierStatus": "Status",
   "zerotierRunning": "Running",
   "zerotierStopped": "Not running",
@@ -1034,16 +1034,13 @@
   },
   "zerotierNetworks": "Networks",
   "zerotierNetworksEmpty": "No ZeroTier networks configured",
-  "zerotierNetworkSubtitle": "Section {section}",
-  "@zerotierNetworkSubtitle": {
-    "placeholders": {
-      "section": {
-        "type": "String"
-      }
-    }
-  },
+  "zerotierNetworkSubtitle": "Join this network when enabled",
   "zerotierNetworkLegacyHint": "Legacy join list — edit enable on the router",
-  "zerotierApplyHint": "Changes are local until you tap Apply (same as LuCI Save & Apply).",
+  "zerotierInterfaces": "Interfaces",
+  "zerotierInterfacesEmpty": "No ZeroTier interface online",
+  "zerotierInterfaceMtu": "MTU",
+  "zerotierInterfaceDownload": "Total Download",
+  "zerotierInterfaceUpload": "Total Upload",
   "zerotierSaved": "ZeroTier settings applied",
   "zerotierSaveFailed": "Failed to apply ZeroTier settings",
   "zerotierUnavailable": "ZeroTier unavailable",

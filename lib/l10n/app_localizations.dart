@@ -1919,7 +1919,7 @@ abstract class AppLocalizations {
   /// ZeroTier entry subtitle on More screen
   ///
   /// In en, this message translates to:
-  /// **'Enable networks and apply changes'**
+  /// **'Toggle, networks, and interfaces'**
   String get zerotierSubtitle;
 
   /// No description provided for @zerotierMain.
@@ -1937,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @zerotierEnabledSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Maps to zerotier.global.enabled — tap Apply to save'**
+  /// **'Enable or disable the ZeroTier service'**
   String get zerotierEnabledSubtitle;
 
   /// No description provided for @zerotierStatus.
@@ -1985,8 +1985,8 @@ abstract class AppLocalizations {
   /// No description provided for @zerotierNetworkSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Section {section}'**
-  String zerotierNetworkSubtitle(String section);
+  /// **'Join this network when enabled'**
+  String get zerotierNetworkSubtitle;
 
   /// No description provided for @zerotierNetworkLegacyHint.
   ///
@@ -1994,11 +1994,35 @@ abstract class AppLocalizations {
   /// **'Legacy join list — edit enable on the router'**
   String get zerotierNetworkLegacyHint;
 
-  /// No description provided for @zerotierApplyHint.
+  /// No description provided for @zerotierInterfaces.
   ///
   /// In en, this message translates to:
-  /// **'Changes are local until you tap Apply (same as LuCI Save \& Apply).'**
-  String get zerotierApplyHint;
+  /// **'Interfaces'**
+  String get zerotierInterfaces;
+
+  /// No description provided for @zerotierInterfacesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No ZeroTier interface online'**
+  String get zerotierInterfacesEmpty;
+
+  /// No description provided for @zerotierInterfaceMtu.
+  ///
+  /// In en, this message translates to:
+  /// **'MTU'**
+  String get zerotierInterfaceMtu;
+
+  /// No description provided for @zerotierInterfaceDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Download'**
+  String get zerotierInterfaceDownload;
+
+  /// No description provided for @zerotierInterfaceUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Upload'**
+  String get zerotierInterfaceUpload;
 
   /// No description provided for @zerotierSaved.
   ///

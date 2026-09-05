@@ -970,7 +970,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zerotier => 'ZeroTier';
 
   @override
-  String get zerotierSubtitle => 'Enable networks and apply changes';
+  String get zerotierSubtitle => 'Toggle, networks, and interfaces';
 
   @override
   String get zerotierMain => 'Service';
@@ -980,7 +980,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get zerotierEnabledSubtitle =>
-      'Maps to zerotier.global.enabled — tap Apply to save';
+      'Enable or disable the ZeroTier service';
 
   @override
   String get zerotierStatus => 'Status';
@@ -1006,17 +1006,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zerotierNetworksEmpty => 'No ZeroTier networks configured';
 
   @override
-  String zerotierNetworkSubtitle(String section) {
-    return 'Section $section';
-  }
+  String get zerotierNetworkSubtitle => 'Join this network when enabled';
 
   @override
   String get zerotierNetworkLegacyHint =>
       'Legacy join list — edit enable on the router';
 
   @override
-  String get zerotierApplyHint =>
-      'Changes are local until you tap Apply (same as LuCI Save & Apply).';
+  String get zerotierInterfaces => 'Interfaces';
+
+  @override
+  String get zerotierInterfacesEmpty => 'No ZeroTier interface online';
+
+  @override
+  String get zerotierInterfaceMtu => 'MTU';
+
+  @override
+  String get zerotierInterfaceDownload => 'Total Download';
+
+  @override
+  String get zerotierInterfaceUpload => 'Total Upload';
 
   @override
   String get zerotierSaved => 'ZeroTier settings applied';

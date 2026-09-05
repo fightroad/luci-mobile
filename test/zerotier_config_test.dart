@@ -58,4 +58,32 @@ void main() {
       expect(base.networks.single.enabled, isTrue);
     });
   });
+
+  group('ZerotierInterface', () {
+    test('fromNetworkDevices filters zt* and maps fields', () {
+      final list = ZerotierInterface.fromNetworkDevices({
+        'br-lan': {
+          'mac': 'aa:bb:cc:dd:ee:ff',
+          'ipaddrs': ['192.168.1.1'],
+        },
+        'ztabcdef123': {
+          'mac': '11:22:33:44:55:66',
+          'mtu': 2800,
+          'ipaddrs': ['10.147.20.5/24'],
+          'ip6addrs': ['fd00::1/64'],
+          'stats': {'rx_bytes': 2048, 'tx_bytes': 1024},
+        },
+      });
+
+      expect(list, hasLength(1));
+      final iface = list.single;
+      expect(iface.name, 'ztabcdef123');
+      expect(iface.mac, '11:22:33:44:55:66');
+      expect(iface.ipv4, '10.147.20.5');
+      expect(iface.ipv6, 'fd00::1');
+      expect(iface.mtu, '2800');
+      expect(iface.rxBytes, 2048);
+      expect(iface.txBytes, 1024);
+    });
+  });
 }

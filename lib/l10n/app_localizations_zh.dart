@@ -943,7 +943,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get zerotier => 'ZeroTier';
 
   @override
-  String get zerotierSubtitle => '开关网络并应用更改';
+  String get zerotierSubtitle => '开关、网络与接口信息';
 
   @override
   String get zerotierMain => '服务';
@@ -952,8 +952,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get zerotierEnabled => '启用 ZeroTier';
 
   @override
-  String get zerotierEnabledSubtitle =>
-      '对应 zerotier.global.enabled，点「应用」后生效';
+  String get zerotierEnabledSubtitle => '启用或关闭 ZeroTier 服务';
 
   @override
   String get zerotierStatus => '状态';
@@ -979,16 +978,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get zerotierNetworksEmpty => '尚未配置 ZeroTier 网络';
 
   @override
-  String zerotierNetworkSubtitle(String section) {
-    return '配置段 $section';
-  }
+  String get zerotierNetworkSubtitle => '启用后加入该网络';
 
   @override
   String get zerotierNetworkLegacyHint => '旧版 join 列表，请在网页端修改启用状态';
 
   @override
-  String get zerotierApplyHint =>
-      '修改仅保存在本地，点「应用」才会写入并生效（同 LuCI 保存并应用）。';
+  String get zerotierInterfaces => '接口信息';
+
+  @override
+  String get zerotierInterfacesEmpty => '暂无在线的 ZeroTier 接口';
+
+  @override
+  String get zerotierInterfaceMtu => 'MTU';
+
+  @override
+  String get zerotierInterfaceDownload => '总下载';
+
+  @override
+  String get zerotierInterfaceUpload => '总上传';
 
   @override
   String get zerotierSaved => 'ZeroTier 设置已应用';

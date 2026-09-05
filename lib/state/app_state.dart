@@ -87,6 +87,8 @@ class AppState extends ChangeNotifier {
   ZerotierConfig? get zerotierConfig => _zerotierConfig;
   bool? _zerotierRunning;
   bool? get zerotierRunning => _zerotierRunning;
+  List<ZerotierInterface> _zerotierInterfaces = const [];
+  List<ZerotierInterface> get zerotierInterfaces => _zerotierInterfaces;
   bool _isZerotierLoading = false;
   bool get isZerotierLoading => _isZerotierLoading;
   String? _zerotierError;
@@ -372,6 +374,7 @@ class AppState extends ChangeNotifier {
     _zerotierInstalled = null;
     _zerotierConfig = null;
     _zerotierRunning = null;
+    _zerotierInterfaces = const [];
     _zerotierError = null;
     _isZerotierLoading = false;
 
@@ -526,6 +529,7 @@ class AppState extends ChangeNotifier {
     _zerotierInstalled = null;
     _zerotierConfig = null;
     _zerotierRunning = null;
+    _zerotierInterfaces = const [];
     _zerotierError = null;
     _isZerotierLoading = false;
     _cancelThroughputTimer();
@@ -2514,6 +2518,7 @@ class AppState extends ChangeNotifier {
       _zerotierInstalled = false;
       _zerotierConfig = null;
       _zerotierRunning = null;
+      _zerotierInterfaces = const [];
       notifyListeners();
       return false;
     }
@@ -2539,6 +2544,7 @@ class AppState extends ChangeNotifier {
       if (!installed) {
         _zerotierConfig = null;
         _zerotierRunning = null;
+        _zerotierInterfaces = const [];
       }
       notifyListeners();
       return installed;
@@ -2574,6 +2580,7 @@ class AppState extends ChangeNotifier {
         _zerotierInstalled = false;
         _zerotierConfig = null;
         _zerotierRunning = null;
+        _zerotierInterfaces = const [];
         _zerotierError = 'ZeroTier config not found';
         return null;
       }
@@ -2581,9 +2588,11 @@ class AppState extends ChangeNotifier {
       final config = ZerotierConfig.fromUciValues(values);
       _zerotierInstalled = true;
       _zerotierConfig = config;
-      _zerotierRunning = await _fetchZerotierServiceRunning(
-        context: context?.mounted == true ? context : null,
-      );
+      final ctx = context?.mounted == true ? context : null;
+      final runningFuture = _fetchZerotierServiceRunning(context: ctx);
+      final interfacesFuture = _fetchZerotierInterfaces(context: ctx);
+      _zerotierRunning = await runningFuture;
+      _zerotierInterfaces = await interfacesFuture;
       return config;
     } catch (e, stack) {
       Logger.exception('Failed to fetch ZeroTier config', e, stack);
@@ -2681,6 +2690,33 @@ class AppState extends ChangeNotifier {
       Logger.debug('ZeroTier service list failed: $e');
       return null;
     }
+  }
+
+  /// Live `zt*` adapters from `luci-rpc.getNetworkDevices`.
+  Future<List<ZerotierInterface>> _fetchZerotierInterfaces({
+    BuildContext? context,
+  }) async {
+    if (_authService?.sysauth == null || _authService?.ipAddress == null) {
+      return const [];
+    }
+    try {
+      final result = await _apiService!.call(
+        _authService!.ipAddress!,
+        _authService!.sysauth!,
+        _authService!.useHttps,
+        object: 'luci-rpc',
+        method: 'getNetworkDevices',
+        params: {},
+        context: context?.mounted == true ? context : null,
+      );
+      final data = _unwrapLuciRpc(result);
+      if (data is Map) {
+        return ZerotierInterface.fromNetworkDevices(data);
+      }
+    } catch (e) {
+      Logger.debug('ZeroTier getNetworkDevices failed: $e');
+    }
+    return const [];
   }
 
   static bool _parseZerotierServiceRunning(dynamic data) {
