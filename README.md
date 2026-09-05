@@ -2,57 +2,52 @@
 
 <div align="center">
 
-![Latest Release](https://img.shields.io/github/v/release/fightroad/luci-mobile?style=flat-square&label=Latest%20Release&logo=github&color=0A84FF)
-![GitHub all downloads](https://img.shields.io/github/downloads/fightroad/luci-mobile/total?style=flat-square&label=Downloads&logo=github&color=0A84FF)
+[![Latest Release](https://img.shields.io/github/v/release/fightroad/luci-mobile?style=flat-square&label=Latest%20Release&logo=github&color=0A84FF)](https://github.com/fightroad/luci-mobile/releases)
+[![Downloads](https://img.shields.io/github/downloads/fightroad/luci-mobile/total?style=flat-square&label=Downloads&logo=github&color=0A84FF)](https://github.com/fightroad/luci-mobile/releases)
 
-<br>
+面向 OpenWrt / LuCI 的移动端管理应用：重监控、轻设置，支持多路由器与常用插件。
 
-[Releases](https://github.com/fightroad/luci-mobile/releases)
+[下载 Releases](https://github.com/fightroad/luci-mobile/releases) · [Issues](https://github.com/fightroad/luci-mobile/issues)
 
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_01.png" width="300"/>
 </div>
 
-<br>
+## 预览
 
-**LuCI Mobile** is a modern Flutter app for managing and monitoring multiple OpenWrt/LuCI routers. It features a beautiful Material 3 UI, secure authentication, real-time stats, and seamless multi-router support.
+<table>
+  <tr>
+    <td align="center" width="33%"><b>仪表板</b></td>
+    <td align="center" width="33%"><b>PassWall</b></td>
+    <td align="center" width="33%"><b>更多</b></td>
+  </tr>
+  <tr>
+    <td align="center" valign="top">
+      <img src="doc/Dashboard.png" width="220" height="477" alt="Dashboard"/>
+    </td>
+    <td align="center" valign="top">
+      <img src="doc/passwall.PNG" width="220" height="477" alt="PassWall"/>
+    </td>
+    <td align="center" valign="top">
+      <img src="doc/more.PNG" width="220" height="477" alt="More"/>
+    </td>
+  </tr>
+</table>
 
----
+## 功能
 
-## Features
+- **仪表板监控**：系统负载、内存、接口吞吐、无线与网口状态；支持 Wi‑Fi 二维码分享、网口流量详情
+- **多路由器**：添加 / 切换 / 编辑多台路由，凭证本机安全存储，数据相互隔离
+- **客户端与接口**：在线设备、有线 / 无线归属、接口地址与流量
+- **插件（检测到才显示）**
+  - **PassWall**：开关、节点与分流、连通性测试、TCP / UDP / DNS 运行状态、日志
+  - **EasyTier**：核心开关、重启、状态与节点
+  - **ZeroTier**：服务与网络开关、应用配置、`zt*` 接口信息
+- **系统**：远程重启、主题与显示偏好
 
-- **Multiple Router Management:** Add, switch, and manage any number of OpenWrt routers. Each router’s data is kept separate and secure.
-- **Secure Login:** HTTP/HTTPS support, self-signed certificate handling, and secure credential storage.
-- **Dashboard Overview:** Real-time system stats, interface status, connected clients, and interactive charts.
-- **Network Interface Management:** View and monitor all wired and wireless interfaces, bandwidth, IPs, and DNS.
-- **Client Management:** See all connected devices, connection type, MAC/IP, vendor, DHCP lease, and more.
-- **System Control:** Remote reboot, settings, and theme customization (light/dark mode).
-- **Modern UI/UX:** Material Design 3, responsive layout, and intuitive navigation.
-- **Open Source:** GPLv3 licensed. Builds and releases: [GitHub Releases](https://github.com/fightroad/luci-mobile/releases).
+## 安装
 
----
+从 [GitHub Releases](https://github.com/fightroad/luci-mobile/releases) 下载安装包。
 
-## Multiple Router Functionality
-
-- **Add Unlimited Routers:** Each with its own credentials and settings.
-- **Quick Switch:** Instantly switch routers from the dashboard dropdown or "Manage Routers" screen.
-- **Isolated Data:** Each router’s dashboard, clients, and settings are kept separate.
-- **Edit & Remove:** Update credentials, rename, or remove routers at any time.
-- **Auto-Connect:** Remembers your last selected router and auto-connects on launch.
-- **Secure Storage:** All credentials are stored securely on your device.
-
----
-
-## Screenshots
-
-| Login | Dashboard | Clients | Interfaces |
-|-------|-----------|---------|------------|
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_02.png" width="200"/> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_01.png" width="200"/> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_03.png" width="200"/> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/flutter_05.png" width="200"/> |
-
----
-
-## Installation
-
-**Download from [GitHub Releases](https://github.com/fightroad/luci-mobile/releases)**, or build from source:
+或自行构建：
 
 ```bash
 git clone https://github.com/fightroad/luci-mobile.git
@@ -61,64 +56,33 @@ flutter pub get
 flutter run
 ```
 
-- Requires Flutter 3.32.5+ and Dart 3.8+
-- Android: `flutter build apk`  
-- iOS: `flutter build ios`
+- Flutter 3.32+ / Dart 3.8+
+- Android：`flutter build apk --release`
+- iOS：`flutter build ios --release`
 
----
+## 路由器要求
 
-## Project Structure
+- 已启用 LuCI，并安装 RPC 相关组件，例如：
 
-```
-lib/
-├── config/                 # App configuration
-├── models/                 # Data models (client, interface, router)
-├── screens/                # UI screens (dashboard, clients, interfaces, login, more, etc.)
-├── services/               # Business logic (API, secure storage)
-├── state/                  # State management (app_state.dart)
-├── widgets/                # Reusable UI components (luci_app_bar.dart)
-└── main.dart               # App entry point
+```bash
+opkg update
+opkg install luci-mod-rpc rpcd-mod-luci rpcd-mod-iwinfo luci-mod-status
+/etc/init.d/rpcd restart
 ```
 
----
+- 确认：`ubus list luci-rpc`
+- 插件功能需路由器上已安装对应 luci-app（如 `luci-app-passwall`、`luci-app-easytier`、`luci-app-zerotier`）
 
-## Development & Contribution
+## 故障排查
 
-- Run in dev mode: `flutter run`
-- Build for release: `flutter build apk --release` or `flutter build ios --release`
-- Analyze code: `flutter analyze`
+| 问题 | 建议 |
+|------|------|
+| 连接失败 | 检查 IP、防火墙，尝试 HTTP / HTTPS |
+| 认证失败 | 确认账号密码与管理员权限 |
+| 无数据 | 确认 `luci-rpc` 可用，必要时重启 `rpcd` 或整机 |
 
-**Contributions welcome!** Please fork, branch, and submit a pull request.
+## 许可与致谢
 
----
-
-## Security & Privacy
-- All credentials are stored securely on-device
-- HTTPS and self-signed certificate support
-- No analytics or tracking
-
----
-
-## Troubleshooting
-
-- **Connection Failed:** Check router IP, LuCI web interface, firewall, and try both HTTP/HTTPS.
-- **Authentication Failed:** Verify credentials and admin privileges.
-- **No Data Displayed:** Ensure the router has LuCI RPC support: `opkg update && opkg install luci-mod-rpc rpcd-mod-luci rpcd-mod-iwinfo luci-mod-status`, restart `rpcd` (or reboot), then verify with `ubus list luci-rpc` and `ubus call luci-rpc getNetworkDevices '{}'`.
-
----
-
-## License
-
-GPL v3.0. See [LICENSE](LICENSE).
-
----
-
-## Acknowledgments
-- OpenWrt community for LuCI
-- Flutter team
-- [OpenWrtManager](https://github.com/hagaygo/OpenWrtManager) inspiration
-- Contributors and testers
-
----
-
-**Note:** This app requires an OpenWrt router with LuCI web interface enabled. Make sure your router is properly configured before use.
+- 许可：[GPL-3.0](LICENSE)
+- 上游与社区：OpenWrt / LuCI、Flutter
+- 灵感：[OpenWrtManager](https://github.com/hagaygo/OpenWrtManager)
