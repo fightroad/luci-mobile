@@ -808,8 +808,9 @@ class RealApiService implements IApiService {
     String ipAddress,
     String sysauth,
     bool useHttps, {
-    // Passwall prepends http(s)://; a full URL becomes https://https://...
-    String url = 'www.google.com/generate_204',
+    // Must match LuCI status.htm: check_connect('google', 'https://...')
+    // Without https://, curl skips TLS and can report bogus ~2ms latency.
+    String url = 'https://www.google.com/generate_204',
     String type = 'google',
     BuildContext? context,
   }) async {

@@ -118,7 +118,7 @@ abstract class IApiService {
     String ipAddress,
     String sysauth,
     bool useHttps, {
-    String url = 'www.google.com/generate_204',
+    String url = 'https://www.google.com/generate_204',
     String type = 'google',
     BuildContext? context,
   });
