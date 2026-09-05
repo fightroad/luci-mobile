@@ -88,6 +88,7 @@
   "wired": "有线",
   "unknown": "未知",
   "ipAddress": "IP 地址",
+  "ipv4Address": "IPv4 地址",
   "ipv6Address": "IPv6 地址",
   "macAddress": "MAC 地址",
   "vendor": "厂商",

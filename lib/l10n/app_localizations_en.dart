@@ -241,6 +241,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ipAddress => 'IP Address';
 
   @override
+  String get ipv4Address => 'IPv4 Address';
+
+  @override
   String get ipv6Address => 'IPv6 Address';
 
   @override

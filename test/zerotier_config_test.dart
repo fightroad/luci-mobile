@@ -85,5 +85,31 @@ void main() {
       expect(iface.rxBytes, 2048);
       expect(iface.txBytes, 1024);
     });
+
+    test('fromNetworkDevices extracts address from map entries', () {
+      final list = ZerotierInterface.fromNetworkDevices({
+        'ztw4lpwzq7': {
+          'mac': 'DE:25:6D:13:43:BB',
+          'mtu': 2800,
+          'ipaddrs': [
+            {
+              'address': '10.11.12.1',
+              'netmask': '255.255.255.0',
+              'broadcast': '10.11.12.255',
+            },
+          ],
+          'ip6addrs': [
+            {
+              'address': 'fe80::dc25:6dff:fe13:43bb',
+              'netmask': 'ffff:ffff:ffff:ffff::',
+            },
+          ],
+          'stats': {'rx_bytes': 100, 'tx_bytes': 50},
+        },
+      });
+
+      expect(list.single.ipv4, '10.11.12.1');
+      expect(list.single.ipv6, 'fe80::dc25:6dff:fe13:43bb');
+    });
   });
 }

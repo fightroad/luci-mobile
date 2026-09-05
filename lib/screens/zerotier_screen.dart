@@ -358,7 +358,7 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
                                   ),
                                   _infoRow(
                                     context,
-                                    l10n.ipAddress,
+                                    l10n.ipv4Address,
                                     iface.ipv4 ?? '—',
                                   ),
                                   _infoRow(

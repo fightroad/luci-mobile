@@ -37,8 +37,8 @@ class ZerotierInterface {
         link?['macaddr'],
       ]);
       final mtu = _emptyToNull((info['mtu'] ?? link?['mtu'])?.toString());
-      final ipv4 = _firstIp(_stringList(info['ipaddrs']));
-      final ipv6 = _firstIp(_stringList(info['ip6addrs']));
+      final ipv4 = _firstAddress(info['ipaddrs']);
+      final ipv6 = _firstAddress(info['ip6addrs']);
 
       list.add(
         ZerotierInterface(
@@ -64,12 +64,25 @@ class ZerotierInterface {
     return null;
   }
 
-  static String? _firstIp(List<String> addrs) {
-    for (final addr in addrs) {
-      final cleaned = addr.split('/').first.trim();
-      if (cleaned.isNotEmpty) return cleaned;
+  /// LuCI may return `"10.0.0.1/24"` or `{address, netmask, …}` — keep address only.
+  static String? _firstAddress(dynamic value) {
+    if (value is! List) return null;
+    for (final item in value) {
+      final address = _extractAddress(item);
+      if (address != null) return address;
     }
     return null;
+  }
+
+  static String? _extractAddress(dynamic item) {
+    if (item is Map) {
+      final raw = item['address']?.toString().trim() ?? '';
+      if (raw.isEmpty) return null;
+      return raw.split('/').first.trim();
+    }
+    final text = item?.toString().trim() ?? '';
+    if (text.isEmpty || text.startsWith('{')) return null;
+    return text.split('/').first.trim();
   }
 
   static String? _emptyToNull(String? value) {

@@ -236,6 +236,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ipAddress => 'IP 地址';
 
   @override
+  String get ipv4Address => 'IPv4 地址';
+
+  @override
   String get ipv6Address => 'IPv6 地址';
 
   @override

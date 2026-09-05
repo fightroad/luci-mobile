@@ -306,6 +306,10 @@
   "@ipAddress": {
     "description": "IP Address label"
   },
+  "ipv4Address": "IPv4 Address",
+  "@ipv4Address": {
+    "description": "IPv4 Address label"
+  },
   "ipv6Address": "IPv6 Address",
   "@ipv6Address": {
     "description": "IPv6 Address label"

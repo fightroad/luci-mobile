@@ -542,6 +542,12 @@ abstract class AppLocalizations {
   /// **'IP Address'**
   String get ipAddress;
 
+  /// IPv4 Address label
+  ///
+  /// In en, this message translates to:
+  /// **'IPv4 Address'**
+  String get ipv4Address;
+
   /// IPv6 Address label
   ///
   /// In en, this message translates to:
