@@ -1046,7 +1046,6 @@
   "zerotierNetworks": "Networks",
   "zerotierNetworksEmpty": "No ZeroTier networks configured",
   "zerotierNetworkSubtitle": "Join this network when enabled",
-  "zerotierNetworkLegacyHint": "Legacy join list — edit enable on the router",
   "zerotierInterfaces": "Interfaces",
   "zerotierInterfacesEmpty": "No ZeroTier interface online",
   "zerotierInterfaceMtu": "MTU",

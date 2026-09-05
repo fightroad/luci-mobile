@@ -415,7 +415,6 @@
   "zerotierNetworks": "网络列表",
   "zerotierNetworksEmpty": "尚未配置 ZeroTier 网络",
   "zerotierNetworkSubtitle": "启用后加入该网络",
-  "zerotierNetworkLegacyHint": "旧版 join 列表，请在网页端修改启用状态",
   "zerotierInterfaces": "接口信息",
   "zerotierInterfacesEmpty": "暂无在线的 ZeroTier 接口",
   "zerotierInterfaceMtu": "MTU",

@@ -1033,10 +1033,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zerotierNetworkSubtitle => 'Join this network when enabled';
 
   @override
-  String get zerotierNetworkLegacyHint =>
-      'Legacy join list — edit enable on the router';
-
-  @override
   String get zerotierInterfaces => 'Interfaces';
 
   @override

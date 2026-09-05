@@ -293,11 +293,7 @@ class _ZerotierScreenState extends ConsumerState<ZerotierScreen> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                              subtitle: Text(
-                                draft.isLegacyFormat
-                                    ? l10n.zerotierNetworkLegacyHint
-                                    : l10n.zerotierNetworkSubtitle,
-                              ),
+                              subtitle: Text(l10n.zerotierNetworkSubtitle),
                               value: network.enabled,
                               onChanged:
                                   _busy || draft.isLegacyFormat

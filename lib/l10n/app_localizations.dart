@@ -2036,12 +2036,6 @@ abstract class AppLocalizations {
   /// **'Join this network when enabled'**
   String get zerotierNetworkSubtitle;
 
-  /// No description provided for @zerotierNetworkLegacyHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Legacy join list — edit enable on the router'**
-  String get zerotierNetworkLegacyHint;
-
   /// No description provided for @zerotierInterfaces.
   ///
   /// In en, this message translates to:

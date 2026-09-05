@@ -1005,9 +1005,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get zerotierNetworkSubtitle => '启用后加入该网络';
 
   @override
-  String get zerotierNetworkLegacyHint => '旧版 join 列表，请在网页端修改启用状态';
-
-  @override
   String get zerotierInterfaces => '接口信息';
 
   @override
